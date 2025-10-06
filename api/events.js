@@ -18,45 +18,58 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Try different API endpoint structure
-    const params = new URLSearchParams({
-      'location.latitude': '35.2271',
-      'location.longitude': '-80.8431',
-      'location.within': '25mi',
-      'expand': 'venue,ticket_availability',
-      'sort_by': 'date'
-    });
-
-    const response = await fetch(
-      `https://www.eventbriteapi.com/v3/events/search/?${params.toString()}`,
+    // First, let's test if the token works at all by getting user info
+    const testResponse = await fetch(
+      'https://www.eventbriteapi.com/v3/users/me/',
       {
         headers: {
-          'Authorization': `Bearer ${EVENTBRITE_TOKEN}`,
-          'Content-Type': 'application/json'
+          'Authorization': `Bearer ${EVENTBRITE_TOKEN}`
         }
       }
     );
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Eventbrite API Error:', response.status, errorText);
-      
-      let errorData;
-      try {
-        errorData = JSON.parse(errorText);
-      } catch {
-        errorData = { error_description: errorText };
-      }
-      
-      return res.status(response.status).json({ 
-        error: errorData.error_description || errorData.error || 'Failed to fetch events from Eventbrite',
+    if (!testResponse.ok) {
+      const errorText = await testResponse.text();
+      return res.status(500).json({ 
+        error: 'Eventbrite token is invalid or expired',
         details: errorText,
-        status: response.status
+        status: testResponse.status,
+        suggestion: 'Please generate a new Private Token from your Eventbrite account'
       });
     }
 
-    const data = await response.json();
+    // Now try to fetch events - using organization events instead of search
+    const userInfo = await testResponse.json();
+    
+    // Try the events search endpoint
+    const searchResponse = await fetch(
+      'https://www.eventbriteapi.com/v3/events/search/?location.address=charlotte&location.within=25mi&expand=venue,ticket_availability',
+      {
+        headers: {
+          'Authorization': `Bearer ${EVENTBRITE_TOKEN}`
+        }
+      }
+    );
+
+    if (!searchResponse.ok) {
+      const errorText = await searchResponse.text();
+      console.error('Search API Error:', searchResponse.status, errorText);
+      
+      // If search doesn't work, return a helpful error
+      return res.status(200).json({ 
+        events: [],
+        pagination: { object_count: 0 },
+        warning: 'Event search endpoint not available with this token type. You may need OAuth access.',
+        tokenInfo: {
+          valid: true,
+          user: userInfo.name || userInfo.email
+        }
+      });
+    }
+
+    const data = await searchResponse.json();
     res.status(200).json(data);
+    
   } catch (error) {
     console.error('Eventbrite API Error:', error);
     res.status(500).json({ error: 'Internal server error', details: error.message });
