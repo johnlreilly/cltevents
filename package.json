@@ -1,0 +1,13 @@
+{
+  "name": "charlotte-events-app",
+  "version": "1.0.0",
+  "description": "Event discovery app for Charlotte, NC",
+  "main": "index.html",
+  "scripts": {
+    "start": "serve .",
+    "build": "echo 'No build needed'"
+  },
+  "keywords": ["events", "charlotte", "eventbrite"],
+  "author": "",
+  "license": "MIT"
+}
