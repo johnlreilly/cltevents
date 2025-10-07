@@ -14,10 +14,13 @@
   
   <script type="text/babel">
     const { useState } = React;
-    
+
     const EventDiscoveryApp = () => {
       const [selectedCategory, setSelectedCategory] = useState('all');
-      const [favorites, setFavorites] = useState([]);
+      const [favorites, setFavorites] = useState(() => {
+        const saved = localStorage.getItem('cltevents-favorites');
+        return saved ? JSON.parse(saved) : [];
+      });
       const today = new Date().toISOString().split('T')[0];
       const [dateRange, setDateRange] = useState({ start: today, end: '' });
       const [priceRange, setPriceRange] = useState({ min: '', max: '' });
@@ -35,6 +38,10 @@
       React.useEffect(() => {
         fetchEvents();
       }, []);
+
+      React.useEffect(() => {
+        localStorage.setItem('cltevents-favorites', JSON.stringify(favorites));
+      }, [favorites]);
 
       const excludeKeywords = ['bingo', 'trivia', 'drag', 'kids', 'children\'s', 'day party', 'bridal', 'disney', 'comedy'];
       
@@ -73,7 +80,9 @@
         });
 
         if (selectedCategory !== 'all') {
-          if (selectedCategory === 'divebars') {
+          if (selectedCategory === 'favorites') {
+            filtered = filtered.filter(e => favorites.includes(e.id));
+          } else if (selectedCategory === 'divebars') {
             filtered = filtered.filter(e =>
               diveBarVenues.some(venue => e.venue.toLowerCase().includes(venue))
             );
@@ -155,10 +164,11 @@
 
       const categories = [
         { id: 'all', name: 'All' },
+        { id: 'favorites', name: 'Favorites', icon: '❤️' },
+        { id: 'divebars', name: 'Dive Bars' },
         { id: 'music', name: 'Music' },
         { id: 'sports', name: 'Sports' },
-        { id: 'food', name: 'Food & Drink' },
-        { id: 'divebars', name: 'Dive Bars' }
+        { id: 'food', name: 'Food & Drink' }
       ];
 
       const toggleFavorite = (eventId) => {
@@ -382,7 +392,7 @@
                 </svg>
               </div>
               <h2 className="text-2xl font-bold text-gray-800 mb-2">Stand by... pulling events...</h2>
-              <p className="text-gray-600">Loading events from Ticketmaster</p>
+              <p className="text-gray-600">Loading events from the webs!</p>
             </div>
           </div>
         );
@@ -416,12 +426,12 @@
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                   </svg>
-                  {loading ? 'Loading...' : 'Refresh Events'}
+                  {loading ? 'Loading...' : 'Refresh'}
                 </button>
               </div>
             </div>
 
-            <div className="flex gap-3 mb-4 overflow-x-auto pb-2">
+            <div className="flex flex-wrap gap-3 mb-4">
               {categories.map(cat => (
                 <button
                   key={cat.id}
@@ -432,12 +442,26 @@
                       : 'bg-white text-gray-700 hover:bg-gray-50'
                   }`}
                 >
+                  {cat.icon && <span>{cat.icon}</span>}
                   {cat.name}
                 </button>
               ))}
             </div>
 
-            <div className="flex justify-end mb-4">
+            <div className="flex justify-between items-center mb-4">
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg shadow hover:shadow-md transition-all"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                </svg>
+                Filters
+                {hasActiveFilters && (
+                  <span className="bg-purple-600 text-white text-xs px-2 py-1 rounded-full">Active</span>
+                )}
+              </button>
+
               <div className="bg-white rounded-lg shadow p-1 flex gap-1">
                 <button
                   onClick={() => setSortBy('date')}
@@ -447,7 +471,7 @@
                       : 'text-gray-600 hover:text-gray-800'
                   }`}
                 >
-                  📅 By Date
+                  📅 Date
                 </button>
                 <button
                   onClick={() => setSortBy('match')}
@@ -457,24 +481,12 @@
                       : 'text-gray-600 hover:text-gray-800'
                   }`}
                 >
-                  ⭐ Best Match
+                  ⭐ Best
                 </button>
               </div>
             </div>
 
             <div className="mb-6">
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg shadow hover:shadow-md transition-all"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-                </svg>
-                Advanced Filters
-                {hasActiveFilters && (
-                  <span className="bg-purple-600 text-white text-xs px-2 py-1 rounded-full">Active</span>
-                )}
-              </button>
 
               {showFilters && (
                 <div className="mt-4 p-6 bg-white rounded-lg shadow-lg">
