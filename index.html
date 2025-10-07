@@ -30,6 +30,7 @@
       const [priceRange, setPriceRange] = useState({ min: '', max: '' });
       const [showFilters, setShowFilters] = useState(false);
       const [showCategoryMenu, setShowCategoryMenu] = useState(false);
+      const [showGenreMenu, setShowGenreMenu] = useState(false);
       const [shareEvent, setShareEvent] = useState(null);
       const [loading, setLoading] = useState(false);
       const [apiEvents, setApiEvents] = useState([]);
@@ -66,6 +67,12 @@
         'skyla credit union',
         'thirsty beaver',
         'snug harbor'
+      ];
+
+      const diveBarVenues = [
+        'thirsty beaver',
+        'snug harbor',
+        'smokey joe\'s cafe'
       ];
 
       const filterEvents = () => {
@@ -126,14 +133,18 @@
 
       const groupEventsByName = (events) => {
         const grouped = {};
-        
+
         events.forEach(event => {
           if (!event || !event.name || !event.date) return;
-          
-          const key = event.name.toLowerCase().trim();
+
+          // Remove text in parentheses and normalize for grouping
+          const baseName = event.name.replace(/\s*\([^)]*\)/g, '').toLowerCase().trim();
+          const key = baseName;
+
           if (!grouped[key]) {
             grouped[key] = {
               ...event,
+              name: event.name.replace(/\s*\([^)]*\)/g, '').trim(), // Use base name without parentheses
               dates: [{ date: event.date, id: event.id, ticketUrl: event.ticketUrl }]
             };
           } else {
@@ -171,12 +182,6 @@
       const filteredEvents = filterEvents();
       const groupedEvents = groupEventsByName(filteredEvents);
       const sortedEvents = sortEvents(groupedEvents);
-
-      const diveBarVenues = [
-        'thirsty beaver',
-        'snug harbor',
-        'smokey joe\'s cafe'
-      ];
 
       const categories = [
         { id: 'all', name: 'All' },
@@ -442,23 +447,9 @@
       return (
         <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50">
           <div className="max-w-6xl mx-auto p-6">
-            <div className="mb-8">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h1 className="text-4xl font-bold text-gray-800 mb-2">CLT</h1>
-                  <p className="text-gray-600 flex items-center gap-2">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    Charlotte, North Carolina
-                  </p>
-                  {lastSync && (
-                    <p className="text-xs text-gray-500 mt-1">
-                      Last synced: {lastSync.toLocaleTimeString()}
-                    </p>
-                  )}
-                </div>
+            <div className="mb-6">
+              <div className="flex justify-between items-center">
+                <h1 className="text-4xl font-bold text-gray-800">CLT</h1>
                 <button
                   onClick={fetchEvents}
                   disabled={loading}
@@ -472,52 +463,113 @@
               </div>
             </div>
 
-            <div className="mb-4 relative">
-              <button
-                onClick={() => setShowCategoryMenu(!showCategoryMenu)}
-                className="flex items-center gap-2 px-6 py-3 bg-white rounded-lg shadow-md hover:shadow-lg transition-all w-full md:w-auto"
-              >
-                <span className="font-semibold text-gray-800">
-                  {categories.find(cat => cat.id === selectedCategory)?.name || 'All'}
-                </span>
-                <svg className="w-4 h-4 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
+            <div className="mb-4 flex flex-wrap gap-3">
+              <div className="relative flex-1 min-w-[200px]">
+                <button
+                  onClick={() => setShowCategoryMenu(!showCategoryMenu)}
+                  className="flex items-center gap-2 px-6 py-3 bg-white rounded-lg shadow-md hover:shadow-lg transition-all w-full"
+                >
+                  <span className="font-semibold text-gray-800">
+                    {categories.find(cat => cat.id === selectedCategory)?.name || 'All'}
+                  </span>
+                  <svg className="w-4 h-4 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
 
-              {showCategoryMenu && (
-                <>
-                  <div
-                    className="fixed inset-0 bg-black bg-opacity-30 z-40"
-                    onClick={() => setShowCategoryMenu(false)}
-                  />
-                  <div className="absolute top-full left-0 mt-2 w-full md:w-64 bg-white rounded-lg shadow-xl z-50 overflow-hidden">
-                    {categories.map(cat => (
-                      <button
-                        key={cat.id}
-                        onClick={() => {
-                          setSelectedCategory(cat.id);
-                          setShowCategoryMenu(false);
-                        }}
-                        className={`flex items-center gap-3 px-6 py-4 w-full text-left transition-all ${
-                          selectedCategory === cat.id
-                            ? 'bg-purple-600 text-white'
-                            : cat.id === 'hidden'
-                            ? 'text-gray-400 hover:bg-gray-50'
-                            : 'text-gray-700 hover:bg-purple-50'
-                        }`}
-                      >
-                        <span className="font-medium">{cat.name}</span>
-                        {selectedCategory === cat.id && (
-                          <svg className="w-5 h-5 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                </>
-              )}
+                {showCategoryMenu && (
+                  <>
+                    <div
+                      className="fixed inset-0 bg-black bg-opacity-30 z-40"
+                      onClick={() => setShowCategoryMenu(false)}
+                    />
+                    <div className="absolute top-full left-0 mt-2 w-full bg-white rounded-lg shadow-xl z-50 overflow-hidden">
+                      {categories.map(cat => (
+                        <button
+                          key={cat.id}
+                          onClick={() => {
+                            setSelectedCategory(cat.id);
+                            setShowCategoryMenu(false);
+                          }}
+                          className={`flex items-center gap-3 px-6 py-4 w-full text-left transition-all ${
+                            selectedCategory === cat.id
+                              ? 'bg-purple-600 text-white'
+                              : cat.id === 'hidden'
+                              ? 'text-gray-400 hover:bg-gray-50'
+                              : 'text-gray-700 hover:bg-purple-50'
+                          }`}
+                        >
+                          <span className="font-medium">{cat.name}</span>
+                          {selectedCategory === cat.id && (
+                            <svg className="w-5 h-5 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <div className="relative flex-1 min-w-[200px]">
+                <button
+                  onClick={() => setShowGenreMenu(!showGenreMenu)}
+                  className="flex items-center gap-2 px-6 py-3 bg-white rounded-lg shadow-md hover:shadow-lg transition-all w-full"
+                >
+                  <span className="font-semibold text-gray-800">
+                    {selectedGenres.length === 0 ? 'All Genres' : `${selectedGenres.length} Genre${selectedGenres.length > 1 ? 's' : ''}`}
+                  </span>
+                  <svg className="w-4 h-4 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                {showGenreMenu && (
+                  <>
+                    <div
+                      className="fixed inset-0 bg-black bg-opacity-30 z-40"
+                      onClick={() => setShowGenreMenu(false)}
+                    />
+                    <div className="absolute top-full left-0 mt-2 w-full bg-white rounded-lg shadow-xl z-50 max-h-96 overflow-y-auto">
+                      {selectedGenres.length > 0 && (
+                        <button
+                          onClick={() => setSelectedGenres([])}
+                          className="flex items-center gap-3 px-6 py-3 w-full text-left border-b border-gray-200 text-purple-600 hover:bg-purple-50 font-medium"
+                        >
+                          Clear All
+                        </button>
+                      )}
+                      {availableGenres.map(genre => (
+                        <button
+                          key={genre}
+                          onClick={() => {
+                            setSelectedGenres(prev =>
+                              prev.includes(genre)
+                                ? prev.filter(g => g !== genre)
+                                : [...prev, genre]
+                            );
+                          }}
+                          className="flex items-center gap-3 px-6 py-3 w-full text-left transition-all text-gray-700 hover:bg-purple-50"
+                        >
+                          <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+                            selectedGenres.includes(genre)
+                              ? 'bg-purple-600 border-purple-600'
+                              : 'border-gray-300'
+                          }`}>
+                            {selectedGenres.includes(genre) && (
+                              <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                              </svg>
+                            )}
+                          </div>
+                          <span className="font-medium">{genre}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
 
             <div className="flex justify-between items-center mb-4">
