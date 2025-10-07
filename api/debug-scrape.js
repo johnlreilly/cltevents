@@ -5,41 +5,61 @@ export default async function handler(req, res) {
   const venueUrl = req.query.url || 'https://snugrock.com';
   
   try {
-    const response = await fetch(venueUrl);
-    const html = await response.text();
+    // Try multiple potential sources
+    const sources = [
+      { name: 'homepage', url: venueUrl },
+      { name: 'rss', url: `${venueUrl}/?feed=rss2` },
+      { name: 'wp-json-posts', url: `${venueUrl}/wp-json/wp/v2/posts` },
+      { name: 'wp-json-pages', url: `${venueUrl}/wp-json/wp/v2/pages` },
+    ];
     
-    // Look for the main content area (skip header/footer)
-    const mainMatch = html.match(/<main[^>]*>([\s\S]*)<\/main>/i) ||
-                      html.match(/<div[^>]*id="content"[^>]*>([\s\S]*)<\/div>/i) ||
-                      html.match(/<article[^>]*>([\s\S]*)<\/article>/i);
+    const results = {};
     
-    const mainContent = mainMatch ? mainMatch[1] : html;
+    for (const source of sources) {
+      try {
+        const response = await fetch(source.url);
+        const text = await response.text();
+        
+        results[source.name] = {
+          url: source.url,
+          status: response.status,
+          contentType: response.headers.get('content-type'),
+          size: text.length,
+          sample: text.substring(0, 2000)
+        };
+        
+        // If it's JSON, parse it
+        if (response.headers.get('content-type')?.includes('json')) {
+          try {
+            const json = JSON.parse(text);
+            results[source.name].parsed = json;
+          } catch (e) {
+            // Not valid JSON
+          }
+        }
+        
+      } catch (error) {
+        results[source.name] = { url: source.url, error: error.message };
+      }
+    }
     
-    // Look for sections that might contain events
-    const h1Headers = mainContent.match(/<h1[^>]*>([^<]+)<\/h1>/gi) || [];
-    const h2Headers = mainContent.match(/<h2[^>]*>([^<]+)<\/h2>/gi) || [];
-    const h3Headers = mainContent.match(/<h3[^>]*>([^<]+)<\/h3>/gi) || [];
+    // Also check the homepage for iframes or embeds
+    const homepageResponse = await fetch(venueUrl);
+    const html = await homepageResponse.text();
     
-    // Look for anything that looks like an event listing
-    const eventSections = mainContent.match(/<section[^>]*class="[^"]*event[^"]*"[^>]*>[\s\S]{0,500}/gi) ||
-                         mainContent.match(/<div[^>]*class="[^"]*show[^"]*"[^>]*>[\s\S]{0,500}/gi) ||
-                         [];
+    const iframes = html.match(/<iframe[^>]*>/gi) || [];
+    const embeds = html.match(/embed[^"']*/gi) || [];
+    const bandsInTown = html.includes('bandsintown') || html.includes('bit.ly');
+    const songkick = html.includes('songkick');
     
-    // Look for date strings
-    const dateStrings = mainContent.match(/\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]* \d{1,2}(st|nd|rd|th)?\b/gi) || [];
+    results.embedInfo = {
+      iframes: iframes.slice(0, 3),
+      hasEmbeds: embeds.length > 0,
+      usesBandsInTown: bandsInTown,
+      usesSongkick: songkick
+    };
     
-    res.status(200).json({
-      url: venueUrl,
-      status: response.status,
-      h1Headers: h1Headers.map(h => h.replace(/<[^>]+>/g, '').trim()).slice(0, 10),
-      h2Headers: h2Headers.map(h => h.replace(/<[^>]+>/g, '').trim()).slice(0, 10),
-      h3Headers: h3Headers.map(h => h.replace(/<[^>]+>/g, '').trim()).slice(0, 10),
-      eventSections: eventSections.slice(0, 3),
-      dateStrings: dateStrings.slice(0, 10),
-      
-      // Return a larger sample focusing on middle of page where events likely are
-      middleContent: html.substring(30000, 50000)
-    });
+    res.status(200).json(results);
     
   } catch (error) {
     res.status(500).json({ error: error.message });
