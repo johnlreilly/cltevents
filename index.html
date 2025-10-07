@@ -88,10 +88,10 @@
         });
 
         if (selectedCategory === 'hidden') {
-          filtered = filtered.filter(e => hidden.includes(e.id));
+          filtered = filtered.filter(e => hidden.includes(e.name.toLowerCase().trim()));
         } else {
           // Exclude hidden events from all other views
-          filtered = filtered.filter(e => !hidden.includes(e.id));
+          filtered = filtered.filter(e => !hidden.includes(e.name.toLowerCase().trim()));
 
           if (selectedCategory !== 'all') {
             if (selectedCategory === 'favorites') {
@@ -195,11 +195,12 @@
         );
       };
 
-      const toggleHidden = (eventId) => {
+      const toggleHidden = (event) => {
+        const eventKey = event.name.toLowerCase().trim();
         setHidden(prev =>
-          prev.includes(eventId)
-            ? prev.filter(id => id !== eventId)
-            : [...prev, eventId]
+          prev.includes(eventKey)
+            ? prev.filter(key => key !== eventKey)
+            : [...prev, eventKey]
         );
       };
 
@@ -646,12 +647,12 @@
                           </svg>
                         </button>
                         <button
-                          onClick={() => toggleHidden(event.id)}
+                          onClick={() => toggleHidden(event)}
                           title="Hide event"
                           className="hover:bg-gray-100 rounded-full p-1 transition-colors"
                         >
                           <svg
-                            className={`w-5 h-5 ${hidden.includes(event.id) ? 'text-red-600' : 'text-gray-400 hover:text-gray-600'}`}
+                            className={`w-5 h-5 ${hidden.includes(event.name.toLowerCase().trim()) ? 'text-red-600' : 'text-gray-400 hover:text-gray-600'}`}
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
