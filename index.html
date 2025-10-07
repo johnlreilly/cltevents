@@ -64,6 +64,7 @@
       const [dateRange, setDateRange] = useState({ start: today, end: '' });
       const [priceRange, setPriceRange] = useState({ min: '', max: '' });
       const [showFilters, setShowFilters] = useState(false);
+      const [showFilterTray, setShowFilterTray] = useState(false);
       const [showCategoryMenu, setShowCategoryMenu] = useState(false);
       const [showGenreMenu, setShowGenreMenu] = useState(false);
       const [shareEvent, setShareEvent] = useState(null);
@@ -458,6 +459,7 @@
           setLastSync(new Date());
           setInitialLoad(false);
           if (!initialLoad) {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
             alert(`Successfully loaded ${allEvents.length} events from Ticketmaster and Smokey Joe's!`);
           }
         } catch (error) {
@@ -511,23 +513,40 @@
           <div className="bg-surface shadow-sm sticky top-0 z-30 border-b border-outlinevariant">
             <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
               <h1 className="text-2xl font-medium text-onsurface">Charlotte Events</h1>
-              <button
-                onClick={fetchEvents}
-                disabled={loading}
-                className="p-2 rounded-full hover:bg-primarycontainer transition-colors disabled:opacity-50"
-                title="Refresh events"
-              >
-                <svg className="w-6 h-6 text-onsurfacevariant" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setShowFilterTray(!showFilterTray)}
+                  className="p-2 rounded-full hover:bg-primarycontainer transition-colors relative"
+                  title="Toggle filters"
+                >
+                  <svg className="w-6 h-6 text-onsurfacevariant" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                  </svg>
+                  {hasActiveFilters && (
+                    <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full"></span>
+                  )}
+                </button>
+                <button
+                  onClick={fetchEvents}
+                  disabled={loading}
+                  className="p-2 rounded-full hover:bg-primarycontainer transition-colors disabled:opacity-50"
+                  title="Refresh events"
+                >
+                  <svg className="w-6 h-6 text-onsurfacevariant" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
 
           <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6">
 
-            {/* Material 3 Filter Chips */}
-            <div className="mb-6 flex flex-wrap gap-3">
+            {/* Filter Tray */}
+            {showFilterTray && (
+              <div className="mb-6 p-6 bg-surfacevariant rounded-3xl border border-outlinevariant">
+                {/* Material 3 Filter Chips */}
+                <div className="mb-6 flex flex-wrap gap-3">
               <div className="relative flex-1 min-w-[200px]">
                 <button
                   onClick={() => setShowCategoryMenu(!showCategoryMenu)}
@@ -630,49 +649,45 @@
                   </>
                 )}
               </div>
-            </div>
 
-            {/* Material 3 Segmented Button for Sort */}
-            <div className="flex justify-between items-center mb-6">
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                className="flex items-center gap-2 px-4 py-2 bg-surfacevariant text-onsurfacevariant rounded-full hover:shadow-md transition-all font-medium"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-                </svg>
-                Filters
-                {hasActiveFilters && (
-                  <span className="bg-tertiary text-ontertiary text-xs px-2 py-1 rounded-full ml-1">Active</span>
-                )}
-              </button>
+                {/* Material 3 Segmented Button for Sort */}
+                <div className="flex justify-between items-center mb-6">
+                  <button
+                    onClick={() => setShowFilters(!showFilters)}
+                    className="flex items-center gap-2 px-4 py-2 bg-surface text-onsurface rounded-full hover:shadow-md transition-all font-medium text-sm"
+                  >
+                    Advanced Filters
+                    <svg className={`w-4 h-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  <div className="inline-flex rounded-full border border-outline overflow-hidden">
+                    <button
+                      onClick={() => setSortBy('date')}
+                      className={`px-6 py-2 text-sm font-medium transition-all ${
+                        sortBy === 'date'
+                          ? 'bg-secondarycontainer text-onsecondarycontainer'
+                          : 'text-onsurfacevariant hover:bg-surfacevariant'
+                      }`}
+                    >
+                      📅 Date
+                    </button>
+                    <button
+                      onClick={() => setSortBy('match')}
+                      className={`px-6 py-2 text-sm font-medium transition-all border-l border-outline ${
+                        sortBy === 'match'
+                          ? 'bg-secondarycontainer text-onsecondarycontainer'
+                          : 'text-onsurfacevariant hover:bg-surfacevariant'
+                      }`}
+                    >
+                      ⭐ Best
+                    </button>
+                  </div>
+                </div>
 
-              <div className="inline-flex rounded-full border border-outline overflow-hidden">
-                <button
-                  onClick={() => setSortBy('date')}
-                  className={`px-6 py-2 text-sm font-medium transition-all ${
-                    sortBy === 'date'
-                      ? 'bg-secondarycontainer text-onsecondarycontainer'
-                      : 'text-onsurfacevariant hover:bg-surfacevariant'
-                  }`}
-                >
-                  📅 Date
-                </button>
-                <button
-                  onClick={() => setSortBy('match')}
-                  className={`px-6 py-2 text-sm font-medium transition-all border-l border-outline ${
-                    sortBy === 'match'
-                      ? 'bg-secondarycontainer text-onsecondarycontainer'
-                      : 'text-onsurfacevariant hover:bg-surfacevariant'
-                  }`}
-                >
-                  ⭐ Best
-                </button>
-              </div>
-            </div>
-
-            {showFilters && (
-              <div className="mb-6 p-6 bg-surfacevariant rounded-3xl border border-outlinevariant">
+                {/* Advanced Filters */}
+                {showFilters && (
+                  <div className="mb-6">
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Date Range</label>
@@ -746,7 +761,9 @@
                       Clear All Filters
                     </button>
                   )}
-                </div>
+                  </div>
+                )}
+              </div>
             )}
 
             <div className="mb-4 text-sm text-gray-600">
