@@ -2,38 +2,43 @@
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   
-  // Get venue URL from query parameter, default to Snug Harbor
   const venueUrl = req.query.url || 'https://snugrock.com';
   
   try {
-    const response = await fetch(venueUrl, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-      }
-    });
-    
+    const response = await fetch(venueUrl);
     const html = await response.text();
     
-    // Return first 20000 characters to inspect
+    // Look for the main content area (skip header/footer)
+    const mainMatch = html.match(/<main[^>]*>([\s\S]*)<\/main>/i) ||
+                      html.match(/<div[^>]*id="content"[^>]*>([\s\S]*)<\/div>/i) ||
+                      html.match(/<article[^>]*>([\s\S]*)<\/article>/i);
+    
+    const mainContent = mainMatch ? mainMatch[1] : html;
+    
+    // Look for sections that might contain events
+    const h1Headers = mainContent.match(/<h1[^>]*>([^<]+)<\/h1>/gi) || [];
+    const h2Headers = mainContent.match(/<h2[^>]*>([^<]+)<\/h2>/gi) || [];
+    const h3Headers = mainContent.match(/<h3[^>]*>([^<]+)<\/h3>/gi) || [];
+    
+    // Look for anything that looks like an event listing
+    const eventSections = mainContent.match(/<section[^>]*class="[^"]*event[^"]*"[^>]*>[\s\S]{0,500}/gi) ||
+                         mainContent.match(/<div[^>]*class="[^"]*show[^"]*"[^>]*>[\s\S]{0,500}/gi) ||
+                         [];
+    
+    // Look for date strings
+    const dateStrings = mainContent.match(/\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]* \d{1,2}(st|nd|rd|th)?\b/gi) || [];
+    
     res.status(200).json({
       url: venueUrl,
       status: response.status,
-      size: html.length,
-      htmlSample: html.substring(0, 20000),
+      h1Headers: h1Headers.map(h => h.replace(/<[^>]+>/g, '').trim()).slice(0, 10),
+      h2Headers: h2Headers.map(h => h.replace(/<[^>]+>/g, '').trim()).slice(0, 10),
+      h3Headers: h3Headers.map(h => h.replace(/<[^>]+>/g, '').trim()).slice(0, 10),
+      eventSections: eventSections.slice(0, 3),
+      dateStrings: dateStrings.slice(0, 10),
       
-      // Look for common patterns
-      hasEventClass: html.includes('class="event') || html.includes("class='event"),
-      hasShowClass: html.includes('class="show') || html.includes("class='show"),
-      hasDateClass: html.includes('class="date') || html.includes("class='date"),
-      
-      // Count certain elements
-      h2Count: (html.match(/<h2/gi) || []).length,
-      h3Count: (html.match(/<h3/gi) || []).length,
-      articleCount: (html.match(/<article/gi) || []).length,
-      
-      // Look for specific text patterns
-      monthNames: ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december']
-        .filter(month => html.toLowerCase().includes(month))
+      // Return a larger sample focusing on middle of page where events likely are
+      middleContent: html.substring(30000, 50000)
     });
     
   } catch (error) {
