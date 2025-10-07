@@ -1,4 +1,4 @@
-// Vercel Serverless Function to fetch Eventbrite events
+// Vercel Serverless Function to fetch Ticketmaster events
 export default async function handler(req, res) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -11,67 +11,62 @@ export default async function handler(req, res) {
     return;
   }
 
-  const EVENTBRITE_TOKEN = process.env.EVENTBRITE_TOKEN;
+  const TICKETMASTER_API_KEY = process.env.TICKETMASTER_API_KEY;
 
-  if (!EVENTBRITE_TOKEN) {
-    return res.status(500).json({ error: 'Eventbrite token not configured' });
+  if (!TICKETMASTER_API_KEY) {
+    return res.status(500).json({ error: 'Ticketmaster API key not configured' });
   }
 
   try {
-    // First, let's test if the token works at all by getting user info
-    const testResponse = await fetch(
-      'https://www.eventbriteapi.com/v3/users/me/',
-      {
-        headers: {
-          'Authorization': `Bearer ${EVENTBRITE_TOKEN}`
-        }
-      }
+    // Search for events in Charlotte, NC area
+    const params = new URLSearchParams({
+      apikey: TICKETMASTER_API_KEY,
+      city: 'Charlotte',
+      stateCode: 'NC',
+      radius: '25',
+      unit: 'miles',
+      size: '100', // Get up to 100 events
+      sort: 'date,asc'
+    });
+
+    const response = await fetch(
+      `https://app.ticketmaster.com/discovery/v2/events.json?${params.toString()}`
     );
 
-    if (!testResponse.ok) {
-      const errorText = await testResponse.text();
-      return res.status(500).json({ 
-        error: 'Eventbrite token is invalid or expired',
-        details: errorText,
-        status: testResponse.status,
-        suggestion: 'Please generate a new Private Token from your Eventbrite account'
-      });
-    }
-
-    // Now try to fetch events - using organization events instead of search
-    const userInfo = await testResponse.json();
-    
-    // Try the events search endpoint
-    const searchResponse = await fetch(
-      'https://www.eventbriteapi.com/v3/events/search/?location.address=charlotte&location.within=25mi&expand=venue,ticket_availability',
-      {
-        headers: {
-          'Authorization': `Bearer ${EVENTBRITE_TOKEN}`
-        }
-      }
-    );
-
-    if (!searchResponse.ok) {
-      const errorText = await searchResponse.text();
-      console.error('Search API Error:', searchResponse.status, errorText);
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Ticketmaster API Error:', response.status, errorText);
       
-      // If search doesn't work, return a helpful error
-      return res.status(200).json({ 
-        events: [],
-        pagination: { object_count: 0 },
-        warning: 'Event search endpoint not available with this token type. You may need OAuth access.',
-        tokenInfo: {
-          valid: true,
-          user: userInfo.name || userInfo.email
-        }
+      let errorData;
+      try {
+        errorData = JSON.parse(errorText);
+      } catch {
+        errorData = { error: errorText };
+      }
+      
+      return res.status(response.status).json({ 
+        error: errorData.fault?.faultstring || errorData.error || 'Failed to fetch events from Ticketmaster',
+        details: errorText,
+        status: response.status
       });
     }
 
-    const data = await searchResponse.json();
-    res.status(200).json(data);
+    const data = await response.json();
+    
+    // Transform Ticketmaster format to our expected format
+    const transformedData = {
+      events: data._embedded?.events || [],
+      pagination: {
+        object_count: data.page?.totalElements || 0,
+        page_number: data.page?.number || 0,
+        page_size: data.page?.size || 0
+      }
+    };
+
+    res.status(200).json(transformedData);
     
   } catch (error) {
-    console.error('Eventbrite API Error:', error);
+    console.error('Ticketmaster API Error:', error);
     res.status(500).json({ error: 'Internal server error', details: error.message });
   }
 }
