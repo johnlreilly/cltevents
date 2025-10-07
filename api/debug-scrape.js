@@ -1,17 +1,16 @@
-// Debug function to find Smokey Joe's event data sources
+// Debug function to find event data sources for any venue
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   
+  // Get venue URL from query parameter, default to Snug Harbor
+  const venueUrl = req.query.url || 'https://snugrock.com';
+  
   try {
-    // Try to find calendar feeds, APIs, or data sources
     const urlsToTry = [
-      { url: 'https://smokeyjoes.cafe', type: 'homepage' },
-      { url: 'https://smokeyjoes.cafe/feed/', type: 'rss' },
-      { url: 'https://smokeyjoes.cafe/calendar/', type: 'calendar' },
-      { url: 'https://smokeyjoes.cafe/events/', type: 'events' },
-      { url: 'https://smokeyjoes.cafe/wp-json/wp/v2/events', type: 'wp-api-events' },
-      { url: 'https://smokeyjoes.cafe/wp-json/tribe/events/v1/events', type: 'tribe-api' },
-      { url: 'https://smokeyjoes.cafe/?feed=events-calendar', type: 'calendar-feed' },
+      { url: venueUrl, type: 'homepage' },
+      { url: `${venueUrl}/events`, type: 'events-page' },
+      { url: `${venueUrl}/calendar`, type: 'calendar-page' },
+      { url: `${venueUrl}/shows`, type: 'shows-page' },
     ];
     
     const results = {};
@@ -31,58 +30,50 @@ export default async function handler(req, res) {
           url,
           status: response.status,
           contentType,
-          isJson: contentType.includes('json'),
-          isXml: contentType.includes('xml'),
           size: text.length,
           
-          // Look for event data
+          // Look for event-related content
           hasEventData: text.toLowerCase().includes('event'),
-          hasDateData: /\d{4}-\d{2}-\d{2}/.test(text) || /\d{1,2}\/\d{1,2}\/\d{4}/.test(text),
+          hasCalendar: text.toLowerCase().includes('calendar'),
+          hasShow: text.toLowerCase().includes('show'),
           
-          // Check for calendar plugin data
-          hasPiecal: text.includes('piecal'),
-          hasEventJson: text.includes('"event'),
+          // Look for common calendar plugins
+          hasFullCalendar: text.includes('fullcalendar') || text.includes('FullCalendar'),
+          hasSimpleCalendar: text.includes('simcal') || text.includes('google-calendar-events'),
+          hasEventCalendar: text.includes('tribe-events') || text.includes('event-calendar'),
           
-          // Sample
-          sample: text.substring(0, 500),
+          // Sample of content
+          sample: text.substring(0, 1000),
+          
+          // Look for structured data
+          hasJsonLd: text.includes('application/ld+json'),
+          hasSchema: text.includes('schema.org'),
         };
         
-        // If this looks promising, grab more
-        if (contentType.includes('json') || (results[type].hasEventData && results[type].hasDateData)) {
-          results[type].fullContent = text.length < 50000 ? text : text.substring(0, 50000);
+        // If this looks like it has event data, grab more
+        if (response.status === 200 && (results[type].hasEventData || results[type].hasCalendar)) {
+          // Look for event containers
+          const eventDivs = (text.match(/<div[^>]*class="[^"]*event[^"]*"/gi) || []).length;
+          const eventArticles = (text.match(/<article[^>]*class="[^"]*event[^"]*"/gi) || []).length;
+          const eventLists = (text.match(/<li[^>]*class="[^"]*event[^"]*"/gi) || []).length;
+          
+          results[type].eventContainers = {
+            divs: eventDivs,
+            articles: eventArticles,
+            lists: eventLists
+          };
+          
+          // Look for date patterns
+          const dates = text.match(/\d{4}-\d{2}-\d{2}/g) || [];
+          results[type].datePatterns = {
+            iso: dates.slice(0, 5),
+            count: dates.length
+          };
         }
         
       } catch (error) {
         results[type] = { url, error: error.message };
       }
-    }
-    
-    // Also check the homepage for embedded calendar data
-    try {
-      const homepageResponse = await fetch('https://smokeyjoes.cafe');
-      const html = await homepageResponse.text();
-      
-      // Look for calendar JavaScript data
-      const scriptMatches = html.match(/<script[^>]*>(.*?)<\/script>/gs) || [];
-      const calendarScripts = scriptMatches.filter(s => 
-        s.includes('calendar') || s.includes('event') || s.includes('piecal')
-      );
-      
-      results.homepage_scripts = {
-        totalScripts: scriptMatches.length,
-        calendarScriptsCount: calendarScripts.length,
-        calendarScriptsSample: calendarScripts.slice(0, 2).map(s => s.substring(0, 500)),
-      };
-      
-      // Look for JSON data embedded in the page
-      const jsonMatches = html.match(/var\s+\w+\s*=\s*(\{.*?\});/gs) || [];
-      results.embedded_json = {
-        count: jsonMatches.length,
-        samples: jsonMatches.slice(0, 3),
-      };
-      
-    } catch (error) {
-      results.homepage_analysis = { error: error.message };
     }
     
     res.status(200).json(results);
