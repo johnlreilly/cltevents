@@ -54,7 +54,9 @@
       }, [hidden]);
 
       const excludeKeywords = ['bingo', 'trivia', 'drag', 'kids', 'children\'s', 'day party', 'bridal', 'disney', 'comedy'];
-      
+
+      const excludeGenres = ['hip-hop', 'rap', 'french rap', 'metal', 'nu-metal', 'country', 'children\'s theater'];
+
       const preferredVenues = [
         'neighborhood theater',
         'the fillmore',
@@ -83,8 +85,16 @@
           return !excludeKeywords.some(keyword => searchText.includes(keyword.toLowerCase()));
         });
 
+        // Filter out excluded genres
+        filtered = filtered.filter(event => {
+          if (!event.genres || event.genres.length === 0) return true;
+          return !event.genres.some(genre =>
+            excludeGenres.some(excluded => genre.toLowerCase() === excluded.toLowerCase())
+          );
+        });
+
         if (selectedGenres.length > 0) {
-          filtered = filtered.filter(event => 
+          filtered = filtered.filter(event =>
             event.genres && event.genres.some(genre => selectedGenres.includes(genre))
           );
         }
@@ -329,7 +339,15 @@
               if (eventType === 'music') {
                 youtubeLinks = await fetchYouTubeVideos(tmEvent.name);
               }
-              
+
+              // Extract image URL - prefer high resolution images
+              let imageUrl = null;
+              if (tmEvent.images && tmEvent.images.length > 0) {
+                // Sort by width descending to get highest resolution
+                const sortedImages = [...tmEvent.images].sort((a, b) => (b.width || 0) - (a.width || 0));
+                imageUrl = sortedImages[0]?.url;
+              }
+
               return {
                 id: `tm-${tmEvent.id}`,
                 name: tmEvent.name,
@@ -343,6 +361,7 @@
                 matchScore: Math.min(matchScore, 98),
                 ticketUrl: tmEvent.url,
                 genres: genres,
+                imageUrl: imageUrl,
                 source: 'ticketmaster'
               };
             }));
@@ -798,6 +817,16 @@
                             {genre}
                           </span>
                         ))}
+                      </div>
+                    )}
+
+                    {event.imageUrl && (
+                      <div className="mb-4 -mx-6">
+                        <img
+                          src={event.imageUrl}
+                          alt={event.name}
+                          className="w-full h-[20vh] object-cover"
+                        />
                       </div>
                     )}
 
