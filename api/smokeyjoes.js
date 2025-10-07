@@ -10,17 +10,15 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Fetch the Smokey Joe's events page
-    const response = await fetch('https://www.smokeyjoes.cafe/events');
+    const response = await fetch('https://smokeyjoes.cafe');
     
     if (!response.ok) {
-      throw new Error(`Failed to fetch Smokey Joe's website: ${response.status}`);
+      throw new Error(`Failed to fetch: ${response.status}`);
     }
 
     const html = await response.text();
     
-    // Parse the HTML to extract events
-    // This is a simplified example - we'll need to adjust based on their actual HTML structure
+    // Extract events from the simcal calendar HTML
     const events = parseSmokeyJoesEvents(html);
     
     res.status(200).json({
@@ -42,52 +40,57 @@ function parseSmokeyJoesEvents(html) {
   const events = [];
   
   try {
-    // Look for common patterns in event listings
-    // This is a basic regex approach - we'll refine based on actual HTML structure
+    // Look for event blocks in the simcal calendar
+    const eventRegex = /<li class="simcal-event[^"]*"[^>]*>[\s\S]*?<\/li>/g;
+    const eventMatches = html.match(eventRegex) || [];
     
-    // Try to find event sections (adjust patterns based on actual HTML)
-    const eventPatterns = [
-      // Pattern 1: Look for date/time patterns
-      /(\w+day,?\s+\w+\s+\d{1,2}(?:st|nd|rd|th)?)/gi,
-      // Pattern 2: Look for artist/band names in headers
-      /<h[1-6][^>]*>([^<]+)<\/h[1-6]>/gi,
-    ];
-
-    // This is a placeholder - actual implementation depends on website structure
-    // For now, return a sample structure showing what we're aiming for
+    eventMatches.forEach(eventHtml => {
+      try {
+        // Extract event title
+        const titleMatch = eventHtml.match(/<span class="simcal-event-title"[^>]*>([^<]+)<\/span>/);
+        const title = titleMatch ? titleMatch[1].replace(/&#039;/g, "'").replace(/&amp;/g, "&") : null;
+        
+        if (!title) return;
+        
+        // Extract start date/time
+        const startDateMatch = eventHtml.match(/data-event-start="(\d+)"/);
+        const startTimestamp = startDateMatch ? parseInt(startDateMatch[1]) * 1000 : null;
+        
+        // Extract end date/time
+        const endDateMatch = eventHtml.match(/data-event-end="(\d+)"/);
+        const endTimestamp = endDateMatch ? parseInt(endDateMatch[1]) * 1000 : null;
+        
+        // Extract description if available
+        const descMatch = eventHtml.match(/<div class="simcal-event-description"[^>]*>([\s\S]*?)<\/div>/);
+        let description = '';
+        if (descMatch) {
+          description = descMatch[1]
+            .replace(/<[^>]+>/g, '') // Remove HTML tags
+            .replace(/&nbsp;/g, ' ')
+            .replace(/&#039;/g, "'")
+            .replace(/&amp;/g, "&")
+            .trim();
+        }
+        
+        if (title && startTimestamp) {
+          events.push({
+            name: title,
+            date: new Date(startTimestamp).toISOString().split('T')[0],
+            startTime: new Date(startTimestamp),
+            endTime: endTimestamp ? new Date(endTimestamp) : null,
+            description: description || title,
+            venue: 'Smokey Joe\'s Cafe',
+            source: 'smokeyjoes'
+          });
+        }
+      } catch (error) {
+        console.error('Error parsing individual event:', error);
+      }
+    });
     
-    // Check if we can find any date-like strings
-    const dateMatches = html.match(/\d{1,2}\/\d{1,2}\/\d{4}/g);
-    
-    if (dateMatches && dateMatches.length > 0) {
-      console.log('Found potential dates:', dateMatches.slice(0, 5));
-    }
-
-    // Return empty array for now - we'll populate this after analyzing the actual HTML
-    return events;
-
   } catch (error) {
     console.error('Parsing error:', error);
-    return events;
-  }
-}
-
-// Alternative: More robust parsing with cheerio-like approach
-// We can enhance this if the basic approach doesn't work
-function extractEventData(html) {
-  // Try to find structured data (JSON-LD, microdata, etc.)
-  const jsonLdMatch = html.match(/<script type="application\/ld\+json">(.*?)<\/script>/s);
-  
-  if (jsonLdMatch) {
-    try {
-      const structuredData = JSON.parse(jsonLdMatch[1]);
-      if (structuredData['@type'] === 'Event' || structuredData['@type'] === 'EventSeries') {
-        return structuredData;
-      }
-    } catch (e) {
-      console.log('No valid JSON-LD found');
-    }
   }
   
-  return null;
+  return events;
 }
