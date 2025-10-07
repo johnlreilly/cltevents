@@ -67,6 +67,7 @@
       const [showFilterTray, setShowFilterTray] = useState(false);
       const [showCategoryMenu, setShowCategoryMenu] = useState(false);
       const [showGenreMenu, setShowGenreMenu] = useState(false);
+      const [showSortMenu, setShowSortMenu] = useState(false);
       const [shareEvent, setShareEvent] = useState(null);
       const [loading, setLoading] = useState(false);
       const [apiEvents, setApiEvents] = useState([]);
@@ -516,13 +517,13 @@
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setShowFilterTray(!showFilterTray)}
-                  className="p-2 rounded-full hover:bg-primarycontainer transition-colors relative"
+                  className={`p-2 rounded-full transition-colors relative ${showFilterTray ? 'bg-primarycontainer' : 'hover:bg-primarycontainer'}`}
                   title="Toggle filters"
                 >
                   <svg className="w-6 h-6 text-onsurfacevariant" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
                   </svg>
-                  {hasActiveFilters && (
+                  {hasActiveFilters && !showFilterTray && (
                     <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full"></span>
                   )}
                 </button>
@@ -651,43 +652,68 @@
                 </div>
               </div>
 
-              {/* Material 3 Segmented Button for Sort */}
-              <div className="flex justify-between items-center mb-6">
+              {/* Sort Dropdown */}
+              <div className="relative flex-1 min-w-[200px]">
                 <button
-                  onClick={() => setShowFilters(!showFilters)}
-                  className="flex items-center gap-2 px-4 py-2 bg-surface text-onsurface rounded-full hover:shadow-md transition-all font-medium text-sm"
+                  onClick={() => setShowSortMenu(!showSortMenu)}
+                  className="flex items-center gap-2 px-6 py-3 bg-secondarycontainer text-onsecondarycontainer rounded-full hover:shadow-md transition-all w-full font-medium"
                 >
-                  Advanced Filters
-                  <svg className={`w-4 h-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <span>Sort: {sortBy === 'date' ? '📅 Date' : '⭐ Best Match'}</span>
+                  <svg className="w-5 h-5 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
-                <div className="inline-flex rounded-full border border-outline overflow-hidden">
-                  <button
-                    onClick={() => setSortBy('date')}
-                    className={`px-6 py-2 text-sm font-medium transition-all ${
-                      sortBy === 'date'
-                        ? 'bg-secondarycontainer text-onsecondarycontainer'
-                        : 'text-onsurfacevariant hover:bg-surfacevariant'
-                    }`}
-                  >
-                    📅 Date
-                  </button>
-                  <button
-                    onClick={() => setSortBy('match')}
-                    className={`px-6 py-2 text-sm font-medium transition-all border-l border-outline ${
-                      sortBy === 'match'
-                        ? 'bg-secondarycontainer text-onsecondarycontainer'
-                        : 'text-onsurfacevariant hover:bg-surfacevariant'
-                    }`}
-                  >
-                    ⭐ Best
-                    </button>
-                  </div>
-                </div>
 
-              {/* Advanced Filters */}
-              {showFilters && (
+                {showSortMenu && (
+                  <>
+                    <div
+                      className="fixed inset-0 bg-black bg-opacity-30 z-40"
+                      onClick={() => setShowSortMenu(false)}
+                    />
+                    <div className="absolute top-full left-0 mt-2 w-full bg-surface rounded-2xl shadow-2xl z-50 overflow-hidden border border-outlinevariant">
+                      <button
+                        onClick={() => {
+                          setSortBy('date');
+                          setShowSortMenu(false);
+                        }}
+                        className={`flex items-center gap-3 px-6 py-4 w-full text-left transition-all ${
+                          sortBy === 'date'
+                            ? 'bg-primarycontainer text-onprimarycontainer'
+                            : 'text-onsurface hover:bg-surfacevariant'
+                        }`}
+                      >
+                        <span className="font-medium">📅 Date</span>
+                        {sortBy === 'date' && (
+                          <svg className="w-5 h-5 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                        )}
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSortBy('match');
+                          setShowSortMenu(false);
+                        }}
+                        className={`flex items-center gap-3 px-6 py-4 w-full text-left transition-all ${
+                          sortBy === 'match'
+                            ? 'bg-primarycontainer text-onprimarycontainer'
+                            : 'text-onsurface hover:bg-surfacevariant'
+                        }`}
+                      >
+                        <span className="font-medium">⭐ Best Match</span>
+                        {sortBy === 'match' && (
+                          <svg className="w-5 h-5 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Advanced Filters - Commented Out */}
+              {/* {showFilters && (
                 <div className="mt-6 pt-6 border-t border-outline">
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
@@ -762,6 +788,18 @@
                       Clear All Filters
                     </button>
                   )}
+                </div>
+              )} */}
+
+              {/* Clear Filters Button */}
+              {hasActiveFilters && (
+                <div className="mt-6 pt-6 border-t border-outline">
+                  <button
+                    onClick={clearFilters}
+                    className="w-full px-6 py-3 bg-surface text-onsurface rounded-full hover:bg-primarycontainer hover:text-onprimarycontainer transition-all font-medium text-sm border border-outline"
+                  >
+                    Clear All Filters
+                  </button>
                 </div>
               )}
             </div>
