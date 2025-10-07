@@ -28,16 +28,16 @@
       const [lastSync, setLastSync] = useState(null);
       const [sortBy, setSortBy] = useState('date');
       const [initialLoad, setInitialLoad] = useState(true);
+      const [expandedDescriptions, setExpandedDescriptions] = useState([]);
+      const [availableGenres, setAvailableGenres] = useState([]);
+      const [selectedGenres, setSelectedGenres] = useState([]);
 
-      // Fetch events on component mount
       React.useEffect(() => {
         fetchEvents();
       }, []);
 
-      // Keywords to filter out
       const excludeKeywords = ['bingo', 'trivia', 'drag', 'kids', 'children\'s', 'day party', 'bridal', 'disney', 'comedy'];
       
-      // Preferred music venues (case-insensitive)
       const preferredVenues = [
         'neighborhood theater',
         'the fillmore',
@@ -55,25 +55,27 @@
       const filterEvents = () => {
         let filtered = apiEvents;
 
-        // Filter out excluded keywords
         filtered = filtered.filter(event => {
           const searchText = `${event.name} ${event.description}`.toLowerCase();
           return !excludeKeywords.some(keyword => searchText.includes(keyword.toLowerCase()));
         });
 
-        // Only show current or future events
+        if (selectedGenres.length > 0) {
+          filtered = filtered.filter(event => 
+            event.genres && event.genres.some(genre => selectedGenres.includes(genre))
+          );
+        }
+
         const now = new Date();
         filtered = filtered.filter(e => {
           const eventDate = new Date(e.date);
           return eventDate >= now || eventDate.toDateString() === now.toDateString();
         });
 
-        // Filter by category
         if (selectedCategory !== 'all') {
           filtered = filtered.filter(e => e.type === selectedCategory);
         }
 
-        // Filter by date range
         if (dateRange.start) {
           filtered = filtered.filter(e => e.date >= dateRange.start);
         }
@@ -81,7 +83,6 @@
           filtered = filtered.filter(e => e.date <= dateRange.end);
         }
 
-        // Filter by price range
         if (priceRange.min) {
           filtered = filtered.filter(e => e.price >= Number(priceRange.min));
         }
@@ -92,10 +93,33 @@
         return filtered;
       };
 
+      const groupEventsByName = (events) => {
+        const grouped = {};
+        
+        events.forEach(event => {
+          if (!event || !event.name || !event.date) return;
+          
+          const key = event.name.toLowerCase().trim();
+          if (!grouped[key]) {
+            grouped[key] = {
+              ...event,
+              dates: [{ date: event.date, id: event.id, ticketUrl: event.ticketUrl }]
+            };
+          } else {
+            grouped[key].dates.push({ date: event.date, id: event.id, ticketUrl: event.ticketUrl });
+          }
+        });
+
+        return Object.values(grouped).map(event => ({
+          ...event,
+          dates: event.dates.sort((a, b) => new Date(a.date) - new Date(b.date))
+        }));
+      };
+
       const sortEvents = (events) => {
         return [...events].sort((a, b) => {
           if (sortBy === 'date') {
-            const dateCompare = new Date(a.date) - new Date(b.date);
+            const dateCompare = new Date(a.dates[0].date) - new Date(b.dates[0].date);
             if (dateCompare !== 0) return dateCompare;
             
             const aVenueBoost = preferredVenues.some(v => a.venue.toLowerCase().includes(v)) ? 10 : 0;
@@ -114,18 +138,27 @@
       };
 
       const filteredEvents = filterEvents();
-      const sortedEvents = sortEvents(filteredEvents);
+      const groupedEvents = groupEventsByName(filteredEvents);
+      const sortedEvents = sortEvents(groupedEvents);
 
       const categories = [
-        { id: 'all', name: 'All Events', icon: 'Calendar' },
-        { id: 'music', name: 'Music', icon: 'Music' },
-        { id: 'sports', name: 'Sports', icon: 'Trophy' },
-        { id: 'food', name: 'Food & Drink', icon: 'Users' }
+        { id: 'all', name: 'All Events' },
+        { id: 'music', name: 'Music' },
+        { id: 'sports', name: 'Sports' },
+        { id: 'food', name: 'Food & Drink' }
       ];
 
       const toggleFavorite = (eventId) => {
         setFavorites(prev => 
           prev.includes(eventId) 
+            ? prev.filter(id => id !== eventId)
+            : [...prev, eventId]
+        );
+      };
+
+      const toggleDescription = (eventId) => {
+        setExpandedDescriptions(prev =>
+          prev.includes(eventId)
             ? prev.filter(id => id !== eventId)
             : [...prev, eventId]
         );
@@ -150,13 +183,22 @@
         setShareEvent(event);
         setTimeout(() => setShareEvent(null), 3000);
         
-        const shareText = `Check out ${event.name} at ${event.venue} on ${formatDate(event.date)}! Only $${event.price}`;
+        const shareText = `Check out ${event.name} at ${event.venue} on ${formatDate(event.dates[0].date)}! Only $${event.price}`;
         navigator.clipboard.writeText(shareText);
       };
 
       const clearFilters = () => {
         setDateRange({ start: today, end: '' });
         setPriceRange({ min: '', max: '' });
+        setSelectedGenres([]);
+      };
+
+      const toggleGenre = (genre) => {
+        setSelectedGenres(prev =>
+          prev.includes(genre)
+            ? prev.filter(g => g !== genre)
+            : [...prev, genre]
+        );
       };
 
       const fetchEvents = async () => {
@@ -176,6 +218,17 @@
             const classification = tmEvent.classifications?.[0];
             const segment = classification?.segment?.name?.toLowerCase() || '';
             const genre = classification?.genre?.name?.toLowerCase() || '';
+            
+            const genres = [];
+            if (classification?.segment?.name && classification.segment.name !== 'Undefined') {
+              genres.push(classification.segment.name);
+            }
+            if (classification?.genre?.name && classification.genre.name !== 'Undefined') {
+              genres.push(classification.genre.name);
+            }
+            if (classification?.subGenre?.name && classification.subGenre.name !== 'Undefined') {
+              genres.push(classification.subGenre.name);
+            }
             
             if (segment.includes('music') || genre.includes('music')) {
               eventType = 'music';
@@ -216,11 +269,21 @@
               price: price,
               youtubeLinks: youtubeLinks.length > 0 ? youtubeLinks : undefined,
               matchScore: Math.min(matchScore, 98),
-              ticketUrl: tmEvent.url
+              ticketUrl: tmEvent.url,
+              genres: genres
             };
           }));
 
           setApiEvents(transformedEvents);
+          
+          const allGenres = new Set();
+          transformedEvents.forEach(event => {
+            if (event.genres) {
+              event.genres.forEach(genre => allGenres.add(genre));
+            }
+          });
+          setAvailableGenres(Array.from(allGenres).sort());
+
           setLastSync(new Date());
           setInitialLoad(false);
           if (!initialLoad) {
@@ -252,7 +315,7 @@
         }
       };
 
-      const hasActiveFilters = dateRange.start || dateRange.end || priceRange.min || priceRange.max;
+      const hasActiveFilters = dateRange.start || dateRange.end || priceRange.min || priceRange.max || selectedGenres.length > 0;
 
       if (initialLoad && loading) {
         return (
@@ -403,6 +466,29 @@
                     </div>
                   </div>
 
+                  {availableGenres.length > 0 && (
+                    <div className="mt-6">
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Filter by Genre/Type ({selectedGenres.length} selected)
+                      </label>
+                      <div className="flex flex-wrap gap-2 max-h-60 overflow-y-auto p-2 bg-gray-50 rounded-lg">
+                        {availableGenres.map(genre => (
+                          <button
+                            key={genre}
+                            onClick={() => toggleGenre(genre)}
+                            className={`px-3 py-1 rounded-full text-sm transition-all ${
+                              selectedGenres.includes(genre)
+                                ? 'bg-purple-600 text-white'
+                                : 'bg-white text-gray-700 border border-gray-300 hover:border-purple-400'
+                            }`}
+                          >
+                            {genre}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {hasActiveFilters && (
                     <button
                       onClick={clearFilters}
@@ -460,7 +546,7 @@
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
-                        {formatDate(event.date)}
+                        {event.dates.length > 1 ? `${event.dates.length} dates` : formatDate(event.dates[0].date)}
                       </span>
                       <span className="flex items-center gap-1">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -472,11 +558,53 @@
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        {event.price}
+                        ${event.price}
                       </span>
                     </div>
 
-                    <p className="text-gray-700 mb-4">{event.description}</p>
+                    {event.dates.length > 1 && (
+                      <div className="mb-4 p-3 bg-blue-50 rounded-lg">
+                        <div className="text-sm font-semibold text-blue-900 mb-2">Available Dates:</div>
+                        <div className="space-y-1">
+                          {event.dates.map((dateInfo, idx) => (
+                            <div key={idx} className="flex items-center justify-between text-sm">
+                              <span className="text-blue-700">{formatDate(dateInfo.date)}</span>
+                              {dateInfo.ticketUrl && (
+                                <a
+                                  href={dateInfo.ticketUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-blue-600 hover:text-blue-800 text-xs underline"
+                                >
+                                  Tickets
+                                </a>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {event.genres && event.genres.length > 0 && (
+                      <div className="mb-4 flex flex-wrap gap-2">
+                        {event.genres.map((genre, idx) => (
+                          <span key={idx} className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full">
+                            {genre}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {expandedDescriptions.includes(event.id) && (
+                      <p className="text-gray-700 mb-4">{event.description}</p>
+                    )}
+                    
+                    <button
+                      onClick={() => toggleDescription(event.id)}
+                      className="text-sm text-purple-600 hover:text-purple-700 mb-4"
+                    >
+                      {expandedDescriptions.includes(event.id) ? '▲ Hide Description' : '▼ Show Description'}
+                    </button>
 
                     {event.youtubeLinks && event.youtubeLinks.length > 0 && (
                       <div className="mb-4 p-3 bg-red-50 rounded-lg">
@@ -522,6 +650,15 @@
                         {event.ticketUrl ? (
                           <a
                             href={event.ticketUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors inline-block"
+                          >
+                            Get Tickets
+                          </a>
+                        ) : event.dates.length === 1 && event.dates[0].ticketUrl ? (
+                          <a
+                            href={event.dates[0].ticketUrl}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors inline-block"
