@@ -141,10 +141,16 @@
         });
 
         if (selectedCategory === 'hidden') {
-          filtered = filtered.filter(e => hidden.includes(e.name.toLowerCase().trim()));
+          filtered = filtered.filter(e => {
+            const normalizedName = e.name.replace(/\s*\([^)]*\)/g, '').toLowerCase().trim();
+            return hidden.includes(normalizedName);
+          });
         } else {
           // Exclude hidden events from all other views
-          filtered = filtered.filter(e => !hidden.includes(e.name.toLowerCase().trim()));
+          filtered = filtered.filter(e => {
+            const normalizedName = e.name.replace(/\s*\([^)]*\)/g, '').toLowerCase().trim();
+            return !hidden.includes(normalizedName);
+          });
 
           if (selectedCategory !== 'all') {
             if (selectedCategory === 'favorites') {
