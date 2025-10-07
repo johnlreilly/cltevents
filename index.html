@@ -547,7 +547,7 @@
               <div className="mb-6 p-6 bg-surfacevariant rounded-3xl border border-outlinevariant">
                 {/* Material 3 Filter Chips */}
                 <div className="mb-6 flex flex-wrap gap-3">
-              <div className="relative flex-1 min-w-[200px]">
+                  <div className="relative flex-1 min-w-[200px]">
                 <button
                   onClick={() => setShowCategoryMenu(!showCategoryMenu)}
                   className="flex items-center gap-2 px-6 py-3 bg-secondarycontainer text-onsecondarycontainer rounded-full hover:shadow-md transition-all w-full font-medium"
@@ -648,46 +648,47 @@
                     </div>
                   </>
                 )}
+                </div>
               </div>
 
-                {/* Material 3 Segmented Button for Sort */}
-                <div className="flex justify-between items-center mb-6">
+              {/* Material 3 Segmented Button for Sort */}
+              <div className="flex justify-between items-center mb-6">
+                <button
+                  onClick={() => setShowFilters(!showFilters)}
+                  className="flex items-center gap-2 px-4 py-2 bg-surface text-onsurface rounded-full hover:shadow-md transition-all font-medium text-sm"
+                >
+                  Advanced Filters
+                  <svg className={`w-4 h-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                <div className="inline-flex rounded-full border border-outline overflow-hidden">
                   <button
-                    onClick={() => setShowFilters(!showFilters)}
-                    className="flex items-center gap-2 px-4 py-2 bg-surface text-onsurface rounded-full hover:shadow-md transition-all font-medium text-sm"
+                    onClick={() => setSortBy('date')}
+                    className={`px-6 py-2 text-sm font-medium transition-all ${
+                      sortBy === 'date'
+                        ? 'bg-secondarycontainer text-onsecondarycontainer'
+                        : 'text-onsurfacevariant hover:bg-surfacevariant'
+                    }`}
                   >
-                    Advanced Filters
-                    <svg className={`w-4 h-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
+                    📅 Date
                   </button>
-                  <div className="inline-flex rounded-full border border-outline overflow-hidden">
-                    <button
-                      onClick={() => setSortBy('date')}
-                      className={`px-6 py-2 text-sm font-medium transition-all ${
-                        sortBy === 'date'
-                          ? 'bg-secondarycontainer text-onsecondarycontainer'
-                          : 'text-onsurfacevariant hover:bg-surfacevariant'
-                      }`}
-                    >
-                      📅 Date
-                    </button>
-                    <button
-                      onClick={() => setSortBy('match')}
-                      className={`px-6 py-2 text-sm font-medium transition-all border-l border-outline ${
-                        sortBy === 'match'
-                          ? 'bg-secondarycontainer text-onsecondarycontainer'
-                          : 'text-onsurfacevariant hover:bg-surfacevariant'
-                      }`}
-                    >
-                      ⭐ Best
+                  <button
+                    onClick={() => setSortBy('match')}
+                    className={`px-6 py-2 text-sm font-medium transition-all border-l border-outline ${
+                      sortBy === 'match'
+                        ? 'bg-secondarycontainer text-onsecondarycontainer'
+                        : 'text-onsurfacevariant hover:bg-surfacevariant'
+                    }`}
+                  >
+                    ⭐ Best
                     </button>
                   </div>
                 </div>
 
-                {/* Advanced Filters */}
-                {showFilters && (
-                  <div className="mb-6">
+              {/* Advanced Filters */}
+              {showFilters && (
+                <div className="mt-6 pt-6 border-t border-outline">
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Date Range</label>
@@ -761,10 +762,10 @@
                       Clear All Filters
                     </button>
                   )}
-                  </div>
-                )}
-              </div>
-            )}
+                </div>
+              )}
+            </div>
+          )}
 
             <div className="mb-4 text-sm text-gray-600">
               Showing {sortedEvents.length} events
@@ -884,21 +885,6 @@
                       </div>
                     )}
 
-                    {hasUsefulDescription(event) && (
-                      <>
-                        {expandedDescriptions.includes(event.id) && (
-                          <p className="text-onsurface mb-4">{event.description}</p>
-                        )}
-
-                        <button
-                          onClick={() => toggleDescription(event.id)}
-                          className="text-sm text-primary hover:text-onprimarycontainer mb-4"
-                        >
-                          {expandedDescriptions.includes(event.id) ? '▲ Hide Description' : '▼ Show Description'}
-                        </button>
-                      </>
-                    )}
-
                     {event.youtubeLinks && event.youtubeLinks.length > 0 && (
                       <div className="mb-4 p-3 bg-tertiarycontainer rounded-lg">
                         <div className="flex items-center gap-2 mb-2 text-sm font-semibold text-ontertiarycontainer">
@@ -926,7 +912,17 @@
                       </div>
                     )}
 
-                    <div className="flex items-center justify-end mt-4">
+                    <div className="flex items-center justify-between mt-4">
+                      {hasUsefulDescription(event) ? (
+                        <button
+                          onClick={() => toggleDescription(event.id)}
+                          className="text-sm text-primary hover:text-onprimarycontainer font-medium"
+                        >
+                          {expandedDescriptions.includes(event.id) ? '▲ Hide Description' : '▼ Show Description'}
+                        </button>
+                      ) : (
+                        <div></div>
+                      )}
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleShare(event)}
@@ -962,6 +958,10 @@
                         )}
                       </div>
                     </div>
+
+                    {hasUsefulDescription(event) && expandedDescriptions.includes(event.id) && (
+                      <p className="text-onsurface mt-4 pt-4 border-t border-outlinevariant">{event.description}</p>
+                    )}
                   </div>
                 </div>
               ))}
