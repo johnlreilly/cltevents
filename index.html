@@ -489,24 +489,7 @@
         }
       };
 
-      const hasActiveFilters = dateRange.start || dateRange.end || priceRange.min || priceRange.max || selectedGenres.length > 0;
-
-      if (initialLoad && loading) {
-        return (
-          <div className="min-h-screen bg-gradient-to-br from-blue-950 to-blue-900 flex items-center justify-center">
-            <div className="text-center">
-              <div className="mb-4">
-                <svg className="animate-spin h-16 w-16 text-primary mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-              </div>
-              <h2 className="text-2xl font-bold text-onsurface mb-2">Stand by... pulling events...</h2>
-              <p className="text-onsurfacevariant">Loading events from the webs!</p>
-            </div>
-          </div>
-        );
-      }
+      const hasActiveFilters = (dateRange.start && dateRange.start !== today) || dateRange.end || priceRange.min || priceRange.max || selectedGenres.length > 0;
 
       return (
         <div className="min-h-screen bg-surface">
@@ -546,6 +529,18 @@
             {/* Filter Tray */}
             {showFilterTray && (
               <div className="mb-6 p-6 bg-surfacevariant rounded-3xl border border-outlinevariant">
+                {/* Clear Filters Button */}
+                {hasActiveFilters && (
+                  <div className="mb-6">
+                    <button
+                      onClick={clearFilters}
+                      className="w-full px-6 py-3 bg-surface text-onsurface rounded-full hover:bg-primarycontainer hover:text-onprimarycontainer transition-all font-medium text-sm border border-outline"
+                    >
+                      Clear All Filters
+                    </button>
+                  </div>
+                )}
+
                 {/* Material 3 Filter Chips */}
                 <div className="mb-6 flex flex-wrap gap-3">
                   <div className="relative flex-1 min-w-[200px]">
@@ -652,8 +647,11 @@
                 </div>
               </div>
 
+              {/* Horizontal Rule */}
+              <div className="mb-6 border-t border-outline"></div>
+
               {/* Sort Dropdown */}
-              <div className="relative flex-1 min-w-[200px]">
+              <div className="relative flex-1 min-w-[200px] mb-6">
                 <button
                   onClick={() => setShowSortMenu(!showSortMenu)}
                   className="flex items-center gap-2 px-6 py-3 bg-secondarycontainer text-onsecondarycontainer rounded-full hover:shadow-md transition-all w-full font-medium"
@@ -791,69 +789,48 @@
                 </div>
               )} */}
 
-              {/* Clear Filters Button */}
-              {hasActiveFilters && (
-                <div className="mt-6 pt-6 border-t border-outline">
-                  <button
-                    onClick={clearFilters}
-                    className="w-full px-6 py-3 bg-surface text-onsurface rounded-full hover:bg-primarycontainer hover:text-onprimarycontainer transition-all font-medium text-sm border border-outline"
-                  >
-                    Clear All Filters
-                  </button>
-                </div>
-              )}
+              {/* Close Button */}
+              <button
+                onClick={() => setShowFilterTray(false)}
+                className="w-full px-6 py-3 bg-surface text-onsurface rounded-full hover:bg-primarycontainer hover:text-onprimarycontainer transition-all font-medium text-sm border border-outline"
+              >
+                Close
+              </button>
             </div>
           )}
 
-            <div className="mb-4 text-sm text-gray-600">
-              Showing {sortedEvents.length} events
-              {apiEvents.length > 0 && (
-                <span className="ml-2 text-orange-600 font-semibold">
-                  (From Ticketmaster & Local Venues)
-                </span>
-              )}
-            </div>
+            {initialLoad && loading ? (
+              <div className="flex items-center justify-center py-24">
+                <div className="text-center">
+                  <div className="mb-4">
+                    <svg className="animate-spin h-16 w-16 text-primary mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  </div>
+                  <h2 className="text-2xl font-bold text-onsurface mb-2">Stand by... pulling events...</h2>
+                  <p className="text-onsurfacevariant">Loading events from the webs!</p>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="mb-4 text-sm text-gray-600">
+                  Showing {sortedEvents.length} events
+                  {apiEvents.length > 0 && (
+                    <span className="ml-2 text-orange-600 font-semibold">
+                      (From Ticketmaster & Local Venues)
+                    </span>
+                  )}
+                </div>
 
-            {/* Material 3 Event Cards */}
-            <div className="grid md:grid-cols-2 gap-4">
-              {sortedEvents.map(event => (
+                {/* Material 3 Event Cards */}
+                <div className="grid md:grid-cols-2 gap-4">
+                  {sortedEvents.map(event => (
                 <div key={event.id} className="bg-surface rounded-3xl border border-outlinevariant overflow-hidden hover:shadow-lg transition-all">
                   <div className="p-5">
-                    <div className="flex justify-between items-start mb-3">
-                      <div className="flex-1">
-                        <h3 className="text-xl font-semibold text-onsurface mb-1">{event.name}</h3>
-                        <p className="text-sm text-onsurfacevariant">{event.venue}</p>
-                      </div>
-                      <div className="flex gap-1 ml-3 -mt-1">
-                        <button
-                          onClick={() => toggleFavorite(event.id)}
-                          title="Favorite"
-                          className="p-1 rounded-full hover:bg-primarycontainer transition-colors"
-                        >
-                          <svg
-                            className={`w-5 h-5 ${favorites.includes(event.id) ? 'fill-tertiary text-tertiary' : 'text-onsurfacevariant'}`}
-                            fill={favorites.includes(event.id) ? 'currentColor' : 'none'}
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                          </svg>
-                        </button>
-                        <button
-                          onClick={() => toggleHidden(event)}
-                          title="Hide event"
-                          className="p-1 rounded-full hover:bg-primarycontainer transition-colors"
-                        >
-                          <svg
-                            className={`w-5 h-5 ${hidden.includes(event.name.toLowerCase().trim()) ? 'text-tertiary' : 'text-onsurfacevariant'}`}
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        </button>
-                      </div>
+                    <div className="mb-3">
+                      <h3 className="text-xl font-semibold text-onsurface mb-1">{event.name}</h3>
+                      <p className="text-sm text-onsurfacevariant">{event.venue}</p>
                     </div>
 
                     <div className="flex items-center gap-4 mb-3 text-sm text-onsurfacevariant">
@@ -950,52 +927,77 @@
                       </div>
                     )}
 
-                    <div className="flex items-center justify-between mt-4">
-                      {hasUsefulDescription(event) ? (
-                        <button
-                          onClick={() => toggleDescription(event.id)}
-                          className="text-sm text-primary hover:text-onprimarycontainer font-medium"
+                    <div className="flex items-center gap-2 mt-4">
+                      <button
+                        onClick={() => toggleFavorite(event.id)}
+                        title="Favorite"
+                        className="p-2.5 rounded-full hover:bg-surfacevariant transition-colors"
+                      >
+                        <svg
+                          className={`w-5 h-5 ${favorites.includes(event.id) ? 'fill-tertiary text-tertiary' : 'text-onsurfacevariant'}`}
+                          fill={favorites.includes(event.id) ? 'currentColor' : 'none'}
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
                         >
-                          {expandedDescriptions.includes(event.id) ? '▲ Hide Description' : '▼ Show Description'}
-                        </button>
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => toggleHidden(event)}
+                        title="Hide event"
+                        className="p-2.5 rounded-full hover:bg-surfacevariant transition-colors"
+                      >
+                        <svg
+                          className={`w-5 h-5 ${hidden.includes(event.name.toLowerCase().trim()) ? 'text-tertiary' : 'text-onsurfacevariant'}`}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => handleShare(event)}
+                        className="p-2.5 rounded-full hover:bg-surfacevariant transition-colors"
+                        title="Share event"
+                      >
+                        <svg className="w-5 h-5 text-onsurfacevariant" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                        </svg>
+                      </button>
+                      {event.ticketUrl ? (
+                        <a
+                          href={event.ticketUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-6 py-1.5 bg-primary text-onprimary rounded-full hover:shadow-md transition-all flex items-center justify-center font-medium text-xs"
+                        >
+                          Get Tickets
+                        </a>
+                      ) : event.dates.length === 1 && event.dates[0].ticketUrl ? (
+                        <a
+                          href={event.dates[0].ticketUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-6 py-1.5 bg-primary text-onprimary rounded-full hover:shadow-md transition-all flex items-center justify-center font-medium text-xs"
+                        >
+                          Get Tickets
+                        </a>
                       ) : (
-                        <div></div>
-                      )}
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleShare(event)}
-                          className="p-2.5 rounded-full hover:bg-surfacevariant transition-colors"
-                          title="Share event"
-                        >
-                          <svg className="w-5 h-5 text-onsurfacevariant" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-                          </svg>
+                        <button className="px-6 py-1.5 bg-primary text-onprimary rounded-full hover:shadow-md transition-all flex items-center justify-center font-medium text-xs">
+                          Get Tickets
                         </button>
-                        {event.ticketUrl ? (
-                          <a
-                            href={event.ticketUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="px-6 py-1.5 bg-primary text-onprimary rounded-full hover:shadow-md transition-all flex items-center justify-center font-medium text-xs"
-                          >
-                            Get Tickets
-                          </a>
-                        ) : event.dates.length === 1 && event.dates[0].ticketUrl ? (
-                          <a
-                            href={event.dates[0].ticketUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="px-6 py-1.5 bg-primary text-onprimary rounded-full hover:shadow-md transition-all flex items-center justify-center font-medium text-xs"
-                          >
-                            Get Tickets
-                          </a>
-                        ) : (
-                          <button className="px-6 py-1.5 bg-primary text-onprimary rounded-full hover:shadow-md transition-all flex items-center justify-center font-medium text-xs">
-                            Get Tickets
-                          </button>
-                        )}
-                      </div>
+                      )}
                     </div>
+
+                    {hasUsefulDescription(event) && (
+                      <button
+                        onClick={() => toggleDescription(event.id)}
+                        className="text-sm text-primary hover:text-onprimarycontainer font-medium mt-4 block"
+                      >
+                        {expandedDescriptions.includes(event.id) ? '▲ Hide Description' : '▼ Show Description'}
+                      </button>
+                    )}
 
                     {hasUsefulDescription(event) && expandedDescriptions.includes(event.id) && (
                       <p className="text-onsurface mt-4 pt-4 border-t border-outlinevariant">{event.description}</p>
@@ -1005,18 +1007,20 @@
               ))}
             </div>
 
-            {sortedEvents.length === 0 && (
-              <div className="text-center py-12">
-                <p className="text-gray-500 text-lg">No events found matching your filters.</p>
-                {hasActiveFilters && (
-                  <button
-                    onClick={clearFilters}
-                    className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
-                  >
-                    Clear Filters
-                  </button>
+                {sortedEvents.length === 0 && (
+                  <div className="text-center py-12">
+                    <p className="text-gray-500 text-lg">No events found matching your filters.</p>
+                    {hasActiveFilters && (
+                      <button
+                        onClick={clearFilters}
+                        className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                      >
+                        Clear Filters
+                      </button>
+                    )}
+                  </div>
                 )}
-              </div>
+              </>
             )}
           </div>
 
