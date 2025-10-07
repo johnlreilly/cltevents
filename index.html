@@ -73,7 +73,13 @@
         });
 
         if (selectedCategory !== 'all') {
-          filtered = filtered.filter(e => e.type === selectedCategory);
+          if (selectedCategory === 'divebars') {
+            filtered = filtered.filter(e =>
+              diveBarVenues.some(venue => e.venue.toLowerCase().includes(venue))
+            );
+          } else {
+            filtered = filtered.filter(e => e.type === selectedCategory);
+          }
         }
 
         if (dateRange.start) {
@@ -141,11 +147,18 @@
       const groupedEvents = groupEventsByName(filteredEvents);
       const sortedEvents = sortEvents(groupedEvents);
 
+      const diveBarVenues = [
+        'thirsty beaver',
+        'snug harbor',
+        'smokey joe\'s cafe'
+      ];
+
       const categories = [
-        { id: 'all', name: 'All Events' },
+        { id: 'all', name: 'All' },
         { id: 'music', name: 'Music' },
         { id: 'sports', name: 'Sports' },
-        { id: 'food', name: 'Food & Drink' }
+        { id: 'food', name: 'Food & Drink' },
+        { id: 'divebars', name: 'Dive Bars' }
       ];
 
       const toggleFavorite = (eventId) => {
