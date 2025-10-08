@@ -21,10 +21,10 @@
             onsecondary: '#23323F',
             secondarycontainer: '#394857',
             onsecondarycontainer: '#D4E3F6',
-            tertiary: '#D4BEE5',
-            ontertiary: '#3A2948',
-            tertiarycontainer: '#513F5F',
-            ontertiarycontainer: '#F1DAFF',
+            tertiary: '#A8C7FA',
+            ontertiary: '#003258',
+            tertiarycontainer: '#004A77',
+            ontertiarycontainer: '#D3E4FF',
             surface: '#1C1B1F',
             onsurface: '#E6E1E5',
             surfacevariant: '#49454F',
@@ -497,7 +497,7 @@
       const hasActiveFilters = (dateRange.start && dateRange.start !== today) || dateRange.end || priceRange.min || priceRange.max || selectedGenres.length > 0;
 
       return (
-        <div className="min-h-screen bg-surface">
+        <div className="min-h-screen bg-black">
           {/* Material 3 Top App Bar */}
           <div className="bg-surface shadow-sm sticky top-0 z-30 border-b border-outlinevariant">
             <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
@@ -535,7 +535,7 @@
             {showFilterTray && (
               <div className="mb-6 p-6 bg-surfacevariant rounded-3xl border border-outlinevariant">
                 {/* Header */}
-                <h2 className="text-lg font-semibold text-onsurface mb-6">Filters</h2>
+                <h2 className="text-lg font-semibold text-onsurface mb-6">Filter & Sort</h2>
 
                 {/* Material 3 Filter Chips */}
                 <div className="mb-6 flex flex-wrap gap-3">
@@ -642,6 +642,18 @@
                 )}
                 </div>
               </div>
+
+              {/* Clear Filters Button */}
+              {hasActiveFilters && (
+                <div className="mb-6">
+                  <button
+                    onClick={clearFilters}
+                    className="w-full px-6 py-3 bg-surface text-onsurface rounded-full hover:bg-primarycontainer hover:text-onprimarycontainer transition-all font-medium text-sm border border-outline"
+                  >
+                    Clear All Filters
+                  </button>
+                </div>
+              )}
 
               {/* Clear Filters Button */}
               {hasActiveFilters && (
