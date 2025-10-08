@@ -1,6 +1,7 @@
 {
   "name": "charlotte-events-app",
   "version": "1.0.0",
+  "type": "module",
   "description": "Event discovery app for Charlotte, NC",
   "main": "index.html",
   "scripts": {
