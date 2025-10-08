@@ -1133,7 +1133,7 @@ END:VCALENDAR`;
                         {showDateSeparator && (
                           <div
                             id={dateId}
-                            className={`md:col-span-2 bg-[#1E3A5F] rounded-b-3xl flex flex-col justify-end items-start text-white sticky top-16 z-20 transition-all overflow-hidden relative ${
+                            className={`md:col-span-2 bg-[#1E3A5F] rounded-b-3xl flex flex-col justify-end items-start text-white sticky top-16 z-20 overflow-hidden relative ${
                               isStuck ? 'h-12 px-4 pb-2' : 'h-[10vh] p-4 rounded-t-3xl'
                             }`}
                           >
@@ -1141,7 +1141,7 @@ END:VCALENDAR`;
                             <svg className="absolute right-4 bottom-2 w-12 h-12 opacity-20" fill="currentColor" viewBox="0 0 24 24">
                               <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5m14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/>
                             </svg>
-                            <div className={`text-sm opacity-80 transition-all ${isStuck ? 'h-0 opacity-0' : 'pt-2'}`}>
+                            <div className={`text-sm opacity-80 transition-opacity ${isStuck ? 'h-0 opacity-0' : 'pt-2'}`}>
                               {formatDateSeparator(currentDate).year}
                             </div>
                             <div className="text-2xl font-bold">
