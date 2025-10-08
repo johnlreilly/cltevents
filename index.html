@@ -529,17 +529,8 @@
             {/* Filter Tray */}
             {showFilterTray && (
               <div className="mb-6 p-6 bg-surfacevariant rounded-3xl border border-outlinevariant">
-                {/* Clear Filters Button */}
-                {hasActiveFilters && (
-                  <div className="mb-6">
-                    <button
-                      onClick={clearFilters}
-                      className="w-full px-6 py-3 bg-surface text-onsurface rounded-full hover:bg-primarycontainer hover:text-onprimarycontainer transition-all font-medium text-sm border border-outline"
-                    >
-                      Clear All Filters
-                    </button>
-                  </div>
-                )}
+                {/* Header */}
+                <h2 className="text-lg font-semibold text-onsurface mb-6">Filters</h2>
 
                 {/* Material 3 Filter Chips */}
                 <div className="mb-6 flex flex-wrap gap-3">
@@ -647,6 +638,18 @@
                 </div>
               </div>
 
+              {/* Clear Filters Button */}
+              {hasActiveFilters && (
+                <div className="mb-6">
+                  <button
+                    onClick={clearFilters}
+                    className="w-full px-6 py-3 bg-surface text-onsurface rounded-full hover:bg-primarycontainer hover:text-onprimarycontainer transition-all font-medium text-sm border border-outline"
+                  >
+                    Clear All Filters
+                  </button>
+                </div>
+              )}
+
               {/* Horizontal Rule */}
               <div className="mb-6 border-t border-outline"></div>
 
@@ -656,7 +659,7 @@
                   onClick={() => setShowSortMenu(!showSortMenu)}
                   className="flex items-center gap-2 px-6 py-3 bg-secondarycontainer text-onsecondarycontainer rounded-full hover:shadow-md transition-all w-full font-medium"
                 >
-                  <span>Sort: {sortBy === 'date' ? '📅 Date' : '⭐ Best Match'}</span>
+                  <span>Sort: {sortBy === 'date' ? 'Date' : 'Best Match'}</span>
                   <svg className="w-5 h-5 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
@@ -680,7 +683,7 @@
                             : 'text-onsurface hover:bg-surfacevariant'
                         }`}
                       >
-                        <span className="font-medium">📅 Date</span>
+                        <span className="font-medium">Date</span>
                         {sortBy === 'date' && (
                           <svg className="w-5 h-5 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -698,7 +701,7 @@
                             : 'text-onsurface hover:bg-surfacevariant'
                         }`}
                       >
-                        <span className="font-medium">⭐ Best Match</span>
+                        <span className="font-medium">Best Match</span>
                         {sortBy === 'match' && (
                           <svg className="w-5 h-5 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
