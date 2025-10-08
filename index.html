@@ -89,6 +89,7 @@
       });
       const [isDragging, setIsDragging] = useState(false);
       const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+      const [hasDragged, setHasDragged] = useState(false);
 
       React.useEffect(() => {
         fetchEvents();
@@ -127,10 +128,13 @@
         return () => window.removeEventListener('scroll', handleScroll);
       }, []);
 
-      const scrollToTop = () => {
-        if (!isDragging) {
-          window.scrollTo({ top: 0, behavior: 'smooth' });
+      const scrollToTop = (e) => {
+        if (hasDragged) {
+          e.preventDefault();
+          setHasDragged(false);
+          return;
         }
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       };
 
       const handleDragStart = (e) => {
@@ -143,10 +147,13 @@
           y: clientY - rect.top
         });
         setIsDragging(true);
+        setHasDragged(false);
       };
 
       const handleDragMove = (e) => {
         if (!isDragging) return;
+
+        setHasDragged(true);
 
         const clientX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
         const clientY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
