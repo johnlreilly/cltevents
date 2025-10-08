@@ -374,10 +374,11 @@
       const fetchEvents = async () => {
         setLoading(true);
         try {
-          // Fetch from both Ticketmaster and Smokey Joe's in parallel
-          const [ticketmasterResponse, smokeyJoesResponse] = await Promise.all([
+          // Fetch from all sources in parallel
+          const [ticketmasterResponse, smokeyJoesResponse, cltTodayResponse] = await Promise.all([
             fetch('/api/events'),
-            fetch('/api/smokeyjoes')
+            fetch('/api/smokeyjoes'),
+            fetch('/api/clttoday')
           ]);
 
           let allEvents = [];
@@ -493,6 +494,42 @@
             allEvents = [...allEvents, ...sjEvents];
           }
 
+          // Process CLTtoday events
+          if (cltTodayResponse.ok) {
+            const cltData = await cltTodayResponse.json();
+
+            const cltEvents = cltData.events.map((cltEvent) => {
+              // Parse the pubDate to use as event date
+              const eventDate = cltEvent.pubDate ? new Date(cltEvent.pubDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+
+              // Base match score for CLTtoday articles (lower since they're not direct event listings)
+              let matchScore = 60;
+
+              // Boost if it's in the Events category
+              if (cltEvent.category?.toLowerCase().includes('event')) {
+                matchScore += 10;
+              }
+
+              return {
+                id: `clt-${cltEvent.url}`,
+                name: cltEvent.name,
+                type: 'article',
+                date: eventDate,
+                venue: 'CLTtoday Article',
+                distance: 'N/A',
+                description: cltEvent.description || cltEvent.name,
+                price: 0,
+                matchScore: matchScore,
+                ticketUrl: cltEvent.url,
+                genres: cltEvent.category ? [cltEvent.category] : ['News'],
+                imageUrl: cltEvent.image,
+                source: 'clttoday'
+              };
+            });
+
+            allEvents = [...allEvents, ...cltEvents];
+          }
+
           setApiEvents(allEvents);
 
           // Extract unique genres for filtering, excluding the ones we filter out
@@ -513,7 +550,7 @@
           setInitialLoad(false);
           if (!initialLoad) {
             window.scrollTo({ top: 0, behavior: 'smooth' });
-            alert(`Successfully loaded ${allEvents.length} events from Ticketmaster and Smokey Joe's!`);
+            alert(`Successfully loaded ${allEvents.length} events from Ticketmaster, Smokey Joe's, and CLTtoday!`);
           }
         } catch (error) {
           setInitialLoad(false);
