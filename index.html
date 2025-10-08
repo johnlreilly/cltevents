@@ -78,6 +78,17 @@
       const [availableGenres, setAvailableGenres] = useState([]);
       const [selectedGenres, setSelectedGenres] = useState([]);
       const [showScrollTop, setShowScrollTop] = useState(false);
+      const [scrollButtonPosition, setScrollButtonPosition] = useState(() => {
+        const saved = localStorage.getItem('cltevents-scroll-button-position');
+        if (saved) {
+          return JSON.parse(saved);
+        }
+        // Default to 66% of viewport height
+        const defaultY = window.innerHeight * 0.66;
+        return { x: 16, y: defaultY };
+      });
+      const [isDragging, setIsDragging] = useState(false);
+      const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
       React.useEffect(() => {
         fetchEvents();
@@ -117,8 +128,57 @@
       }, []);
 
       const scrollToTop = () => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        if (!isDragging) {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
       };
+
+      const handleDragStart = (e) => {
+        const clientX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
+        const clientY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
+
+        const rect = e.currentTarget.getBoundingClientRect();
+        setDragOffset({
+          x: clientX - rect.left,
+          y: clientY - rect.top
+        });
+        setIsDragging(true);
+      };
+
+      const handleDragMove = (e) => {
+        if (!isDragging) return;
+
+        const clientX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
+        const clientY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
+
+        const newX = clientX - dragOffset.x;
+        const newY = clientY - dragOffset.y;
+
+        setScrollButtonPosition({ x: newX, y: newY });
+      };
+
+      const handleDragEnd = () => {
+        if (isDragging) {
+          setIsDragging(false);
+          localStorage.setItem('cltevents-scroll-button-position', JSON.stringify(scrollButtonPosition));
+        }
+      };
+
+      React.useEffect(() => {
+        if (isDragging) {
+          window.addEventListener('mousemove', handleDragMove);
+          window.addEventListener('mouseup', handleDragEnd);
+          window.addEventListener('touchmove', handleDragMove);
+          window.addEventListener('touchend', handleDragEnd);
+
+          return () => {
+            window.removeEventListener('mousemove', handleDragMove);
+            window.removeEventListener('mouseup', handleDragEnd);
+            window.removeEventListener('touchmove', handleDragMove);
+            window.removeEventListener('touchend', handleDragEnd);
+          };
+        }
+      }, [isDragging, dragOffset, scrollButtonPosition]);
 
       const excludeKeywords = ['bingo', 'trivia', 'drag', 'kids', 'children\'s', 'day party', 'bridal', 'disney', 'comedy'];
 
@@ -1281,9 +1341,15 @@ END:VCALENDAR`;
           {showScrollTop && (
             <button
               onClick={scrollToTop}
-              className="fixed left-4 bg-primary text-onprimary p-3 rounded-full shadow-lg hover:shadow-xl transition-all opacity-25"
-              style={{ top: '66vh' }}
-              title="Scroll to top"
+              onMouseDown={handleDragStart}
+              onTouchStart={handleDragStart}
+              className="fixed bg-primary text-onprimary p-3 rounded-full shadow-lg hover:shadow-xl transition-shadow opacity-25 cursor-move"
+              style={{
+                left: `${scrollButtonPosition.x}px`,
+                top: `${scrollButtonPosition.y}px`,
+                touchAction: 'none'
+              }}
+              title="Scroll to top (drag to reposition)"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
