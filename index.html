@@ -92,7 +92,7 @@
 
       const excludeKeywords = ['bingo', 'trivia', 'drag', 'kids', 'children\'s', 'day party', 'bridal', 'disney', 'comedy'];
 
-      const excludeGenres = ['hip-hop', 'rap', 'french rap', 'metal', 'nu-metal', 'country', 'children\'s theater'];
+      const excludeGenres = ['hip-hop', 'rap', 'french rap', 'metal', 'nu-metal', 'country', 'children\'s theater', 'documentary', 'family', 'gospel', 'religious', 'witchstep'];
 
       const preferredVenues = [
         'neighborhood theater',
@@ -447,12 +447,17 @@
           }
 
           setApiEvents(allEvents);
-          
-          // Extract unique genres for filtering
+
+          // Extract unique genres for filtering, excluding the ones we filter out
           const allGenres = new Set();
           allEvents.forEach(event => {
             if (event.genres) {
-              event.genres.forEach(genre => allGenres.add(genre));
+              event.genres.forEach(genre => {
+                // Only add genre if it's not in the excluded list
+                if (!excludeGenres.some(excluded => genre.toLowerCase().includes(excluded.toLowerCase()))) {
+                  allGenres.add(genre);
+                }
+              });
             }
           });
           setAvailableGenres(Array.from(allGenres).sort());
