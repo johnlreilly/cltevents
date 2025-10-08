@@ -80,6 +80,23 @@
 
       React.useEffect(() => {
         fetchEvents();
+
+        // Check for event parameter in URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const eventSlug = urlParams.get('event');
+        if (eventSlug) {
+          // Wait for events to load, then scroll to the event
+          setTimeout(() => {
+            const eventElement = document.getElementById(`event-${eventSlug}`);
+            if (eventElement) {
+              eventElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              eventElement.classList.add('ring-2', 'ring-primary');
+              setTimeout(() => {
+                eventElement.classList.remove('ring-2', 'ring-primary');
+              }, 3000);
+            }
+          }, 1000);
+        }
       }, []);
 
       React.useEffect(() => {
@@ -302,12 +319,42 @@
         return true;
       };
 
-      const handleShare = (event) => {
+      const handleShare = async (event) => {
+        // Create a URL-friendly slug from the event name
+        const slug = event.name.toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, '');
+
+        const eventUrl = `https://clt.show/?event=${slug}`;
+        const priceText = event.price && event.price !== 0 && event.price !== '0' && event.price !== 'N/A'
+          ? ` Only $${event.price}`
+          : '';
+        const shareText = `Check out ${event.name} at ${event.venue} on ${formatDate(event.dates[0].date)}!${priceText}\n\n${eventUrl}`;
+        const shareTitle = `${event.name} - CLT.show`;
+
+        // Try to use Web Share API first (supports email with subject line)
+        if (navigator.share) {
+          try {
+            await navigator.share({
+              title: shareTitle,
+              text: shareText,
+              url: eventUrl
+            });
+            setShareEvent(event);
+            setTimeout(() => setShareEvent(null), 3000);
+            return;
+          } catch (err) {
+            // User cancelled or share failed, fall back to clipboard
+            if (err.name !== 'AbortError') {
+              console.log('Share failed:', err);
+            }
+          }
+        }
+
+        // Fallback to clipboard
+        navigator.clipboard.writeText(shareText);
         setShareEvent(event);
         setTimeout(() => setShareEvent(null), 3000);
-        
-        const shareText = `Check out ${event.name} at ${event.venue} on ${formatDate(event.dates[0].date)}! Only $${event.price}`;
-        navigator.clipboard.writeText(shareText);
       };
 
       const clearFilters = () => {
@@ -504,7 +551,12 @@
               <h1 className="text-2xl font-medium text-onsurface">Charlotte Events</h1>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => setShowFilterTray(!showFilterTray)}
+                  onClick={() => {
+                    setShowFilterTray(!showFilterTray);
+                    if (!showFilterTray) {
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
+                  }}
                   className={`p-2 rounded-full transition-colors relative ${showFilterTray ? 'bg-primarycontainer' : 'hover:bg-primarycontainer'}`}
                   title="Toggle filters"
                 >
@@ -845,8 +897,12 @@
 
                 {/* Material 3 Event Cards */}
                 <div className="grid md:grid-cols-2 gap-6">
-                  {sortedEvents.map(event => (
-                <div key={event.id} className="bg-surface rounded-3xl border border-outlinevariant overflow-hidden hover:shadow-lg transition-all">
+                  {sortedEvents.map(event => {
+                    const eventSlug = event.name.toLowerCase()
+                      .replace(/[^a-z0-9]+/g, '-')
+                      .replace(/^-+|-+$/g, '');
+                    return (
+                <div key={event.id} id={`event-${eventSlug}`} className="bg-surface rounded-3xl border border-outlinevariant overflow-hidden hover:shadow-lg transition-all">
                   {event.imageUrl && (
                     <div className="overflow-hidden">
                       <img
@@ -1029,7 +1085,8 @@
                     )}
                   </div>
                 </div>
-              ))}
+                    );
+                  })}
             </div>
 
                 {sortedEvents.length === 0 && (
