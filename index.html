@@ -1017,12 +1017,34 @@ END:VCALENDAR`;
 
                 {/* Material 3 Event Cards */}
                 <div className="grid md:grid-cols-2 gap-6">
-                  {sortedEvents.map(event => {
+                  {sortedEvents.map((event, index) => {
                     const eventSlug = event.name.toLowerCase()
                       .replace(/[^a-z0-9]+/g, '-')
                       .replace(/^-+|-+$/g, '');
+
+                    // Check if date changed from previous event
+                    const currentDate = event.dates[0].date;
+                    const previousDate = index > 0 ? sortedEvents[index - 1].dates[0].date : null;
+                    const showDateSeparator = currentDate !== previousDate;
+
+                    const formatDateSeparator = (dateStr) => {
+                      const date = new Date(dateStr);
+                      const year = date.getFullYear();
+                      const monthDay = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                      const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'long' });
+                      return { year, monthDay, dayOfWeek };
+                    };
+
                     return (
-                <div key={event.id} id={`event-${eventSlug}`} className="bg-surface rounded-3xl border border-outlinevariant overflow-hidden hover:shadow-lg transition-all">
+                      <React.Fragment key={event.id}>
+                        {showDateSeparator && (
+                          <div className="md:col-span-2 bg-[#1E3A5F] rounded-2xl h-[10vh] flex flex-col items-center justify-center text-white">
+                            <div className="text-sm opacity-80">{formatDateSeparator(currentDate).year}</div>
+                            <div className="text-2xl font-bold">{formatDateSeparator(currentDate).monthDay}</div>
+                            <div className="text-base opacity-90">{formatDateSeparator(currentDate).dayOfWeek}</div>
+                          </div>
+                        )}
+                        <div id={`event-${eventSlug}`} className="bg-surface rounded-3xl border border-outlinevariant overflow-hidden hover:shadow-lg transition-all">
                   {event.imageUrl && (
                     <div className="overflow-hidden">
                       <img
@@ -1223,10 +1245,11 @@ END:VCALENDAR`;
                       <p className="text-onsurface mt-4">{event.description}</p>
                     )}
                   </div>
-                </div>
+                        </div>
+                      </React.Fragment>
                     );
                   })}
-            </div>
+                </div>
 
                 {sortedEvents.length === 0 && (
                   <div className="text-center py-12">
