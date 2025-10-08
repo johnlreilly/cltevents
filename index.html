@@ -329,6 +329,58 @@
         return true;
       };
 
+      const handleAddToCalendar = (event) => {
+        // Create ICS calendar file
+        const eventDate = new Date(event.dates[0].date);
+        const eventTime = event.time || '19:00:00'; // Default to 7 PM if no time
+        const [hours, minutes] = eventTime.split(':');
+
+        // Set start time
+        const startDate = new Date(eventDate);
+        startDate.setHours(parseInt(hours), parseInt(minutes), 0);
+
+        // Set end time (2 hours later by default)
+        const endDate = new Date(startDate);
+        endDate.setHours(startDate.getHours() + 2);
+
+        // Format dates for ICS (YYYYMMDDTHHMMSS)
+        const formatICSDate = (date) => {
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          const hour = String(date.getHours()).padStart(2, '0');
+          const min = String(date.getMinutes()).padStart(2, '0');
+          const sec = String(date.getSeconds()).padStart(2, '0');
+          return `${year}${month}${day}T${hour}${min}${sec}`;
+        };
+
+        const description = event.ticketUrl ? `${event.description}\\n\\nTickets: ${event.ticketUrl}` : event.description;
+
+        const icsContent = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//CLT.show//Event Calendar//EN
+BEGIN:VEVENT
+UID:${event.id}@clt.show
+DTSTAMP:${formatICSDate(new Date())}
+DTSTART:${formatICSDate(startDate)}
+DTEND:${formatICSDate(endDate)}
+SUMMARY:${event.name}
+DESCRIPTION:${description}
+LOCATION:${event.venue}
+URL:${event.ticketUrl || 'https://clt.show'}
+END:VEVENT
+END:VCALENDAR`;
+
+        // Create download link
+        const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `${event.name.replace(/[^a-z0-9]/gi, '-')}.ics`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      };
+
       const handleShare = async (event) => {
         // Create a URL-friendly slug from the event name
         const slug = event.name.toLowerCase()
@@ -1053,6 +1105,20 @@
                           viewBox="0 0 24 24"
                         >
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => handleAddToCalendar(event)}
+                        title="Add to calendar"
+                        className="p-2.5 rounded-full hover:bg-surfacevariant transition-colors"
+                      >
+                        <svg
+                          className="w-5 h-5 text-onsurfacevariant"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
                       </button>
                       <button
