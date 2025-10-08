@@ -90,6 +90,7 @@
       const [isDragging, setIsDragging] = useState(false);
       const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
       const [hasDragged, setHasDragged] = useState(false);
+      const [stuckDates, setStuckDates] = useState(new Set());
 
       React.useEffect(() => {
         fetchEvents();
@@ -186,6 +187,31 @@
           };
         }
       }, [isDragging, dragOffset, scrollButtonPosition]);
+
+      React.useEffect(() => {
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              const dateId = entry.target.id;
+              setStuckDates((prev) => {
+                const newSet = new Set(prev);
+                if (entry.intersectionRatio < 1) {
+                  newSet.add(dateId);
+                } else {
+                  newSet.delete(dateId);
+                }
+                return newSet;
+              });
+            });
+          },
+          { threshold: [1], rootMargin: '-64px 0px 0px 0px' }
+        );
+
+        const dateHeaders = document.querySelectorAll('[id^="date-"]');
+        dateHeaders.forEach((header) => observer.observe(header));
+
+        return () => observer.disconnect();
+      }, [sortedEvents]);
 
       const excludeKeywords = ['bingo', 'trivia', 'drag', 'kids', 'children\'s', 'day party', 'bridal', 'disney', 'comedy'];
 
@@ -1102,12 +1128,17 @@ END:VCALENDAR`;
                       return { year, monthDay, dayOfWeek };
                     };
 
+                    const dateId = `date-${currentDate}`;
+                    const isStuck = stuckDates.has(dateId);
+
                     return (
                       <React.Fragment key={event.id}>
                         {showDateSeparator && (
                           <div
-                            id={`date-${currentDate}`}
-                            className="md:col-span-2 bg-[#1E3A5F] rounded-3xl h-[10vh] flex flex-col justify-end items-start p-4 text-white sticky top-16 z-20"
+                            id={dateId}
+                            className={`md:col-span-2 bg-[#1E3A5F] h-[10vh] flex flex-col justify-end items-start p-4 text-white sticky top-16 z-20 transition-all ${
+                              isStuck ? 'rounded-b-3xl' : 'rounded-3xl'
+                            }`}
                           >
                             <div className="text-sm opacity-80">{formatDateSeparator(currentDate).year}</div>
                             <div className="text-2xl font-bold">
