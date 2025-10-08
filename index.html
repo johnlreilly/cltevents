@@ -368,6 +368,7 @@
         };
 
         const description = event.ticketUrl ? `${event.description}\\n\\nTickets: ${event.ticketUrl}` : event.description;
+        const location = event.venueAddress ? `${event.venue}, ${event.venueAddress}` : event.venue;
 
         const icsContent = `BEGIN:VCALENDAR
 VERSION:2.0
@@ -379,7 +380,7 @@ DTSTART:${formatICSDate(startDate)}
 DTEND:${formatICSDate(endDate)}
 SUMMARY:${event.name}
 DESCRIPTION:${description}
-LOCATION:${event.venue}
+LOCATION:${location}
 URL:${event.ticketUrl || 'https://clt.show'}
 END:VEVENT
 END:VCALENDAR`;
@@ -492,7 +493,11 @@ END:VCALENDAR`;
                 price = tmEvent.priceRanges[0].min || 0;
               }
 
-              const venue = tmEvent._embedded?.venues?.[0]?.name || 'Venue TBA';
+              const venueData = tmEvent._embedded?.venues?.[0];
+              const venue = venueData?.name || 'Venue TBA';
+              const venueAddress = venueData?.address?.line1
+                ? `${venueData.address.line1}, ${venueData.city?.name || ''}, ${venueData.state?.stateCode || ''} ${venueData.postalCode || ''}`.trim()
+                : '';
 
               let matchScore = 70;
               if (preferredVenues.some(v => venue.toLowerCase().includes(v))) {
@@ -522,6 +527,7 @@ END:VCALENDAR`;
                 date: tmEvent.dates?.start?.localDate || '',
                 time: tmEvent.dates?.start?.localTime || null,
                 venue: venue,
+                venueAddress: venueAddress,
                 distance: 'N/A',
                 description: tmEvent.info || tmEvent.pleaseNote || tmEvent.name,
                 price: price,
