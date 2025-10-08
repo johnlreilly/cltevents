@@ -77,6 +77,7 @@
       const [expandedDescriptions, setExpandedDescriptions] = useState([]);
       const [availableGenres, setAvailableGenres] = useState([]);
       const [selectedGenres, setSelectedGenres] = useState([]);
+      const [showScrollTop, setShowScrollTop] = useState(false);
 
       React.useEffect(() => {
         fetchEvents();
@@ -106,6 +107,18 @@
       React.useEffect(() => {
         localStorage.setItem('cltevents-hidden', JSON.stringify(hidden));
       }, [hidden]);
+
+      React.useEffect(() => {
+        const handleScroll = () => {
+          setShowScrollTop(window.scrollY > 300);
+        };
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+      }, []);
+
+      const scrollToTop = () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      };
 
       const excludeKeywords = ['bingo', 'trivia', 'drag', 'kids', 'children\'s', 'day party', 'bridal', 'disney', 'comedy'];
 
@@ -1211,6 +1224,20 @@ END:VCALENDAR`;
               </svg>
               Event details copied to clipboard!
             </div>
+          )}
+
+          {/* Scroll to top button */}
+          {showScrollTop && (
+            <button
+              onClick={scrollToTop}
+              className="fixed left-4 bg-primary text-onprimary p-3 rounded-full shadow-lg hover:shadow-xl transition-all"
+              style={{ top: '66vh' }}
+              title="Scroll to top"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+              </svg>
+            </button>
           )}
         </div>
       );
