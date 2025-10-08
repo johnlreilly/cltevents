@@ -12,22 +12,31 @@ export default async function handler(req, res) {
   }
 
   try {
+    console.log('Fetching CLTtoday RSS feed...');
+
     // Fetch the RSS feed
     const rssResponse = await fetch('https://clttoday.6amcity.com/events.rss');
+
+    console.log('RSS response status:', rssResponse.status);
 
     if (!rssResponse.ok) {
       throw new Error(`RSS fetch failed: ${rssResponse.status}`);
     }
 
     const rssText = await rssResponse.text();
+    console.log('RSS text length:', rssText.length);
+    console.log('First 500 chars:', rssText.substring(0, 500));
 
     // Parse RSS XML manually (simple parsing)
     const items = [];
     const itemRegex = /<item>([\s\S]*?)<\/item>/g;
     let match;
+    let itemCount = 0;
 
     while ((match = itemRegex.exec(rssText)) !== null) {
+      itemCount++;
       const itemXml = match[1];
+      console.log(`Parsing item ${itemCount}...`);
 
       // Extract fields
       const getField = (fieldName) => {
@@ -57,6 +66,7 @@ export default async function handler(req, res) {
       const cleanDescription = description?.replace(/<[^>]+>/g, '').trim();
 
       if (title) {
+        console.log(`Found event: ${title}`);
         items.push({
           name: title,
           url: link,
@@ -68,6 +78,9 @@ export default async function handler(req, res) {
         });
       }
     }
+
+    console.log(`Total items found: ${itemCount}`);
+    console.log(`Total events parsed: ${items.length}`);
 
     res.status(200).json({
       success: true,
