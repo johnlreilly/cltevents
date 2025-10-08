@@ -1136,11 +1136,13 @@ END:VCALENDAR`;
                         {showDateSeparator && (
                           <div
                             id={dateId}
-                            className={`md:col-span-2 bg-[#1E3A5F] h-[10vh] flex flex-col justify-end items-start p-4 text-white sticky top-16 z-20 transition-all ${
-                              isStuck ? 'rounded-b-3xl' : 'rounded-3xl'
+                            className={`md:col-span-2 bg-[#1E3A5F] flex flex-col justify-end items-start text-white sticky top-16 z-20 transition-all overflow-hidden ${
+                              isStuck ? 'h-12 px-4 pb-2' : 'h-[10vh] p-4 rounded-3xl'
                             }`}
                           >
-                            <div className="text-sm opacity-80">{formatDateSeparator(currentDate).year}</div>
+                            <div className={`text-sm opacity-80 transition-all ${isStuck ? 'h-0 opacity-0' : ''}`}>
+                              {formatDateSeparator(currentDate).year}
+                            </div>
                             <div className="text-2xl font-bold">
                               {formatDateSeparator(currentDate).monthDay}, {formatDateSeparator(currentDate).dayOfWeek}
                             </div>
