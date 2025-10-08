@@ -189,28 +189,25 @@
       }, [isDragging, dragOffset, scrollButtonPosition]);
 
       React.useEffect(() => {
-        const observer = new IntersectionObserver(
-          (entries) => {
-            entries.forEach((entry) => {
-              const dateId = entry.target.id;
-              setStuckDates((prev) => {
-                const newSet = new Set(prev);
-                if (entry.intersectionRatio < 1) {
-                  newSet.add(dateId);
-                } else {
-                  newSet.delete(dateId);
-                }
-                return newSet;
-              });
-            });
-          },
-          { threshold: [1], rootMargin: '-64px 0px 0px 0px' }
-        );
+        const checkStuckHeaders = () => {
+          const dateHeaders = document.querySelectorAll('[id^="date-"]');
+          const newStuckDates = new Set();
 
-        const dateHeaders = document.querySelectorAll('[id^="date-"]');
-        dateHeaders.forEach((header) => observer.observe(header));
+          dateHeaders.forEach((header) => {
+            const rect = header.getBoundingClientRect();
+            // If the header is at the top position (64px from top), it's stuck
+            if (rect.top <= 64 && rect.top >= 63) {
+              newStuckDates.add(header.id);
+            }
+          });
 
-        return () => observer.disconnect();
+          setStuckDates(newStuckDates);
+        };
+
+        window.addEventListener('scroll', checkStuckHeaders);
+        checkStuckHeaders(); // Initial check
+
+        return () => window.removeEventListener('scroll', checkStuckHeaders);
       }, [sortedEvents]);
 
       const excludeKeywords = ['bingo', 'trivia', 'drag', 'kids', 'children\'s', 'day party', 'bridal', 'disney', 'comedy'];
