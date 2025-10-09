@@ -733,6 +733,11 @@ END:VCALENDAR`;
                 const today = new Date().toISOString().split('T')[0];
                 const upcomingDate = sortedDates.find(date => date >= today) || sortedDates[0];
 
+                // Use section headers as genres, fallback to category or 'News'
+                const genres = cltEvent.sectionHeaders && cltEvent.sectionHeaders.length > 0
+                  ? cltEvent.sectionHeaders
+                  : (cltEvent.category ? [cltEvent.category] : ['News']);
+
                 cltEvents.push({
                   id: `clt-${cltEvent.url}`,
                   name: cltEvent.name,
@@ -746,7 +751,7 @@ END:VCALENDAR`;
                   price: 0,
                   matchScore: matchScore,
                   ticketUrl: cltEvent.url,
-                  genres: cltEvent.category ? [cltEvent.category] : ['News'],
+                  genres: genres,
                   imageUrl: cltEvent.image,
                   source: 'clttoday',
                   dates: [{ date: upcomingDate, id: `clt-${cltEvent.url}`, ticketUrl: cltEvent.url }]

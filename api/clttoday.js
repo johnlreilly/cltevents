@@ -56,12 +56,25 @@ export default async function handler(req, res) {
       const category = getField('category');
       const contentEncoded = getField('content:encoded');
 
+      // Extract section headers (categories) from content
+      const sectionHeaders = [];
+      const headerRegex = /<h3[^>]*>(.*?)<\/h3>/g;
+      let headerMatch;
+
+      const contentToSearch = contentEncoded || description || '';
+      while ((headerMatch = headerRegex.exec(contentToSearch)) !== null) {
+        const headerText = headerMatch[1].replace(/<[^>]*>/g, '').trim();
+        // Filter out location headers (contain state abbreviations or "Park")
+        if (headerText && !headerText.match(/\b[A-Z]{2}\b/) && !headerText.includes('Park')) {
+          sectionHeaders.push(headerText);
+        }
+      }
+
       // Extract event links from content with dates
       const eventLinks = [];
       const eventLinkRegex = /clttoday\.6amcity\.com\/events#\/details\/[^\/]+\/\d+\/(\d{4}-\d{2}-\d{2})/g;
       let eventMatch;
 
-      const contentToSearch = contentEncoded || description || '';
       while ((eventMatch = eventLinkRegex.exec(contentToSearch)) !== null) {
         eventLinks.push(eventMatch[1]); // The date portion
       }
@@ -77,7 +90,7 @@ export default async function handler(req, res) {
       const cleanDescription = description?.replace(/<[^>]+>/g, '').trim();
 
       if (title) {
-        console.log(`Found event: ${title} with ${eventLinks.length} event dates`);
+        console.log(`Found event: ${title} with ${eventLinks.length} event dates and ${sectionHeaders.length} categories`);
         items.push({
           name: title,
           url: link,
@@ -86,7 +99,8 @@ export default async function handler(req, res) {
           category: category,
           image: image,
           source: 'clttoday',
-          eventDates: eventLinks // Array of dates found in the article
+          eventDates: eventLinks, // Array of dates found in the article
+          sectionHeaders: sectionHeaders // Array of section categories found in the article
         });
       }
     }
