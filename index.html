@@ -847,14 +847,16 @@ END:VCALENDAR`;
           const response = await fetch(`/api/youtube?query=${encodeURIComponent(artistName)}`);
 
           if (!response.ok) {
-            console.error('YouTube API error:', response.status);
+            const errorData = await response.json();
+            console.error('YouTube API error:', response.status, errorData);
             return [];
           }
 
           const data = await response.json();
+          console.log('YouTube results for', artistName, ':', data.videos?.length || 0, 'videos');
           return data.videos || [];
         } catch (error) {
-          console.error('Error fetching YouTube videos:', error);
+          console.error('Error fetching YouTube videos for', artistName, ':', error);
           return [];
         }
       };

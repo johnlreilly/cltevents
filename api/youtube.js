@@ -15,6 +15,7 @@ export default async function handler(req, res) {
   const { query } = req.query;
 
   if (!YOUTUBE_API_KEY) {
+    console.error('YouTube API key not configured in environment variables');
     return res.status(500).json({ error: 'YouTube API key not configured' });
   }
 
@@ -28,20 +29,24 @@ export default async function handler(req, res) {
       .replace(/\s+(live|concert|tour|at|presents|featuring)\s+.*/i, '')
       .trim();
 
-    const response = await fetch(
-      `https://www.googleapis.com/youtube/v3/search?` +
+    const url = `https://www.googleapis.com/youtube/v3/search?` +
       `part=snippet&` +
       `q=${encodeURIComponent(searchQuery)}&` +
       `type=video&` +
       `videoCategoryId=10&` +
       `maxResults=3&` +
-      `key=${YOUTUBE_API_KEY}`
-    );
+      `key=${YOUTUBE_API_KEY}`;
+
+    console.log('YouTube API Request for query:', searchQuery);
+
+    const response = await fetch(url);
 
     if (!response.ok) {
       const errorData = await response.json();
-      return res.status(response.status).json({ 
-        error: errorData.error?.message || 'Failed to fetch YouTube videos' 
+      console.error('YouTube API Error Response:', JSON.stringify(errorData, null, 2));
+      return res.status(response.status).json({
+        error: errorData.error?.message || 'Failed to fetch YouTube videos',
+        details: errorData
       });
     }
 
