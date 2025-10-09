@@ -1478,29 +1478,12 @@ END:VCALENDAR`;
 
                     {event.youtubeLinks && event.youtubeLinks.length > 0 && (
                       <div className="mb-4 p-3 bg-tertiarycontainer rounded-lg">
-                        {!expandedYouTube[eventSlug] ? (
+                        {!expandedYouTube[eventSlug] && (
                           <div className="flex items-center gap-2 mb-2 text-sm font-semibold text-ontertiarycontainer">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
                             </svg>
                             Listen on YouTube
-                          </div>
-                        ) : (
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="invisible"></div>
-                            <button
-                              onClick={() => setExpandedYouTube(prev => {
-                                const newState = {...prev};
-                                delete newState[eventSlug];
-                                return newState;
-                              })}
-                              className="p-1 rounded-full hover:bg-surfacevariant transition-colors"
-                              title="Close"
-                            >
-                              <svg className="w-4 h-4 text-ontertiarycontainer" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                              </svg>
-                            </button>
                           </div>
                         )}
 
@@ -1527,9 +1510,9 @@ END:VCALENDAR`;
                           );
                         })()}
 
-                        {/* Video List */}
-                        <div className="space-y-1">
-                          {event.youtubeLinks.map((link, idx) => {
+                        {/* Video List - Limited to 5 */}
+                        <div className="space-y-1 mb-3">
+                          {event.youtubeLinks.slice(0, 5).map((link, idx) => {
                             const cleanedTitle = cleanYouTubeTitle(link.title);
                             const isPlaying = expandedYouTube[eventSlug] && (typeof expandedYouTube[eventSlug] === 'number' ? expandedYouTube[eventSlug] : 0) === idx;
 
@@ -1554,6 +1537,20 @@ END:VCALENDAR`;
                             );
                           })}
                         </div>
+
+                        {/* Close Button */}
+                        {expandedYouTube[eventSlug] && (
+                          <button
+                            onClick={() => setExpandedYouTube(prev => {
+                              const newState = {...prev};
+                              delete newState[eventSlug];
+                              return newState;
+                            })}
+                            className="w-full px-4 py-2 bg-surfacevariant text-onsurface rounded-lg hover:shadow-md transition-all text-sm font-medium"
+                          >
+                            Close YouTube
+                          </button>
+                        )}
                       </div>
                     )}
 
