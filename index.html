@@ -1241,11 +1241,11 @@ END:VCALENDAR`;
                         )}
                         <div id={`event-${eventSlug}`} className="bg-surface rounded-3xl border border-outlinevariant overflow-hidden hover:shadow-lg transition-all">
                   {event.imageUrl && (
-                    <div className="overflow-hidden">
+                    <div className="overflow-hidden bg-black rounded-t-3xl">
                       <img
                         src={event.imageUrl}
                         alt={event.name}
-                        className="w-full h-[20vh] object-cover rounded-t-3xl"
+                        className="w-full h-[20vh] object-contain rounded-t-3xl"
                       />
                     </div>
                   )}
