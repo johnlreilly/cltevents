@@ -1491,8 +1491,24 @@ END:VCALENDAR`;
                         {expandedYouTube[eventSlug] && (() => {
                           const currentVideoIndex = typeof expandedYouTube[eventSlug] === 'number' ? expandedYouTube[eventSlug] : 0;
                           const currentVideo = event.youtubeLinks[currentVideoIndex];
-                          const videoId = currentVideo.url.split('v=')[1];
+
+                          // Extract video ID more robustly
+                          let videoId = null;
+                          if (currentVideo.url.includes('v=')) {
+                            videoId = currentVideo.url.split('v=')[1]?.split('&')[0];
+                          } else if (currentVideo.url.includes('youtu.be/')) {
+                            videoId = currentVideo.url.split('youtu.be/')[1]?.split('?')[0];
+                          }
+
                           const cleanedTitle = cleanYouTubeTitle(currentVideo.title);
+
+                          if (!videoId || videoId.length < 5) {
+                            return (
+                              <div className="mb-3 p-4 bg-surfacevariant rounded-lg text-center text-onsurfacevariant">
+                                This video is not available.
+                              </div>
+                            );
+                          }
 
                           return (
                             <div className="mb-3">
