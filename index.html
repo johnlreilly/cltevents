@@ -770,7 +770,7 @@ END:VCALENDAR`;
           {/* Material 3 Top App Bar */}
           <div className="bg-surface shadow-sm sticky top-0 z-30 border-b border-outlinevariant">
             <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-              <h1 className="text-2xl font-medium text-onsurface">Charlotte Events</h1>
+              <h1 className="text-2xl font-medium text-onsurface">CLT.show</h1>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => {
@@ -1096,13 +1096,8 @@ END:VCALENDAR`;
               </div>
             ) : (
               <>
-                <div className="mb-4 text-sm text-gray-600">
-                  Showing {sortedEvents.length} events
-                  {apiEvents.length > 0 && (
-                    <span className="ml-2 text-orange-600 font-semibold">
-                      (From Ticketmaster & Local Venues)
-                    </span>
-                  )}
+                <div className="mb-4 text-sm text-gray-400">
+                  The place to find upcoming Charlotte events... all in one place.
                 </div>
 
                 {/* Material 3 Event Cards */}
