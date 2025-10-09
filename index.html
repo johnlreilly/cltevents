@@ -83,6 +83,7 @@
       const [excludeGenres, setExcludeGenres] = useState([]);
       const [preferredVenues, setPreferredVenues] = useState([]);
       const [diveBarVenues, setDiveBarVenues] = useState([]);
+      const [specialEventIcons, setSpecialEventIcons] = useState([]);
       const [showScrollTop, setShowScrollTop] = useState(false);
       const [scrollButtonPosition, setScrollButtonPosition] = useState(() => {
         const saved = localStorage.getItem('cltevents-scroll-button-position');
@@ -236,6 +237,16 @@
             setDiveBarVenues(data.diveBarVenues || []);
           })
           .catch(err => console.error('Error loading preferred venues:', err));
+      }, []);
+
+      // Load special event icons from JSON file
+      React.useEffect(() => {
+        fetch('/data/specialEventIcons.json')
+          .then(res => res.json())
+          .then(data => {
+            setSpecialEventIcons(data.events || []);
+          })
+          .catch(err => console.error('Error loading special event icons:', err));
       }, []);
 
       const filterEvents = () => {
@@ -422,6 +433,23 @@
         const ampm = hour >= 12 ? 'PM' : 'AM';
         const displayHour = hour % 12 || 12;
         return `${displayHour}:${minutes} ${ampm}`;
+      };
+
+      const getSpecialIconForDate = (date, events) => {
+        // Get all events for this date
+        const eventsOnDate = events.filter(e => e.dates && e.dates.some(d => d.date === date));
+
+        // Check if any event matches special icon keywords
+        for (const event of eventsOnDate) {
+          for (const specialIcon of specialEventIcons) {
+            if (specialIcon.matchKeywords.some(keyword =>
+              event.name.toLowerCase().includes(keyword.toLowerCase())
+            )) {
+              return specialIcon.iconType;
+            }
+          }
+        }
+        return 'crown'; // Default crown icon
       };
 
       const getMatchColor = (score) => {
@@ -1220,6 +1248,7 @@ END:VCALENDAR`;
 
                     const dateId = `date-${currentDate}`;
                     const isStuck = stuckDates.has(dateId);
+                    const iconType = getSpecialIconForDate(currentDate, sortedEvents);
 
                     return (
                       <React.Fragment key={event.id}>
@@ -1230,10 +1259,18 @@ END:VCALENDAR`;
                               isStuck ? 'px-4' : 'p-4 rounded-t-3xl'
                             }`}
                           >
-                            {/* Crown watermark */}
-                            <svg className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 opacity-20" fill="currentColor" viewBox="0 0 24 24">
-                              <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5m14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/>
-                            </svg>
+                            {/* Date icon watermark */}
+                            {iconType === 'charlottefc' ? (
+                              <svg className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 opacity-20" fill="currentColor" viewBox="0 0 512 512">
+                                <path d="M256 0C114.6 0 0 114.6 0 256s114.6 256 256 256 256-114.6 256-256S397.4 0 256 0zm0 464c-114.7 0-208-93.3-208-208S141.3 48 256 48s208 93.3 208 208-93.3 208-208 208z"/>
+                                <path d="M256 96c-88.4 0-160 71.6-160 160s71.6 160 160 160 160-71.6 160-160S344.4 96 256 96zm0 272c-61.9 0-112-50.1-112-112s50.1-112 112-112 112 50.1 112 112-50.1 112-112 112z"/>
+                                <circle cx="256" cy="256" r="64"/>
+                              </svg>
+                            ) : (
+                              <svg className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 opacity-20" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5m14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/>
+                              </svg>
+                            )}
                             <div className="text-xl font-semibold">
                               {formatDateSeparator(currentDate).monthDay}, {formatDateSeparator(currentDate).dayOfWeek}
                             </div>

@@ -1,0 +1,9 @@
+{
+  "events": [
+    {
+      "name": "Charlotte FC",
+      "matchKeywords": ["charlotte fc"],
+      "iconType": "charlottefc"
+    }
+  ]
+}
