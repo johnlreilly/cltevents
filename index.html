@@ -1472,7 +1472,7 @@ END:VCALENDAR`;
                       </div>
                     )}
 
-                    {event.genres && event.genres.length > 0 && (
+                    {event.genres && event.genres.length > 0 && !expandedYouTube[eventSlug] && (
                       <div className="my-3 border-t border-outlinevariant"></div>
                     )}
 
