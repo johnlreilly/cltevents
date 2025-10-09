@@ -683,8 +683,8 @@ END:VCALENDAR`;
             const cltData = await cltTodayResponse.json();
 
             const cltEvents = cltData.events.map((cltEvent) => {
-              // Parse the pubDate to use as event date
-              const eventDate = cltEvent.pubDate ? new Date(cltEvent.pubDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+              // Use today's date for CLTtoday articles so they always appear
+              const eventDate = new Date().toISOString().split('T')[0];
 
               // Base match score for CLTtoday articles (lower since they're not direct event listings)
               let matchScore = 60;
@@ -1200,7 +1200,7 @@ END:VCALENDAR`;
                     )}
 
                     {event.genres && event.genres.length > 0 && (
-                      <div className="mb-4 flex flex-wrap gap-2">
+                      <div className="mb-4 flex flex-wrap gap-2 items-center">
                         {/* <span className={`px-3 py-1 rounded-full text-xs font-medium ${getMatchColor(event.matchScore)}`}>
                           {event.matchScore}% Match
                         </span> */}
@@ -1209,6 +1209,11 @@ END:VCALENDAR`;
                             {genre}
                           </span>
                         ))}
+                        {event.source === 'clttoday' && (
+                          <svg className="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5m14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/>
+                          </svg>
+                        )}
                       </div>
                     )}
 
