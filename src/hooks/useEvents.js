@@ -1,0 +1,292 @@
+/**
+ * Custom React hook for fetching and managing event data from multiple sources
+ * @module hooks/useEvents
+ */
+
+import { useState, useEffect, useRef } from 'react'
+import { fetchYouTubeVideos } from '../utils/youtubeUtils'
+import { extractGenres } from '../utils/eventUtils'
+
+// Genres to exclude from filter list
+const EXCLUDE_GENRES = ['undefined', 'other', 'miscellaneous']
+
+// Preferred venue keywords for match score boosting
+const PREFERRED_VENUES = ['smokey', 'snug', 'neighborhood']
+
+/**
+ * Hook for fetching events from multiple sources (Ticketmaster, Smokey Joe's, CLTtoday)
+ * Handles loading states, error handling, YouTube integration, and genre extraction
+ *
+ * @returns {Object} Events state and control functions
+ * @returns {Array} returns.events - All fetched events
+ * @returns {boolean} returns.loading - Loading state
+ * @returns {boolean} returns.initialLoad - True on first load only
+ * @returns {Array} returns.availableGenres - Unique genres from all events
+ * @returns {Date} returns.lastSync - Last successful fetch time
+ * @returns {Function} returns.refetch - Function to manually refetch events
+ * @returns {Object} returns.youtubeCache - YouTube API cache
+ *
+ * @example
+ * function App() {
+ *   const { events, loading, refetch } = useEvents()
+ *
+ *   if (loading) return <div>Loading...</div>
+ *   return <EventList events={events} onRefresh={refetch} />
+ * }
+ */
+export function useEvents() {
+  const [events, setEvents] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [initialLoad, setInitialLoad] = useState(true)
+  const [availableGenres, setAvailableGenres] = useState([])
+  const [lastSync, setLastSync] = useState(null)
+
+  // YouTube cache persisted across fetches
+  const youtubeCache = useRef({})
+
+  /**
+   * Processes Ticketmaster events with genre extraction and YouTube integration
+   */
+  const processTicketmasterEvents = async (tmData) => {
+    return await Promise.all(
+      tmData.events.map(async (tmEvent) => {
+        const classification = tmEvent.classifications?.[0]
+        const segment = classification?.segment?.name?.toLowerCase() || ''
+        const genreName = classification?.genre?.name?.toLowerCase() || ''
+
+        // Extract all genres
+        const genres = []
+        if (classification?.segment?.name && classification.segment.name !== 'Undefined') {
+          genres.push(classification.segment.name)
+        }
+        if (classification?.genre?.name && classification.genre.name !== 'Undefined') {
+          genres.push(classification.genre.name)
+        }
+        if (classification?.subGenre?.name && classification.subGenre.name !== 'Undefined') {
+          genres.push(classification.subGenre.name)
+        }
+
+        // Determine event type
+        let eventType = 'other'
+        if (segment.includes('music') || genreName.includes('music')) {
+          eventType = 'music'
+        } else if (segment.includes('sports')) {
+          eventType = 'sports'
+        } else if (segment.includes('arts') || segment.includes('theatre')) {
+          eventType = 'other'
+        }
+
+        // Extract price
+        let price = 0
+        if (tmEvent.priceRanges && tmEvent.priceRanges.length > 0) {
+          price = tmEvent.priceRanges[0].min || 0
+        }
+
+        // Extract venue information
+        const venueData = tmEvent._embedded?.venues?.[0]
+        const venue = venueData?.name || 'Venue TBA'
+        const venueAddress = venueData?.address?.line1
+          ? `${venueData.address.line1}, ${venueData.city?.name || ''}, ${venueData.state?.stateCode || ''} ${venueData.postalCode || ''}`.trim()
+          : ''
+
+        // Calculate match score
+        let matchScore = 70
+        if (PREFERRED_VENUES.some((v) => venue.toLowerCase().includes(v))) {
+          matchScore += 15
+        }
+        if (eventType === 'music') {
+          matchScore += 10
+        }
+
+        // Fetch YouTube links for music events
+        let youtubeLinks = []
+        if (eventType === 'music') {
+          youtubeLinks = await fetchYouTubeVideos(tmEvent.name, youtubeCache.current)
+        }
+
+        // Extract highest resolution image
+        let imageUrl = null
+        if (tmEvent.images && tmEvent.images.length > 0) {
+          const sortedImages = [...tmEvent.images].sort((a, b) => (b.width || 0) - (a.width || 0))
+          imageUrl = sortedImages[0]?.url
+        }
+
+        return {
+          id: `tm-${tmEvent.id}`,
+          name: tmEvent.name,
+          type: eventType,
+          date: tmEvent.dates?.start?.localDate || '',
+          time: tmEvent.dates?.start?.localTime || null,
+          venue: venue,
+          venueAddress: venueAddress,
+          distance: 'N/A',
+          description: tmEvent.info || tmEvent.pleaseNote || tmEvent.name,
+          price: price,
+          youtubeLinks: youtubeLinks.length > 0 ? youtubeLinks : undefined,
+          matchScore: Math.min(matchScore, 98),
+          ticketUrl: tmEvent.url,
+          genres: genres,
+          imageUrl: imageUrl,
+          source: 'ticketmaster',
+        }
+      })
+    )
+  }
+
+  /**
+   * Processes Smokey Joe's events (all music with YouTube integration)
+   */
+  const processSmokeyjoes Events = async (sjData) => {
+    return await Promise.all(
+      sjData.events.map(async (sjEvent) => {
+        // All Smokey Joe's events are music at a preferred venue
+        const matchScore = 70 + 15 + 10 // base + venue boost + music boost = 95
+
+        const youtubeLinks = await fetchYouTubeVideos(sjEvent.name, youtubeCache.current)
+
+        return {
+          id: `sj-${sjEvent.name}-${sjEvent.date}`,
+          name: sjEvent.name,
+          type: 'music',
+          date: sjEvent.date,
+          time: sjEvent.time || null,
+          venue: sjEvent.venue,
+          distance: 'N/A',
+          description: sjEvent.description,
+          price: 0,
+          youtubeLinks: youtubeLinks.length > 0 ? youtubeLinks : undefined,
+          matchScore: matchScore,
+          ticketUrl: 'https://smokeyjoes.cafe',
+          genres: ['Music', 'Live'],
+          source: 'smokeyjoes',
+        }
+      })
+    )
+  }
+
+  /**
+   * Processes CLTtoday article events
+   */
+  const processCLTtodayEvents = (cltData) => {
+    const cltEvents = []
+
+    cltData.events.forEach((cltEvent) => {
+      let matchScore = 60
+
+      // Boost if it's in the Events category
+      if (cltEvent.category?.toLowerCase().includes('event')) {
+        matchScore += 10
+      }
+
+      // Create event for earliest upcoming date
+      if (cltEvent.eventDates && cltEvent.eventDates.length > 0) {
+        const sortedDates = cltEvent.eventDates.sort()
+        const today = new Date().toISOString().split('T')[0]
+        const upcomingDate = sortedDates.find((date) => date >= today) || sortedDates[0]
+
+        const genres =
+          cltEvent.sectionHeaders && cltEvent.sectionHeaders.length > 0
+            ? cltEvent.sectionHeaders
+            : cltEvent.category
+            ? [cltEvent.category]
+            : ['News']
+
+        cltEvents.push({
+          id: `clt-${cltEvent.url}`,
+          name: cltEvent.name,
+          type: 'article',
+          date: upcomingDate,
+          time: null,
+          venue: 'CLTtoday Article',
+          venueAddress: '',
+          distance: 'N/A',
+          description: cltEvent.description || cltEvent.name,
+          price: 0,
+          matchScore: matchScore,
+          ticketUrl: cltEvent.url,
+          genres: genres,
+          imageUrl: cltEvent.image,
+          source: 'clttoday',
+          dates: [{ date: upcomingDate, id: `clt-${cltEvent.url}`, ticketUrl: cltEvent.url }],
+        })
+      }
+    })
+
+    return cltEvents
+  }
+
+  /**
+   * Fetches events from all sources in parallel
+   */
+  const fetchEvents = async () => {
+    setLoading(true)
+    try {
+      // Fetch from all sources in parallel
+      const [ticketmasterResponse, smokeyJoesResponse, cltTodayResponse] = await Promise.all([
+        fetch('/api/events'),
+        fetch('/api/smokeyjoes'),
+        fetch('/api/clttoday'),
+      ])
+
+      let allEvents = []
+
+      // Process Ticketmaster events
+      if (ticketmasterResponse.ok) {
+        const tmData = await ticketmasterResponse.json()
+        const tmEvents = await processTicketmasterEvents(tmData)
+        allEvents = [...allEvents, ...tmEvents]
+      }
+
+      // Process Smokey Joe's events
+      if (smokeyJoesResponse.ok) {
+        const sjData = await smokeyJoesResponse.json()
+        const sjEvents = await processSmokeyjoes Events(sjData)
+        allEvents = [...allEvents, ...sjEvents]
+      }
+
+      // Process CLTtoday events
+      if (cltTodayResponse.ok) {
+        const cltData = await cltTodayResponse.json()
+        const cltEvents = processCLTtodayEvents(cltData)
+        allEvents = [...allEvents, ...cltEvents]
+      }
+
+      setEvents(allEvents)
+
+      // Extract unique genres for filtering (excluding certain genres)
+      const genres = extractGenres(allEvents).filter(
+        (genre) => !EXCLUDE_GENRES.some((excluded) => genre.toLowerCase().includes(excluded.toLowerCase()))
+      )
+      setAvailableGenres(genres)
+
+      setLastSync(new Date())
+      setInitialLoad(false)
+
+      // Scroll to top on subsequent fetches
+      if (!initialLoad) {
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      }
+    } catch (error) {
+      console.error('Error fetching events:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Fetch events on mount
+  useEffect(() => {
+    fetchEvents()
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  return {
+    events,
+    loading,
+    initialLoad,
+    availableGenres,
+    lastSync,
+    refetch: fetchEvents,
+    youtubeCache: youtubeCache.current,
+  }
+}
+
+export default useEvents
