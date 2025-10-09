@@ -81,6 +81,8 @@
       const [selectedSources, setSelectedSources] = useState([]);
       const [excludeKeywords, setExcludeKeywords] = useState([]);
       const [excludeGenres, setExcludeGenres] = useState([]);
+      const [preferredVenues, setPreferredVenues] = useState([]);
+      const [diveBarVenues, setDiveBarVenues] = useState([]);
       const [showScrollTop, setShowScrollTop] = useState(false);
       const [scrollButtonPosition, setScrollButtonPosition] = useState(() => {
         const saved = localStorage.getItem('cltevents-scroll-button-position');
@@ -225,25 +227,16 @@
           .catch(err => console.error('Error loading exclude keywords:', err));
       }, []);
 
-      const preferredVenues = [
-        'neighborhood theater',
-        'the fillmore',
-        'visulite theater',
-        'smokey joe\'s cafe',
-        'goldies',
-        'amos\' southend',
-        'evening muse',
-        'pnc music pavilion',
-        'skyla credit union',
-        'thirsty beaver',
-        'snug harbor'
-      ];
-
-      const diveBarVenues = [
-        'thirsty beaver',
-        'snug harbor',
-        'smokey joe\'s cafe'
-      ];
+      // Load preferred venues from JSON file
+      React.useEffect(() => {
+        fetch('/data/preferredVenues.json')
+          .then(res => res.json())
+          .then(data => {
+            setPreferredVenues(data.preferredVenues || []);
+            setDiveBarVenues(data.diveBarVenues || []);
+          })
+          .catch(err => console.error('Error loading preferred venues:', err));
+      }, []);
 
       const filterEvents = () => {
         let filtered = apiEvents;
