@@ -83,6 +83,7 @@
       const [initialLoad, setInitialLoad] = useState(true);
       const [expandedDescriptions, setExpandedDescriptions] = useState([]);
       const [expandedYouTube, setExpandedYouTube] = useState({});
+      const [pausedYouTube, setPausedYouTube] = useState({});
       const [availableGenres, setAvailableGenres] = useState([]);
       const [selectedGenres, setSelectedGenres] = useState(() => {
         const saved = localStorage.getItem('cltevents-selectedGenres');
@@ -1488,7 +1489,7 @@ END:VCALENDAR`;
                         )}
 
                         {/* Single YouTube Player */}
-                        {expandedYouTube[eventSlug] && (() => {
+                        {expandedYouTube[eventSlug] && !pausedYouTube[eventSlug] && (() => {
                           const currentVideoIndex = typeof expandedYouTube[eventSlug] === 'number' ? expandedYouTube[eventSlug] : 0;
                           const currentVideo = event.youtubeLinks[currentVideoIndex];
 
@@ -1530,23 +1531,40 @@ END:VCALENDAR`;
                         <div className="space-y-1 mb-3">
                           {event.youtubeLinks.slice(0, 5).map((link, idx) => {
                             const cleanedTitle = cleanYouTubeTitle(link.title);
-                            const isPlaying = expandedYouTube[eventSlug] && (typeof expandedYouTube[eventSlug] === 'number' ? expandedYouTube[eventSlug] : 0) === idx;
+                            const currentVideoIndex = typeof expandedYouTube[eventSlug] === 'number' ? expandedYouTube[eventSlug] : 0;
+                            const isCurrentVideo = expandedYouTube[eventSlug] && currentVideoIndex === idx;
+                            const isPaused = pausedYouTube[eventSlug];
 
                             return (
                               <button
                                 key={idx}
-                                onClick={() => setExpandedYouTube(prev => ({
-                                  ...prev,
-                                  [eventSlug]: idx
-                                }))}
+                                onClick={() => {
+                                  if (isCurrentVideo) {
+                                    // Toggle pause state for current video
+                                    setPausedYouTube(prev => ({
+                                      ...prev,
+                                      [eventSlug]: !prev[eventSlug]
+                                    }));
+                                  } else {
+                                    // Switch to new video and unpause
+                                    setExpandedYouTube(prev => ({
+                                      ...prev,
+                                      [eventSlug]: idx
+                                    }));
+                                    setPausedYouTube(prev => ({
+                                      ...prev,
+                                      [eventSlug]: false
+                                    }));
+                                  }
+                                }}
                                 className={`flex items-center gap-2 text-sm w-full text-left px-2 py-1 rounded transition-colors ${
-                                  isPlaying
+                                  isCurrentVideo
                                     ? 'bg-tertiary text-ontertiary font-semibold'
                                     : 'text-tertiary hover:text-ontertiarycontainer hover:bg-surfacevariant'
                                 }`}
                               >
                                 <svg className="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
-                                  <path d={isPlaying ? "M6 4h4v16H6V4zm8 0h4v16h-4V4z" : "M8 5v14l11-7z"} />
+                                  <path d={isCurrentVideo && !isPaused ? "M6 4h4v16H6V4zm8 0h4v16h-4V4z" : "M8 5v14l11-7z"} />
                                 </svg>
                                 {cleanedTitle}
                               </button>
@@ -1557,11 +1575,18 @@ END:VCALENDAR`;
                         {/* Close Button */}
                         {expandedYouTube[eventSlug] && (
                           <button
-                            onClick={() => setExpandedYouTube(prev => {
-                              const newState = {...prev};
-                              delete newState[eventSlug];
-                              return newState;
-                            })}
+                            onClick={() => {
+                              setExpandedYouTube(prev => {
+                                const newState = {...prev};
+                                delete newState[eventSlug];
+                                return newState;
+                              });
+                              setPausedYouTube(prev => {
+                                const newState = {...prev};
+                                delete newState[eventSlug];
+                                return newState;
+                              });
+                            }}
                             className="w-full px-4 py-2 bg-surfacevariant text-onsurface rounded-lg hover:shadow-md transition-all text-sm font-medium"
                           >
                             Close YouTube
