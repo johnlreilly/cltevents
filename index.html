@@ -1489,9 +1489,10 @@ END:VCALENDAR`;
                         )}
 
                         {/* Single YouTube Player */}
-                        {expandedYouTube[eventSlug] && !pausedYouTube[eventSlug] && (() => {
+                        {expandedYouTube[eventSlug] !== undefined && (() => {
                           const currentVideoIndex = typeof expandedYouTube[eventSlug] === 'number' ? expandedYouTube[eventSlug] : 0;
                           const currentVideo = event.youtubeLinks[currentVideoIndex];
+                          const isPaused = pausedYouTube[eventSlug];
 
                           // Extract video ID more robustly
                           let videoId = null;
@@ -1507,6 +1508,24 @@ END:VCALENDAR`;
                             return (
                               <div className="mb-3 p-4 bg-surfacevariant rounded-lg text-center text-onsurfacevariant">
                                 This video is not available.
+                              </div>
+                            );
+                          }
+
+                          if (isPaused) {
+                            // Show a paused placeholder instead of hiding the player
+                            return (
+                              <div className="mb-3">
+                                <div className="rounded-lg overflow-hidden bg-black flex items-center justify-center" style={{position: 'relative', paddingBottom: '56.25%', height: 0}}>
+                                  <div className="absolute inset-0 flex items-center justify-center">
+                                    <div className="text-center">
+                                      <svg className="w-16 h-16 text-white mx-auto mb-2 opacity-50" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M8 5v14l11-7z" />
+                                      </svg>
+                                      <p className="text-white text-sm opacity-75">Video paused</p>
+                                    </div>
+                                  </div>
+                                </div>
                               </div>
                             );
                           }
