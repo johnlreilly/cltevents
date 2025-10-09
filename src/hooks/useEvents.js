@@ -136,7 +136,7 @@ export function useEvents() {
   /**
    * Processes Smokey Joe's events (all music with YouTube integration)
    */
-  const processSmokeyjoes Events = async (sjData) => {
+  const processSmokeyjoesEvents = async (sjData) => {
     return await Promise.all(
       sjData.events.map(async (sjEvent) => {
         // All Smokey Joe's events are music at a preferred venue
@@ -240,7 +240,7 @@ export function useEvents() {
       // Process Smokey Joe's events
       if (smokeyJoesResponse.ok) {
         const sjData = await smokeyJoesResponse.json()
-        const sjEvents = await processSmokeyjoes Events(sjData)
+        const sjEvents = await processSmokeyjoesEvents(sjData)
         allEvents = [...allEvents, ...sjEvents]
       }
 
