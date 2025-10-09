@@ -1546,15 +1546,9 @@ END:VCALENDAR`;
                                       [eventSlug]: !prev[eventSlug]
                                     }));
                                   } else {
-                                    // Switch to new video and unpause
-                                    setExpandedYouTube(prev => ({
-                                      ...prev,
-                                      [eventSlug]: idx
-                                    }));
-                                    setPausedYouTube(prev => ({
-                                      ...prev,
-                                      [eventSlug]: false
-                                    }));
+                                    // Close all other players, then switch to new video
+                                    setExpandedYouTube({[eventSlug]: idx});
+                                    setPausedYouTube({[eventSlug]: false});
                                   }
                                 }}
                                 className={`flex items-center gap-2 text-sm w-full text-left px-2 py-1 rounded transition-colors ${
