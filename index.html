@@ -865,21 +865,64 @@ END:VCALENDAR`;
         }
       };
 
+      // YouTube cache to prevent redundant API calls
+      // Load from localStorage on mount
+      const getInitialYouTubeCache = () => {
+        try {
+          const saved = localStorage.getItem('cltevents-youtube-cache');
+          return saved ? JSON.parse(saved) : {};
+        } catch (error) {
+          console.error('Error loading YouTube cache:', error);
+          return {};
+        }
+      };
+      const youtubeCache = React.useRef(getInitialYouTubeCache());
+
       const fetchYouTubeVideos = async (artistName) => {
+        // Check cache first
+        const cacheKey = artistName.toLowerCase().trim();
+        if (youtubeCache.current[cacheKey]) {
+          console.log('Using cached YouTube results for', artistName);
+          return youtubeCache.current[cacheKey];
+        }
+
         try {
           const response = await fetch(`/api/youtube?query=${encodeURIComponent(artistName)}`);
 
           if (!response.ok) {
             const errorData = await response.json();
             console.error('YouTube API error:', response.status, errorData);
+            // Cache empty results to avoid retrying failed searches
+            youtubeCache.current[cacheKey] = [];
             return [];
           }
 
           const data = await response.json();
-          console.log('YouTube results for', artistName, ':', data.videos?.length || 0, 'videos');
+          console.log('YouTube API call for', artistName, ':', data.videos?.length || 0, 'videos');
+
+          // Cache the results
+          youtubeCache.current[cacheKey] = data.videos || [];
+
+          // Save cache to localStorage
+          try {
+            localStorage.setItem('cltevents-youtube-cache', JSON.stringify(youtubeCache.current));
+          } catch (e) {
+            console.error('Error saving YouTube cache:', e);
+          }
+
           return data.videos || [];
         } catch (error) {
           console.error('Error fetching YouTube videos for', artistName, ':', error);
+          // Cache empty results to avoid retrying failed searches
+          youtubeCache.current[cacheKey] = [];
+
+          // Save cache to localStorage
+          try {
+            localStorage.setItem('cltevents-youtube-cache', JSON.stringify(youtubeCache.current));
+          } catch (e) {
+            console.error('Error saving YouTube cache:', e);
+          }
+
           return [];
         }
       };
