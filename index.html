@@ -971,7 +971,7 @@ END:VCALENDAR`;
 
             {/* Filter Tray */}
             {showFilterTray && (
-              <div className="mb-6 p-6 bg-surfacevariant rounded-3xl border border-outlinevariant">
+              <div className="mb-6 p-6 bg-surface rounded-3xl border border-outlinevariant">
                 {/* Header */}
                 <h2 className="text-lg font-semibold text-onsurface mb-6">Filter & Sort</h2>
 
@@ -1140,7 +1140,7 @@ END:VCALENDAR`;
                 <div className="mb-6">
                   <button
                     onClick={clearFilters}
-                    className="w-full px-6 py-3 bg-surface text-onsurface rounded-full hover:bg-primarycontainer hover:text-onprimarycontainer transition-all font-medium text-sm border border-outline"
+                    className="w-full px-6 py-3 bg-primary text-onprimary rounded-full hover:shadow-md transition-all font-medium text-sm"
                   >
                     Clear All Filters
                   </button>
@@ -1292,7 +1292,7 @@ END:VCALENDAR`;
               {/* Close Button */}
               <button
                 onClick={() => setShowFilterTray(false)}
-                className="w-full px-6 py-3 bg-surface text-onsurface rounded-full hover:bg-primarycontainer hover:text-onprimarycontainer transition-all font-medium text-sm border border-outline"
+                className="w-full px-6 py-3 bg-primary text-onprimary rounded-full hover:shadow-md transition-all font-medium text-sm"
               >
                 Close
               </button>
