@@ -84,6 +84,10 @@
       const [expandedDescriptions, setExpandedDescriptions] = useState([]);
       const [expandedYouTube, setExpandedYouTube] = useState({});
       const [pausedYouTube, setPausedYouTube] = useState({});
+      const [favoriteVideos, setFavoriteVideos] = useState(() => {
+        const saved = localStorage.getItem('cltevents-favoriteVideos');
+        return saved ? JSON.parse(saved) : [];
+      });
       const [availableGenres, setAvailableGenres] = useState([]);
       const [selectedGenres, setSelectedGenres] = useState(() => {
         const saved = localStorage.getItem('cltevents-selectedGenres');
@@ -471,6 +475,16 @@
             ? prev.filter(id => id !== eventId)
             : [...prev, eventId]
         );
+      };
+
+      const toggleVideoFavorite = (videoUrl) => {
+        setFavoriteVideos(prev => {
+          const newFavorites = prev.includes(videoUrl)
+            ? prev.filter(url => url !== videoUrl)
+            : [...prev, videoUrl];
+          localStorage.setItem('cltevents-favoriteVideos', JSON.stringify(newFavorites));
+          return newFavorites;
+        });
       };
 
       const formatDate = (dateStr) => {
@@ -1530,6 +1544,8 @@ END:VCALENDAR`;
                             );
                           }
 
+                          const isFavorited = favoriteVideos.includes(currentVideo.url);
+
                           return (
                             <div className="mb-3">
                               <div className="rounded-lg overflow-hidden" style={{position: 'relative', paddingBottom: '56.25%', height: 0}}>
@@ -1541,6 +1557,25 @@ END:VCALENDAR`;
                                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                   allowFullScreen
                                 />
+                                {/* Heart Icon Overlay */}
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    toggleVideoFavorite(currentVideo.url);
+                                  }}
+                                  className="absolute top-3 right-3 p-2 bg-black bg-opacity-60 hover:bg-opacity-80 rounded-full transition-all z-10"
+                                  title={isFavorited ? "Remove from favorites" : "Add to favorites"}
+                                >
+                                  <svg
+                                    className={`w-5 h-5 ${isFavorited ? 'fill-red-500 text-red-500' : 'text-white'}`}
+                                    fill={isFavorited ? 'currentColor' : 'none'}
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                  </svg>
+                                </button>
                               </div>
                             </div>
                           );
