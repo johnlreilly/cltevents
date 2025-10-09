@@ -1257,11 +1257,12 @@ END:VCALENDAR`;
                           >
                             {/* Date icon watermark */}
                             {iconType === 'charlottefc' ? (
-                              <svg className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 opacity-20" fill="currentColor" viewBox="0 0 512 512">
-                                <path d="M256 0C114.6 0 0 114.6 0 256s114.6 256 256 256 256-114.6 256-256S397.4 0 256 0zm0 464c-114.7 0-208-93.3-208-208S141.3 48 256 48s208 93.3 208 208-93.3 208-208 208z"/>
-                                <path d="M256 96c-88.4 0-160 71.6-160 160s71.6 160 160 160 160-71.6 160-160S344.4 96 256 96zm0 272c-61.9 0-112-50.1-112-112s50.1-112 112-112 112 50.1 112 112-50.1 112-112 112z"/>
-                                <circle cx="256" cy="256" r="64"/>
-                              </svg>
+                              <img
+                                src="assets/event-icons/charlotte-fc.png"
+                                alt="Charlotte FC"
+                                className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 opacity-20"
+                                style={{filter: 'brightness(0) invert(1)'}}
+                              />
                             ) : iconType === 'panthers' ? (
                               <svg className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 opacity-20" fill="currentColor" viewBox="0 0 512 512">
                                 <path d="M256 32c-52 0-94 42-94 94 0 28 12 53 31 70-15 8-28 20-38 34-15-8-32-12-50-12-52 0-94 42-94 94s42 94 94 94c15 0 29-3 42-9 20 45 65 76 118 76s98-31 118-76c13 6 27 9 42 9 52 0 94-42 94-94s-42-94-94-94c-18 0-35 4-50 12-10-14-23-26-38-34 19-17 31-42 31-70 0-52-42-94-94-94zm0 48c26 0 46 20 46 46s-20 46-46 46-46-20-46-46 20-46 46-46zM105 266c26 0 46 20 46 46s-20 46-46 46-46-20-46-46 20-46 46-46zm302 0c26 0 46 20 46 46s-20 46-46 46-46-20-46-46 20-46 46-46zM256 266c39 0 71 32 71 71s-32 71-71 71-71-32-71-71 32-71 71-71z"/>
