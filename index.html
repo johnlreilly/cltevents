@@ -1375,7 +1375,6 @@ END:VCALENDAR`;
 
                     const dateId = `date-${currentDate}`;
                     const isStuck = stuckDates.has(dateId);
-                    const iconType = getSpecialIconForDate(currentDate, sortedEvents);
 
                     return (
                       <React.Fragment key={event.id}>
@@ -1386,48 +1385,10 @@ END:VCALENDAR`;
                               isStuck ? 'px-4' : 'p-4 rounded-t-3xl'
                             }`}
                           >
-                            {/* Date icon watermark */}
-                            {iconType === 'charlottefc' ? (
-                              <img
-                                src="assets/event-icons/charlotte-fc.png"
-                                alt="Charlotte FC"
-                                className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 opacity-20"
-                                style={{filter: 'brightness(0) invert(1)'}}
-                              />
-                            ) : iconType === 'panthers' ? (
-                              <svg className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 opacity-20" fill="currentColor" viewBox="0 0 512 512">
-                                <path d="M256 32c-52 0-94 42-94 94 0 28 12 53 31 70-15 8-28 20-38 34-15-8-32-12-50-12-52 0-94 42-94 94s42 94 94 94c15 0 29-3 42-9 20 45 65 76 118 76s98-31 118-76c13 6 27 9 42 9 52 0 94-42 94-94s-42-94-94-94c-18 0-35 4-50 12-10-14-23-26-38-34 19-17 31-42 31-70 0-52-42-94-94-94zm0 48c26 0 46 20 46 46s-20 46-46 46-46-20-46-46 20-46 46-46zM105 266c26 0 46 20 46 46s-20 46-46 46-46-20-46-46 20-46 46-46zm302 0c26 0 46 20 46 46s-20 46-46 46-46-20-46-46 20-46 46-46zM256 266c39 0 71 32 71 71s-32 71-71 71-71-32-71-71 32-71 71-71z"/>
-                              </svg>
-                            ) : iconType === 'hornets' ? (
-                              <svg className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 opacity-20" fill="currentColor" viewBox="0 0 512 512">
-                                <ellipse cx="256" cy="180" rx="100" ry="120"/>
-                                <ellipse cx="256" cy="340" rx="120" ry="140"/>
-                                <path d="M150 120L130 80L110 120"/>
-                                <path d="M180 100L170 50L160 100"/>
-                                <circle cx="230" cy="160" r="8"/>
-                                <circle cx="282" cy="160" r="8"/>
-                                <path d="M362 120L382 80L402 120"/>
-                                <path d="M332 100L342 50L352 100"/>
-                                <path d="M256 280L180 400L150 380L200 320"/>
-                                <path d="M256 280L332 400L362 380L312 320"/>
-                                <rect x="230" y="300" width="52" height="15" rx="5"/>
-                                <rect x="220" y="330" width="72" height="15" rx="5"/>
-                                <rect x="210" y="360" width="92" height="15" rx="5"/>
-                              </svg>
-                            ) : iconType === 'checkers' ? (
-                              <svg className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 opacity-20" fill="currentColor" viewBox="0 0 512 512">
-                                <circle cx="256" cy="256" r="80" fill="currentColor"/>
-                                <path d="M256 60 L180 100 L180 180 L120 210 L120 302 L180 332 L180 412 L256 452 L332 412 L332 332 L392 302 L392 210 L332 180 L332 100 Z" stroke="currentColor" strokeWidth="16" fill="none"/>
-                                <rect x="140" y="120" width="30" height="120" rx="5"/>
-                                <rect x="342" y="120" width="30" height="120" rx="5"/>
-                                <path d="M200 100 L312 100" strokeWidth="20" stroke="currentColor" strokeLinecap="round"/>
-                                <path d="M200 410 L312 410" strokeWidth="20" stroke="currentColor" strokeLinecap="round"/>
-                              </svg>
-                            ) : (
-                              <svg className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 opacity-20" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5m14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/>
-                              </svg>
-                            )}
+                            {/* Crown icon watermark */}
+                            <svg className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 opacity-20" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5m14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/>
+                            </svg>
                             <div className="text-xl font-semibold">
                               {formatDateSeparator(currentDate).monthDay}, {formatDateSeparator(currentDate).dayOfWeek}
                             </div>
