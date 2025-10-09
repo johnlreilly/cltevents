@@ -195,8 +195,8 @@
 
           dateHeaders.forEach((header) => {
             const rect = header.getBoundingClientRect();
-            // If the header is at the top position (64px from top), it's stuck
-            if (rect.top <= 64 && rect.top >= 63) {
+            // If the header is at the top position (62px from top), it's stuck
+            if (rect.top <= 62 && rect.top >= 61) {
               newStuckDates.add(header.id);
             }
           });
@@ -769,7 +769,7 @@ END:VCALENDAR`;
         <div className="min-h-screen bg-black">
           {/* Material 3 Top App Bar */}
           <div className="bg-surface shadow-sm sticky top-0 z-30 border-b border-outlinevariant">
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+            <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
               <h1 className="text-2xl font-medium text-onsurface">CLT.show</h1>
               <div className="flex items-center gap-2">
                 <button
@@ -1128,7 +1128,7 @@ END:VCALENDAR`;
                         {showDateSeparator && (
                           <div
                             id={dateId}
-                            className={`md:col-span-2 bg-[#1E3A5F] rounded-b-3xl flex flex-col justify-center items-start text-white sticky top-16 z-20 overflow-hidden relative ${
+                            className={`md:col-span-2 bg-[#1E3A5F] rounded-b-3xl flex flex-col justify-center items-start text-white sticky top-[62px] z-20 overflow-hidden relative ${
                               isStuck ? 'h-16 px-4' : 'h-[10vh] p-4 rounded-t-3xl'
                             }`}
                           >
