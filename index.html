@@ -51,7 +51,10 @@
     const { useState } = React;
 
     const EventDiscoveryApp = () => {
-      const [selectedCategory, setSelectedCategory] = useState('all');
+      const [selectedCategory, setSelectedCategory] = useState(() => {
+        const saved = localStorage.getItem('cltevents-selectedCategory');
+        return saved || 'all';
+      });
       const [favorites, setFavorites] = useState(() => {
         const saved = localStorage.getItem('cltevents-favorites');
         return saved ? JSON.parse(saved) : [];
@@ -73,12 +76,21 @@
       const [loading, setLoading] = useState(false);
       const [apiEvents, setApiEvents] = useState([]);
       const [lastSync, setLastSync] = useState(null);
-      const [sortBy, setSortBy] = useState('date');
+      const [sortBy, setSortBy] = useState(() => {
+        const saved = localStorage.getItem('cltevents-sortBy');
+        return saved || 'date';
+      });
       const [initialLoad, setInitialLoad] = useState(true);
       const [expandedDescriptions, setExpandedDescriptions] = useState([]);
       const [availableGenres, setAvailableGenres] = useState([]);
-      const [selectedGenres, setSelectedGenres] = useState([]);
-      const [selectedSources, setSelectedSources] = useState([]);
+      const [selectedGenres, setSelectedGenres] = useState(() => {
+        const saved = localStorage.getItem('cltevents-selectedGenres');
+        return saved ? JSON.parse(saved) : [];
+      });
+      const [selectedSources, setSelectedSources] = useState(() => {
+        const saved = localStorage.getItem('cltevents-selectedSources');
+        return saved ? JSON.parse(saved) : [];
+      });
       const [excludeKeywords, setExcludeKeywords] = useState([]);
       const [excludeGenres, setExcludeGenres] = useState([]);
       const [preferredVenues, setPreferredVenues] = useState([]);
@@ -127,6 +139,22 @@
       React.useEffect(() => {
         localStorage.setItem('cltevents-hidden', JSON.stringify(hidden));
       }, [hidden]);
+
+      React.useEffect(() => {
+        localStorage.setItem('cltevents-selectedGenres', JSON.stringify(selectedGenres));
+      }, [selectedGenres]);
+
+      React.useEffect(() => {
+        localStorage.setItem('cltevents-selectedSources', JSON.stringify(selectedSources));
+      }, [selectedSources]);
+
+      React.useEffect(() => {
+        localStorage.setItem('cltevents-sortBy', sortBy);
+      }, [sortBy]);
+
+      React.useEffect(() => {
+        localStorage.setItem('cltevents-selectedCategory', selectedCategory);
+      }, [selectedCategory]);
 
       React.useEffect(() => {
         const handleScroll = () => {
