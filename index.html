@@ -1493,7 +1493,7 @@ END:VCALENDAR`;
 
                     {event.youtubeLinks && event.youtubeLinks.length > 0 && (
                       <div className="mb-4 p-3 bg-tertiarycontainer rounded-lg">
-                        {!expandedYouTube[eventSlug] && (
+                        {expandedYouTube[eventSlug] === undefined && (
                           <div className="flex items-center gap-2 mb-2 text-sm font-semibold text-ontertiarycontainer">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
@@ -1563,7 +1563,7 @@ END:VCALENDAR`;
                                     e.stopPropagation();
                                     toggleVideoFavorite(currentVideo.url);
                                   }}
-                                  className="absolute top-3 right-3 p-2 bg-black bg-opacity-60 hover:bg-opacity-80 rounded-full transition-all z-10"
+                                  className="absolute top-3 left-3 p-2 bg-black bg-opacity-60 hover:bg-opacity-80 rounded-full transition-all z-10"
                                   title={isFavorited ? "Remove from favorites" : "Add to favorites"}
                                 >
                                   <svg
