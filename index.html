@@ -701,6 +701,7 @@ END:VCALENDAR`;
                 date: eventDate,
                 time: null,
                 venue: 'CLTtoday Article',
+                venueAddress: '',
                 distance: 'N/A',
                 description: cltEvent.description || cltEvent.name,
                 price: 0,
@@ -708,7 +709,8 @@ END:VCALENDAR`;
                 ticketUrl: cltEvent.url,
                 genres: cltEvent.category ? [cltEvent.category] : ['News'],
                 imageUrl: cltEvent.image,
-                source: 'clttoday'
+                source: 'clttoday',
+                dates: [{ date: eventDate, id: `clt-${cltEvent.url}`, ticketUrl: cltEvent.url }]
               };
             });
 
