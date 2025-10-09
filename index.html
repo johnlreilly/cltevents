@@ -975,9 +975,9 @@ END:VCALENDAR`;
                 {/* Header */}
                 <h2 className="text-lg font-semibold text-onsurface mb-6">Filter & Sort</h2>
 
-                {/* Material 3 Filter Chips */}
-                <div className="mb-6 flex flex-wrap gap-3">
-                  <div className="relative flex-1 min-w-[200px]">
+                {/* Filter and Sort Controls */}
+                <div className="space-y-3">
+                  <div className="relative">
                 <button
                   onClick={() => setShowCategoryMenu(!showCategoryMenu)}
                   className="flex items-center gap-2 px-6 py-3 bg-secondarycontainer text-onsecondarycontainer rounded-full hover:shadow-md transition-all w-full font-medium"
@@ -1023,7 +1023,7 @@ END:VCALENDAR`;
                 )}
               </div>
 
-              <div className="relative flex-1 min-w-[200px]">
+              <div className="relative">
                 <button
                   onClick={() => setShowGenreMenu(!showGenreMenu)}
                   className="flex items-center gap-2 px-6 py-3 bg-secondarycontainer text-onsecondarycontainer rounded-full hover:shadow-md transition-all w-full font-medium"
@@ -1078,11 +1078,10 @@ END:VCALENDAR`;
                     </div>
                   </>
                 )}
-                </div>
               </div>
 
               {/* Source Dropdown */}
-              <div className="relative flex-1 min-w-[200px]">
+              <div className="relative">
                 <button
                   onClick={() => setShowSourceMenu(!showSourceMenu)}
                   className="flex items-center gap-2 px-6 py-3 bg-secondarycontainer text-onsecondarycontainer rounded-full hover:shadow-md transition-all w-full font-medium"
@@ -1135,23 +1134,8 @@ END:VCALENDAR`;
                 )}
               </div>
 
-              {/* Clear Filters Button */}
-              {hasActiveFilters && (
-                <div className="mb-6">
-                  <button
-                    onClick={clearFilters}
-                    className="w-full px-6 py-3 bg-primary text-onprimary rounded-full hover:shadow-md transition-all font-medium text-sm"
-                  >
-                    Clear All Filters
-                  </button>
-                </div>
-              )}
-
-              {/* Horizontal Rule */}
-              <div className="mb-6 border-t border-outline"></div>
-
               {/* Sort Dropdown */}
-              <div className="relative flex-1 min-w-[200px] mb-6">
+              <div className="relative">
                 <button
                   onClick={() => setShowSortMenu(!showSortMenu)}
                   className="flex items-center gap-2 px-6 py-3 bg-secondarycontainer text-onsecondarycontainer rounded-full hover:shadow-md transition-all w-full font-medium"
@@ -1209,6 +1193,25 @@ END:VCALENDAR`;
                   </>
                 )}
               </div>
+
+              {/* Close Button */}
+              <button
+                onClick={() => setShowFilterTray(false)}
+                className="w-full px-6 py-3 bg-primary text-onprimary rounded-full hover:shadow-md transition-all font-medium"
+              >
+                Close
+              </button>
+
+              {/* Clear Filters Button */}
+              {hasActiveFilters && (
+                <button
+                  onClick={clearFilters}
+                  className="w-full px-6 py-3 bg-primary text-onprimary rounded-full hover:shadow-md transition-all font-medium"
+                >
+                  Clear All Filters
+                </button>
+              )}
+                </div>
 
               {/* Advanced Filters - Commented Out */}
               {/* {showFilters && (
@@ -1288,16 +1291,8 @@ END:VCALENDAR`;
                   )}
                 </div>
               )} */}
-
-              {/* Close Button */}
-              <button
-                onClick={() => setShowFilterTray(false)}
-                className="w-full px-6 py-3 bg-primary text-onprimary rounded-full hover:shadow-md transition-all font-medium text-sm"
-              >
-                Close
-              </button>
-            </div>
-          )}
+              </div>
+            )}
 
             {initialLoad && loading ? (
               <div className="flex items-center justify-center py-24">
