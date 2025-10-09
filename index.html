@@ -1477,99 +1477,84 @@ END:VCALENDAR`;
                     )}
 
                     {event.youtubeLinks && event.youtubeLinks.length > 0 && (
-                      <>
+                      <div className="mb-4 p-3 bg-tertiarycontainer rounded-lg">
                         {!expandedYouTube[eventSlug] ? (
-                          <button
-                            onClick={() => setExpandedYouTube(prev => ({
-                              ...prev,
-                              [eventSlug]: 0
-                            }))}
-                            className="mb-4 flex items-center gap-2 px-4 py-2 bg-tertiarycontainer text-ontertiarycontainer rounded-lg hover:shadow-md transition-all text-sm font-medium"
-                          >
+                          <div className="flex items-center gap-2 mb-2 text-sm font-semibold text-ontertiarycontainer">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
                             </svg>
                             Listen on YouTube
-                          </button>
+                          </div>
                         ) : (
-                          <div className="mb-4 p-3 bg-tertiarycontainer rounded-lg">
-                            <div className="flex items-center justify-between mb-2">
-                              <div className="flex items-center gap-2 text-sm font-semibold text-ontertiarycontainer">
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
-                                </svg>
-                                Listen on YouTube
-                              </div>
-                              <button
-                                onClick={() => setExpandedYouTube(prev => {
-                                  const newState = {...prev};
-                                  delete newState[eventSlug];
-                                  return newState;
-                                })}
-                                className="p-1 rounded-full hover:bg-surfacevariant transition-colors"
-                                title="Close"
-                              >
-                                <svg className="w-4 h-4 text-ontertiarycontainer" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                              </button>
-                            </div>
-
-                            {/* Single YouTube Player */}
-                            {(() => {
-                              const currentVideoIndex = typeof expandedYouTube[eventSlug] === 'number' ? expandedYouTube[eventSlug] : 0;
-                              const currentVideo = event.youtubeLinks[currentVideoIndex];
-                              const videoId = currentVideo.url.split('v=')[1];
-                              const cleanedTitle = cleanYouTubeTitle(currentVideo.title);
-
-                              return (
-                                <div className="mb-3">
-                                  <div className="rounded-lg overflow-hidden" style={{position: 'relative', paddingBottom: '56.25%', height: 0}}>
-                                    <iframe
-                                      style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%'}}
-                                      src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
-                                      title={cleanedTitle}
-                                      frameBorder="0"
-                                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                      allowFullScreen
-                                    />
-                                  </div>
-                                </div>
-                              );
-                            })()}
-
-                            {/* Video List */}
-                            {event.youtubeLinks.length > 1 && (
-                              <div className="space-y-1">
-                                {event.youtubeLinks.map((link, idx) => {
-                                  const cleanedTitle = cleanYouTubeTitle(link.title);
-                                  const isPlaying = (typeof expandedYouTube[eventSlug] === 'number' ? expandedYouTube[eventSlug] : 0) === idx;
-
-                                  return (
-                                    <button
-                                      key={idx}
-                                      onClick={() => setExpandedYouTube(prev => ({
-                                        ...prev,
-                                        [eventSlug]: idx
-                                      }))}
-                                      className={`flex items-center gap-2 text-sm w-full text-left px-2 py-1 rounded transition-colors ${
-                                        isPlaying
-                                          ? 'bg-tertiary text-ontertiary font-semibold'
-                                          : 'text-tertiary hover:text-ontertiarycontainer hover:bg-surfacevariant'
-                                      }`}
-                                    >
-                                      <svg className="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
-                                        <path d={isPlaying ? "M6 4h4v16H6V4zm8 0h4v16h-4V4z" : "M8 5v14l11-7z"} />
-                                      </svg>
-                                      {cleanedTitle}
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                            )}
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="invisible"></div>
+                            <button
+                              onClick={() => setExpandedYouTube(prev => {
+                                const newState = {...prev};
+                                delete newState[eventSlug];
+                                return newState;
+                              })}
+                              className="p-1 rounded-full hover:bg-surfacevariant transition-colors"
+                              title="Close"
+                            >
+                              <svg className="w-4 h-4 text-ontertiarycontainer" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
                           </div>
                         )}
-                      </>
+
+                        {/* Single YouTube Player */}
+                        {expandedYouTube[eventSlug] && (() => {
+                          const currentVideoIndex = typeof expandedYouTube[eventSlug] === 'number' ? expandedYouTube[eventSlug] : 0;
+                          const currentVideo = event.youtubeLinks[currentVideoIndex];
+                          const videoId = currentVideo.url.split('v=')[1];
+                          const cleanedTitle = cleanYouTubeTitle(currentVideo.title);
+
+                          return (
+                            <div className="mb-3">
+                              <div className="rounded-lg overflow-hidden" style={{position: 'relative', paddingBottom: '56.25%', height: 0}}>
+                                <iframe
+                                  style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%'}}
+                                  src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
+                                  title={cleanedTitle}
+                                  frameBorder="0"
+                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                  allowFullScreen
+                                />
+                              </div>
+                            </div>
+                          );
+                        })()}
+
+                        {/* Video List */}
+                        <div className="space-y-1">
+                          {event.youtubeLinks.map((link, idx) => {
+                            const cleanedTitle = cleanYouTubeTitle(link.title);
+                            const isPlaying = expandedYouTube[eventSlug] && (typeof expandedYouTube[eventSlug] === 'number' ? expandedYouTube[eventSlug] : 0) === idx;
+
+                            return (
+                              <button
+                                key={idx}
+                                onClick={() => setExpandedYouTube(prev => ({
+                                  ...prev,
+                                  [eventSlug]: idx
+                                }))}
+                                className={`flex items-center gap-2 text-sm w-full text-left px-2 py-1 rounded transition-colors ${
+                                  isPlaying
+                                    ? 'bg-tertiary text-ontertiary font-semibold'
+                                    : 'text-tertiary hover:text-ontertiarycontainer hover:bg-surfacevariant'
+                                }`}
+                              >
+                                <svg className="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                                  <path d={isPlaying ? "M6 4h4v16H6V4zm8 0h4v16h-4V4z" : "M8 5v14l11-7z"} />
+                                </svg>
+                                {cleanedTitle}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
                     )}
 
                     <div className="flex items-center justify-between gap-0">
