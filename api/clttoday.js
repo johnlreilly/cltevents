@@ -54,6 +54,17 @@ export default async function handler(req, res) {
       const description = getField('description');
       const pubDate = getField('pubDate');
       const category = getField('category');
+      const contentEncoded = getField('content:encoded');
+
+      // Extract event links from content with dates
+      const eventLinks = [];
+      const eventLinkRegex = /clttoday\.6amcity\.com\/events#\/details\/[^\/]+\/\d+\/(\d{4}-\d{2}-\d{2})/g;
+      let eventMatch;
+
+      const contentToSearch = contentEncoded || description || '';
+      while ((eventMatch = eventLinkRegex.exec(contentToSearch)) !== null) {
+        eventLinks.push(eventMatch[1]); // The date portion
+      }
 
       // Extract image from description if available
       let image = null;
@@ -66,7 +77,7 @@ export default async function handler(req, res) {
       const cleanDescription = description?.replace(/<[^>]+>/g, '').trim();
 
       if (title) {
-        console.log(`Found event: ${title}`);
+        console.log(`Found event: ${title} with ${eventLinks.length} event dates`);
         items.push({
           name: title,
           url: link,
@@ -74,7 +85,8 @@ export default async function handler(req, res) {
           pubDate: pubDate,
           category: category,
           image: image,
-          source: 'clttoday'
+          source: 'clttoday',
+          eventDates: eventLinks // Array of dates found in the article
         });
       }
     }

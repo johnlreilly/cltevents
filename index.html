@@ -682,10 +682,8 @@ END:VCALENDAR`;
           if (cltTodayResponse.ok) {
             const cltData = await cltTodayResponse.json();
 
-            const cltEvents = cltData.events.map((cltEvent) => {
-              // Use today's date for CLTtoday articles so they always appear
-              const eventDate = new Date().toISOString().split('T')[0];
-
+            const cltEvents = [];
+            cltData.events.forEach((cltEvent) => {
               // Base match score for CLTtoday articles (lower since they're not direct event listings)
               let matchScore = 60;
 
@@ -694,24 +692,32 @@ END:VCALENDAR`;
                 matchScore += 10;
               }
 
-              return {
-                id: `clt-${cltEvent.url}`,
-                name: cltEvent.name,
-                type: 'article',
-                date: eventDate,
-                time: null,
-                venue: 'CLTtoday Article',
-                venueAddress: '',
-                distance: 'N/A',
-                description: cltEvent.description || cltEvent.name,
-                price: 0,
-                matchScore: matchScore,
-                ticketUrl: cltEvent.url,
-                genres: cltEvent.category ? [cltEvent.category] : ['News'],
-                imageUrl: cltEvent.image,
-                source: 'clttoday',
-                dates: [{ date: eventDate, id: `clt-${cltEvent.url}`, ticketUrl: cltEvent.url }]
-              };
+              // If article has event dates, create an event for the earliest upcoming date
+              if (cltEvent.eventDates && cltEvent.eventDates.length > 0) {
+                // Sort dates and find the first future date
+                const sortedDates = cltEvent.eventDates.sort();
+                const today = new Date().toISOString().split('T')[0];
+                const upcomingDate = sortedDates.find(date => date >= today) || sortedDates[0];
+
+                cltEvents.push({
+                  id: `clt-${cltEvent.url}`,
+                  name: cltEvent.name,
+                  type: 'article',
+                  date: upcomingDate,
+                  time: null,
+                  venue: 'CLTtoday Article',
+                  venueAddress: '',
+                  distance: 'N/A',
+                  description: cltEvent.description || cltEvent.name,
+                  price: 0,
+                  matchScore: matchScore,
+                  ticketUrl: cltEvent.url,
+                  genres: cltEvent.category ? [cltEvent.category] : ['News'],
+                  imageUrl: cltEvent.image,
+                  source: 'clttoday',
+                  dates: [{ date: upcomingDate, id: `clt-${cltEvent.url}`, ticketUrl: cltEvent.url }]
+                });
+              }
             });
 
             allEvents = [...allEvents, ...cltEvents];
