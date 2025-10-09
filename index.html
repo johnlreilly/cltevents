@@ -1621,7 +1621,7 @@ END:VCALENDAR`;
                         </div>
 
                         {/* Close Button */}
-                        {expandedYouTube[eventSlug] && (
+                        {expandedYouTube[eventSlug] !== undefined && (
                           <button
                             onClick={() => {
                               setExpandedYouTube(prev => {
