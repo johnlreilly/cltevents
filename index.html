@@ -67,6 +67,7 @@
       const [showFilterTray, setShowFilterTray] = useState(false);
       const [showCategoryMenu, setShowCategoryMenu] = useState(false);
       const [showGenreMenu, setShowGenreMenu] = useState(false);
+      const [showSourceMenu, setShowSourceMenu] = useState(false);
       const [showSortMenu, setShowSortMenu] = useState(false);
       const [shareEvent, setShareEvent] = useState(null);
       const [loading, setLoading] = useState(false);
@@ -77,6 +78,9 @@
       const [expandedDescriptions, setExpandedDescriptions] = useState([]);
       const [availableGenres, setAvailableGenres] = useState([]);
       const [selectedGenres, setSelectedGenres] = useState([]);
+      const [selectedSources, setSelectedSources] = useState([]);
+      const [excludeKeywords, setExcludeKeywords] = useState([]);
+      const [excludeGenres, setExcludeGenres] = useState([]);
       const [showScrollTop, setShowScrollTop] = useState(false);
       const [scrollButtonPosition, setScrollButtonPosition] = useState(() => {
         const saved = localStorage.getItem('cltevents-scroll-button-position');
@@ -210,9 +214,16 @@
         return () => window.removeEventListener('scroll', checkStuckHeaders);
       }, [sortedEvents]);
 
-      const excludeKeywords = ['bingo', 'trivia', 'drag', 'kids', 'children\'s', 'day party', 'bridal', 'disney', 'comedy'];
-
-      const excludeGenres = ['hip-hop', 'rap', 'french rap', 'metal', 'nu-metal', 'country', 'children\'s theater', 'documentary', 'family', 'gospel', 'religious', 'witchstep'];
+      // Load exclude keywords and genres from JSON file
+      React.useEffect(() => {
+        fetch('/data/excludeKeywords.json')
+          .then(res => res.json())
+          .then(data => {
+            setExcludeKeywords(data.keywords || []);
+            setExcludeGenres(data.genres || []);
+          })
+          .catch(err => console.error('Error loading exclude keywords:', err));
+      }, []);
 
       const preferredVenues = [
         'neighborhood theater',
@@ -253,6 +264,12 @@
         if (selectedGenres.length > 0) {
           filtered = filtered.filter(event =>
             event.genres && event.genres.some(genre => selectedGenres.includes(genre))
+          );
+        }
+
+        if (selectedSources.length > 0) {
+          filtered = filtered.filter(event =>
+            selectedSources.includes(event.source)
           );
         }
 
@@ -538,6 +555,7 @@ END:VCALENDAR`;
         setDateRange({ start: today, end: '' });
         setPriceRange({ min: '', max: '' });
         setSelectedGenres([]);
+        setSelectedSources([]);
       };
 
       const toggleGenre = (genre) => {
@@ -545,6 +563,14 @@ END:VCALENDAR`;
           prev.includes(genre)
             ? prev.filter(g => g !== genre)
             : [...prev, genre]
+        );
+      };
+
+      const toggleSource = (source) => {
+        setSelectedSources(prev =>
+          prev.includes(source)
+            ? prev.filter(s => s !== source)
+            : [...prev, source]
         );
       };
 
@@ -771,7 +797,7 @@ END:VCALENDAR`;
         }
       };
 
-      const hasActiveFilters = (dateRange.start && dateRange.start !== today) || dateRange.end || priceRange.min || priceRange.max || selectedGenres.length > 0;
+      const hasActiveFilters = (dateRange.start && dateRange.start !== today) || dateRange.end || priceRange.min || priceRange.max || selectedGenres.length > 0 || selectedSources.length > 0;
 
       return (
         <div className="min-h-screen bg-black">
@@ -923,6 +949,64 @@ END:VCALENDAR`;
                   </>
                 )}
                 </div>
+              </div>
+
+              {/* Source Dropdown */}
+              <div className="relative flex-1 min-w-[200px] mb-6">
+                <button
+                  onClick={() => setShowSourceMenu(!showSourceMenu)}
+                  className="flex items-center gap-2 px-6 py-3 bg-secondarycontainer text-onsecondarycontainer rounded-full hover:shadow-md transition-all w-full font-medium"
+                >
+                  <span>{selectedSources.length === 0 ? 'All Sources' : `${selectedSources.length} Source${selectedSources.length > 1 ? 's' : ''}`}</span>
+                  <svg className="w-5 h-5 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                {showSourceMenu && (
+                  <>
+                    <div
+                      className="fixed inset-0 bg-black bg-opacity-30 z-40"
+                      onClick={() => setShowSourceMenu(false)}
+                    />
+                    <div className="absolute top-full left-0 mt-2 w-full bg-surface rounded-2xl shadow-2xl z-50 max-h-96 overflow-y-auto border border-outlinevariant">
+                      {selectedSources.length > 0 && (
+                        <button
+                          onClick={() => setSelectedSources([])}
+                          className="flex items-center gap-3 px-6 py-3 w-full text-left border-b border-outlinevariant text-primary hover:bg-primarycontainer font-medium"
+                        >
+                          Clear Selection
+                        </button>
+                      )}
+                      {['ticketmaster', 'smokeyjoes', 'clttoday'].map(source => (
+                        <button
+                          key={source}
+                          onClick={() => {
+                            toggleSource(source);
+                          }}
+                          className={`flex items-center gap-3 px-6 py-4 w-full text-left transition-all ${
+                            selectedSources.includes(source)
+                              ? 'bg-primarycontainer'
+                              : 'hover:bg-surfacevariant'
+                          }`}
+                        >
+                          <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+                            selectedSources.includes(source)
+                              ? 'bg-primary border-primary'
+                              : 'border-outline'
+                          }`}>
+                            {selectedSources.includes(source) && (
+                              <svg className="w-3 h-3 text-onprimary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                              </svg>
+                            )}
+                          </div>
+                          <span className="font-medium capitalize">{source === 'smokeyjoes' ? "Smokey Joe's" : source === 'clttoday' ? 'CLTtoday' : 'Ticketmaster'}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* Clear Filters Button */}
