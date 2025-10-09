@@ -362,6 +362,28 @@
         return str;
       };
 
+      const cleanYouTubeTitle = (title) => {
+        // Create a temporary element to decode HTML entities
+        const textarea = document.createElement('textarea');
+        textarea.innerHTML = title;
+        let cleaned = textarea.value;
+
+        // Remove common YouTube noise
+        cleaned = cleaned
+          .replace(/\s*\(Official.*?\)/gi, '') // Remove (Official Video), (Official Audio), etc.
+          .replace(/\s*\[Official.*?\]/gi, '') // Remove [Official Video], etc.
+          .replace(/\s*-\s*Official.*$/gi, '') // Remove - Official Video at end
+          .replace(/\s*\|\s*Official.*$/gi, '') // Remove | Official Video at end
+          .replace(/\s+LIVE\s+AT\s+.*$/gi, '') // Remove LIVE AT VENUE
+          .replace(/\s+at\s+.*(tavern|bar|venue|club|theater|hall).*$/gi, '!') // Clean venue names at end
+          .trim();
+
+        // Apply title case if all caps
+        cleaned = toTitleCase(cleaned);
+
+        return cleaned;
+      };
+
       const groupEventsByName = (events) => {
         const grouped = {};
 
@@ -1429,6 +1451,7 @@ END:VCALENDAR`;
                             const videoId = link.url.split('v=')[1];
                             const eventVideoKey = `${eventSlug}-${idx}`;
                             const isExpanded = expandedYouTube[eventVideoKey];
+                            const cleanedTitle = cleanYouTubeTitle(link.title);
 
                             return (
                               <div key={idx}>
@@ -1442,14 +1465,14 @@ END:VCALENDAR`;
                                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isExpanded ? "M19 9l-7 7-7-7" : "M9 5l7 7-7 7"} />
                                   </svg>
-                                  {link.title}
+                                  {cleanedTitle}
                                 </button>
                                 {isExpanded && (
                                   <div className="mt-2 rounded-lg overflow-hidden" style={{position: 'relative', paddingBottom: '56.25%', height: 0}}>
                                     <iframe
                                       style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%'}}
                                       src={`https://www.youtube.com/embed/${videoId}`}
-                                      title={link.title}
+                                      title={cleanedTitle}
                                       frameBorder="0"
                                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                       allowFullScreen
