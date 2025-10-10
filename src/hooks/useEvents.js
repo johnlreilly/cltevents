@@ -5,7 +5,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { fetchYouTubeVideos } from '../utils/youtubeUtils'
-import { extractGenres } from '../utils/eventUtils'
+import { extractGenres, isPreferredVenue } from '../utils/eventUtils'
 
 // Genres to exclude from filter list
 const EXCLUDE_GENRES = ['undefined', 'other', 'miscellaneous']
@@ -165,6 +165,40 @@ export function useEvents() {
   }
 
   /**
+   * Processes Fillmore Charlotte events (JSON-LD structured data)
+   */
+  const processFillmoreEvents = async (fillmoreData) => {
+    return await Promise.all(
+      fillmoreData.events.map(async (fillmoreEvent) => {
+        // Fillmore is a preferred venue with quality music events
+        const isPreferred = isPreferredVenue(fillmoreEvent.venue, PREFERRED_VENUES)
+        const matchScore = 70 + (isPreferred ? 15 : 0) + 10 // base + venue boost + music boost
+
+        const youtubeLinks = await fetchYouTubeVideos(fillmoreEvent.name, youtubeCache.current)
+
+        return {
+          id: fillmoreEvent.id,
+          name: fillmoreEvent.name,
+          type: 'music',
+          date: fillmoreEvent.date,
+          time: fillmoreEvent.startTime ? new Date(fillmoreEvent.startTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : null,
+          venue: fillmoreEvent.venue,
+          venueAddress: fillmoreEvent.location?.address || '',
+          distance: 'N/A',
+          description: fillmoreEvent.description,
+          price: 0,
+          youtubeLinks: youtubeLinks.length > 0 ? youtubeLinks : undefined,
+          matchScore: matchScore,
+          ticketUrl: fillmoreEvent.ticketUrl,
+          genres: fillmoreEvent.genres.length > 0 ? fillmoreEvent.genres : extractGenres([{ name: fillmoreEvent.name }]).slice(0, 3),
+          imageUrl: fillmoreEvent.imageUrl,
+          source: 'fillmore',
+        }
+      })
+    )
+  }
+
+  /**
    * Processes CLTtoday article events
    */
   const processCLTtodayEvents = (cltData) => {
@@ -222,11 +256,13 @@ export function useEvents() {
     setLoading(true)
     try {
       // Fetch from all sources in parallel
-      const [ticketmasterResponse, smokeyJoesResponse, cltTodayResponse] = await Promise.all([
-        fetch('/api/events'),
-        fetch('/api/smokeyjoes'),
-        fetch('/api/clttoday'),
-      ])
+      const [ticketmasterResponse, smokeyJoesResponse, cltTodayResponse, fillmoreResponse] =
+        await Promise.all([
+          fetch('/api/events'),
+          fetch('/api/smokeyjoes'),
+          fetch('/api/clttoday'),
+          fetch('/api/fillmore'),
+        ])
 
       let allEvents = []
 
@@ -249,6 +285,13 @@ export function useEvents() {
         const cltData = await cltTodayResponse.json()
         const cltEvents = processCLTtodayEvents(cltData)
         allEvents = [...allEvents, ...cltEvents]
+      }
+
+      // Process Fillmore events
+      if (fillmoreResponse.ok) {
+        const fillmoreData = await fillmoreResponse.json()
+        const fillmoreEvents = await processFillmoreEvents(fillmoreData)
+        allEvents = [...allEvents, ...fillmoreEvents]
       }
 
       setEvents(allEvents)
