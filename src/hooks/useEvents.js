@@ -41,8 +41,30 @@ export function useEvents() {
   const [availableGenres, setAvailableGenres] = useState([])
   const [lastSync, setLastSync] = useState(null)
 
-  // YouTube cache persisted across fetches
+  // YouTube cache persisted to localStorage
   const youtubeCache = useRef({})
+
+  // Load YouTube cache from localStorage on mount
+  useEffect(() => {
+    try {
+      const cachedData = localStorage.getItem('cltevents-youtube-cache')
+      if (cachedData) {
+        const parsed = JSON.parse(cachedData)
+        // Only use cache if it's less than 7 days old
+        const cacheAge = Date.now() - (parsed.timestamp || 0)
+        const sevenDays = 7 * 24 * 60 * 60 * 1000
+        if (cacheAge < sevenDays) {
+          youtubeCache.current = parsed.data || {}
+          console.log(`Loaded YouTube cache from localStorage: ${Object.keys(youtubeCache.current).length} entries`)
+        } else {
+          console.log('YouTube cache expired, starting fresh')
+          localStorage.removeItem('cltevents-youtube-cache')
+        }
+      }
+    } catch (error) {
+      console.error('Error loading YouTube cache:', error)
+    }
+  }, [])
 
   /**
    * Processes Ticketmaster events with genre extraction and YouTube integration
@@ -299,6 +321,18 @@ export function useEvents() {
         (genre) => !EXCLUDE_GENRES.some((excluded) => genre.toLowerCase().includes(excluded.toLowerCase()))
       )
       setAvailableGenres(genres)
+
+      // Save YouTube cache to localStorage
+      try {
+        const cacheData = {
+          timestamp: Date.now(),
+          data: youtubeCache.current,
+        }
+        localStorage.setItem('cltevents-youtube-cache', JSON.stringify(cacheData))
+        console.log(`Saved YouTube cache to localStorage: ${Object.keys(youtubeCache.current).length} entries`)
+      } catch (error) {
+        console.error('Error saving YouTube cache:', error)
+      }
 
       setLastSync(new Date())
       setInitialLoad(false)
