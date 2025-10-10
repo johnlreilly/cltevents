@@ -98,11 +98,9 @@ export function useEvents() {
           matchScore += 10
         }
 
-        // Fetch YouTube links for music events
+        // DO NOT fetch YouTube for Ticketmaster events - too many events, burns API quota
+        // YouTube links are only fetched for curated sources (Smokey Joe's, Fillmore, Eternally Grateful)
         let youtubeLinks = []
-        if (eventType === 'music') {
-          youtubeLinks = await fetchYouTubeVideos(tmEvent.name, youtubeCache.current)
-        }
 
         // Extract highest resolution image
         let imageUrl = null
