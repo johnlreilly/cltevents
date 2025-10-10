@@ -33,7 +33,7 @@ function FilterTray({
   onClearFilters,
 }) {
   const categories = ['all', 'favorites', 'preferred']
-  const sources = ['ticketmaster', 'smokeyjoes', 'clttoday', 'fillmore']
+  const sources = ['ticketmaster', 'smokeyjoes', 'clttoday', 'fillmore', 'eternally-grateful']
 
   return (
     <div className="bg-surface border border-outlinevariant rounded-2xl p-4 mb-6">
@@ -121,6 +121,8 @@ function FilterTray({
                 ? "Smokey Joe's"
                 : source === 'fillmore'
                 ? 'The Fillmore'
+                : source === 'eternally-grateful'
+                ? 'Eternally Grateful'
                 : source.charAt(0).toUpperCase() + source.slice(1)}
             </button>
           ))}

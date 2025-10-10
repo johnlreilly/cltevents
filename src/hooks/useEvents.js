@@ -219,6 +219,41 @@ export function useEvents() {
   }
 
   /**
+   * Processes Eternally Grateful events (artist tracking)
+   */
+  const processEternallyGratefulEvents = async (egData) => {
+    return await Promise.all(
+      egData.events.map(async (egEvent) => {
+        // Artist tracking events get high priority match score
+        const matchScore = 95 // High priority for tracked artists
+
+        const youtubeLinks = await fetchYouTubeVideos(egEvent.name, youtubeCache.current)
+
+        return {
+          id: egEvent.id,
+          name: egEvent.name,
+          type: 'music',
+          date: egEvent.date,
+          time: egEvent.startTime || null,
+          venue: egEvent.venue,
+          venueAddress: egEvent.city || '',
+          distance: 'N/A',
+          description: egEvent.description,
+          price: 0,
+          youtubeLinks: youtubeLinks.length > 0 ? youtubeLinks : undefined,
+          matchScore: matchScore,
+          ticketUrl: egEvent.ticketUrl,
+          genres: egEvent.genres || [],
+          imageUrl: egEvent.imageUrl,
+          source: egEvent.source,
+          sourceType: egEvent.sourceType, // 'artist'
+          artistName: egEvent.artistName, // 'Eternally Grateful'
+        }
+      })
+    )
+  }
+
+  /**
    * Processes CLTtoday article events
    */
   const processCLTtodayEvents = (cltData) => {
@@ -276,12 +311,13 @@ export function useEvents() {
     setLoading(true)
     try {
       // Fetch from all sources in parallel
-      const [ticketmasterResponse, smokeyJoesResponse, cltTodayResponse, fillmoreResponse] =
+      const [ticketmasterResponse, smokeyJoesResponse, cltTodayResponse, fillmoreResponse, eternallyGratefulResponse] =
         await Promise.all([
           fetch('/api/events'),
           fetch('/api/smokeyjoes'),
           fetch('/api/clttoday'),
           fetch('/api/fillmore'),
+          fetch('/api/eternally-grateful'),
         ])
 
       let allEvents = []
@@ -312,6 +348,13 @@ export function useEvents() {
         const fillmoreData = await fillmoreResponse.json()
         const fillmoreEvents = await processFillmoreEvents(fillmoreData)
         allEvents = [...allEvents, ...fillmoreEvents]
+      }
+
+      // Process Eternally Grateful events
+      if (eternallyGratefulResponse.ok) {
+        const egData = await eternallyGratefulResponse.json()
+        const egEvents = await processEternallyGratefulEvents(egData)
+        allEvents = [...allEvents, ...egEvents]
       }
 
       setEvents(allEvents)
