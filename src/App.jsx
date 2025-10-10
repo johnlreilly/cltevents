@@ -9,6 +9,7 @@ import Header from './components/Header/Header'
 import LoadingSpinner from './components/LoadingSpinner/LoadingSpinner'
 import EventList from './components/EventList/EventList'
 import FilterTray from './components/FilterTray/FilterTray'
+import ScrollToTop from './components/ScrollToTop/ScrollToTop'
 
 function App() {
   const { events, loading, initialLoad, availableGenres } = useEvents()
@@ -24,6 +25,10 @@ function App() {
     setSortBy,
     hasActiveFilters,
     clearFilters,
+    favorites,
+    toggleFavorite,
+    hidden,
+    toggleHidden,
   } = useFilters(events)
 
   return (
@@ -54,10 +59,19 @@ function App() {
               onClearFilters={clearFilters}
             />
 
-            <EventList events={filteredEvents} />
+            <EventList
+              events={filteredEvents}
+              favorites={favorites}
+              toggleFavorite={toggleFavorite}
+              hidden={hidden}
+              toggleHidden={toggleHidden}
+            />
           </>
         )}
       </div>
+
+      {/* Scroll to Top Button */}
+      <ScrollToTop />
     </div>
   )
 }
