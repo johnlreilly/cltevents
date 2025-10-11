@@ -12,6 +12,7 @@ import {
   groupEventsByName,
   sortEvents,
 } from '../utils/eventUtils'
+import { isDateInPast } from '../utils/dateUtils'
 
 // Preferred venue keywords for boosting
 const PREFERRED_VENUES = ['smokey', 'snug', 'neighborhood']
@@ -97,19 +98,25 @@ export function useFilters(events) {
    * Memoized for performance - only recalculates when dependencies change
    */
   const filteredEvents = useMemo(() => {
-    // Step 1: Filter by category
-    let filtered = filterByCategory(events, selectedCategory, favorites, hidden, PREFERRED_VENUES)
+    // Step 1: Remove past events (before filtering by category)
+    let filtered = events.filter((event) => {
+      // For events with multiple dates, keep if ANY date is not in past
+      return event.dates && event.dates.some((dateInfo) => !isDateInPast(dateInfo.date))
+    })
 
-    // Step 2: Filter by genre
+    // Step 2: Filter by category
+    filtered = filterByCategory(filtered, selectedCategory, favorites, hidden, PREFERRED_VENUES)
+
+    // Step 3: Filter by genre
     filtered = filterByGenre(filtered, selectedGenres)
 
-    // Step 3: Filter by source
+    // Step 4: Filter by source
     filtered = filterBySource(filtered, selectedSources)
 
-    // Step 4: Group by name (combine multi-date events)
+    // Step 5: Group by name (combine multi-date events)
     const grouped = groupEventsByName(filtered)
 
-    // Step 5: Sort
+    // Step 6: Sort
     const sorted = sortEvents(grouped, sortBy, PREFERRED_VENUES)
 
     return sorted
