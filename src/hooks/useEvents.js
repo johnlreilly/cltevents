@@ -5,12 +5,16 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { extractGenres, isPreferredVenue } from '../utils/eventUtils'
+import { fetchYouTubeVideos } from '../utils/youtubeUtils'
 
 // Genres to exclude from filter list
 const EXCLUDE_GENRES = ['undefined', 'other', 'miscellaneous']
 
 // Preferred venue keywords for match score boosting
 const PREFERRED_VENUES = ['smokey', 'snug', 'neighborhood']
+
+// Venues that should fetch YouTube videos
+const YOUTUBE_VENUES = ['neighborhood theater', 'visulite', 'smokey joe', 'knight theater']
 
 /**
  * Hook for fetching events from multiple sources (Ticketmaster, Smokey Joe's, CLTtoday)
@@ -119,9 +123,14 @@ export function useEvents() {
           matchScore += 10
         }
 
-        // DO NOT fetch YouTube for Ticketmaster events - too many events, burns API quota
-        // YouTube links are only fetched for curated sources (Smokey Joe's, Fillmore, Eternally Grateful)
+        // Fetch YouTube videos for specific preferred venues only
         let youtubeLinks = []
+        const shouldFetchYouTube = eventType === 'music' &&
+          YOUTUBE_VENUES.some((v) => venue.toLowerCase().includes(v))
+
+        if (shouldFetchYouTube) {
+          youtubeLinks = await fetchYouTubeVideos(tmEvent.name, youtubeCache.current)
+        }
 
         // Extract highest resolution image
         let imageUrl = null
@@ -161,8 +170,8 @@ export function useEvents() {
         // All Smokey Joe's events are music at a preferred venue
         const matchScore = 70 + 15 + 10 // base + venue boost + music boost = 95
 
-        // Don't fetch YouTube videos upfront - fetch on-demand to save API quota
-        const youtubeLinks = []
+        // Fetch YouTube videos for Smokey Joe's events
+        const youtubeLinks = await fetchYouTubeVideos(sjEvent.name, youtubeCache.current)
 
         return {
           id: `sj-${sjEvent.name}-${sjEvent.date}`,
