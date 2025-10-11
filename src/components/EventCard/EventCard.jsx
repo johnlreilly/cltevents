@@ -133,7 +133,7 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide }) {
 
         {/* Genres */}
         {event.genres && event.genres.length > 0 && (
-          <div className="mb-3 flex flex-wrap gap-2 items-center">
+          <div className="mt-3 mb-3 flex flex-wrap gap-2 items-center">
             {event.genres.map((genre, idx) => (
               <span
                 key={idx}
