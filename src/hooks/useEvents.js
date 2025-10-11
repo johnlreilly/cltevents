@@ -359,9 +359,6 @@ export function useEvents() {
         allEvents = [...allEvents, ...egEvents]
       }
 
-      console.log('useEvents - Total events fetched:', allEvents.length)
-      console.log('useEvents - Sample event:', allEvents[0])
-
       setEvents(allEvents)
 
       // Extract unique genres for filtering (excluding certain genres)

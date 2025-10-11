@@ -15,9 +15,6 @@ import ScrollToTop from './components/ScrollToTop/ScrollToTop'
 function App() {
   const [showFilterTray, setShowFilterTray] = useState(false)
   const { events, loading, initialLoad, availableGenres, refetch } = useEvents()
-
-  console.log('App - Raw events count:', events.length)
-
   const {
     filteredEvents,
     selectedCategory,
@@ -35,8 +32,6 @@ function App() {
     hidden,
     toggleHidden,
   } = useFilters(events)
-
-  console.log('App - Filtered events count:', filteredEvents.length)
 
   const toggleFilterTray = () => {
     setShowFilterTray(!showFilterTray)
