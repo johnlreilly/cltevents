@@ -55,11 +55,11 @@ function App() {
       if (currentScrollY > headerHeight && !hasScrolledPastTop) {
         setHasScrolledPastTop(true)
 
-        // Immediately prepare new quote if cooldown has passed
+        // Only prepare new quote if cooldown has passed AND we're not at the top (quote not visible)
         const now = Date.now()
         const oneMinute = 60000
 
-        if (quotes.length > 0 && (!quoteDisplayTime || now - quoteDisplayTime > oneMinute)) {
+        if (quotes.length > 0 && currentScrollY > 0 && (!quoteDisplayTime || now - quoteDisplayTime > oneMinute)) {
           const randomQuote = quotes[Math.floor(Math.random() * quotes.length)]
           setCurrentQuote(randomQuote)
           setQuoteDisplayTime(now)

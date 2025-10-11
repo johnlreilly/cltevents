@@ -98,7 +98,7 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide }) {
 
       <div className="px-5 pt-5 pb-3">
         {/* Event Title & Venue */}
-        <div className="mb-1">
+        <div className="mt-1 mb-1">
           <h3 className="text-xl font-semibold text-onsurface mb-1">{toTitleCase(event.name)}</h3>
           <p className="text-sm text-onsurfacevariant">{event.venue}</p>
         </div>
