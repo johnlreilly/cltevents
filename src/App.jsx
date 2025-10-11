@@ -41,7 +41,7 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#1C1B1F]">
+    <div className="min-h-screen bg-black">
       <Header
         onRefresh={refetch}
         loading={loading}
