@@ -113,10 +113,9 @@ export function useFilters(events) {
    * Memoized for performance - only recalculates when dependencies change
    */
   const filteredEvents = useMemo(() => {
-    // Step 1: Remove past events (before filtering by category)
+    // Step 1: Remove past events (before grouping - events have single 'date' property)
     let filtered = events.filter((event) => {
-      // For events with multiple dates, keep if ANY date is not in past
-      return event.dates && event.dates.some((dateInfo) => !isDateInPast(dateInfo.date))
+      return event.date && !isDateInPast(event.date)
     })
 
     // Step 2: Filter out excluded keywords

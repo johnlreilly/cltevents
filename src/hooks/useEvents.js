@@ -4,7 +4,6 @@
  */
 
 import { useState, useEffect, useRef } from 'react'
-import { fetchYouTubeVideos } from '../utils/youtubeUtils'
 import { extractGenres, isPreferredVenue } from '../utils/eventUtils'
 
 // Genres to exclude from filter list
@@ -162,7 +161,8 @@ export function useEvents() {
         // All Smokey Joe's events are music at a preferred venue
         const matchScore = 70 + 15 + 10 // base + venue boost + music boost = 95
 
-        const youtubeLinks = await fetchYouTubeVideos(sjEvent.name, youtubeCache.current)
+        // Don't fetch YouTube videos upfront - fetch on-demand to save API quota
+        const youtubeLinks = []
 
         return {
           id: `sj-${sjEvent.name}-${sjEvent.date}`,
@@ -194,7 +194,8 @@ export function useEvents() {
         const isPreferred = isPreferredVenue(fillmoreEvent.venue, PREFERRED_VENUES)
         const matchScore = 70 + (isPreferred ? 15 : 0) + 10 // base + venue boost + music boost
 
-        const youtubeLinks = await fetchYouTubeVideos(fillmoreEvent.name, youtubeCache.current)
+        // Don't fetch YouTube videos upfront - fetch on-demand to save API quota
+        const youtubeLinks = []
 
         return {
           id: fillmoreEvent.id,
@@ -227,7 +228,8 @@ export function useEvents() {
         // Artist tracking events get high priority match score
         const matchScore = 95 // High priority for tracked artists
 
-        const youtubeLinks = await fetchYouTubeVideos(egEvent.name, youtubeCache.current)
+        // Don't fetch YouTube videos upfront - fetch on-demand to save API quota
+        const youtubeLinks = []
 
         return {
           id: egEvent.id,
@@ -356,6 +358,9 @@ export function useEvents() {
         const egEvents = await processEternallyGratefulEvents(egData)
         allEvents = [...allEvents, ...egEvents]
       }
+
+      console.log('useEvents - Total events fetched:', allEvents.length)
+      console.log('useEvents - Sample event:', allEvents[0])
 
       setEvents(allEvents)
 
