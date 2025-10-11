@@ -12,7 +12,7 @@ import FilterTray from './components/FilterTray/FilterTray'
 import ScrollToTop from './components/ScrollToTop/ScrollToTop'
 
 function App() {
-  const { events, loading, initialLoad, availableGenres } = useEvents()
+  const { events, loading, initialLoad, availableGenres, refetch } = useEvents()
   const {
     filteredEvents,
     selectedCategory,
@@ -33,7 +33,7 @@ function App() {
 
   return (
     <div className="min-h-screen bg-black">
-      <Header />
+      <Header onRefresh={refetch} loading={loading} />
 
       {/* Main Content */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-2">
