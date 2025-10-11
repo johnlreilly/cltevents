@@ -57,9 +57,9 @@ function App() {
 
         // Only prepare new quote if cooldown has passed AND we're not at the top (quote not visible)
         const now = Date.now()
-        const oneMinute = 60000
+        const thirtySeconds = 30000
 
-        if (quotes.length > 0 && currentScrollY > 0 && (!quoteDisplayTime || now - quoteDisplayTime > oneMinute)) {
+        if (quotes.length > 0 && currentScrollY > 0 && (!quoteDisplayTime || now - quoteDisplayTime > thirtySeconds)) {
           const randomQuote = quotes[Math.floor(Math.random() * quotes.length)]
           setCurrentQuote(randomQuote)
           setQuoteDisplayTime(now)
