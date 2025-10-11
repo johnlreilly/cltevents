@@ -1,7 +1,9 @@
 /**
  * FilterTray component
- * Provides filtering controls for events
+ * Provides filtering controls for events with Material Design 3 styling
  */
+
+import { useState } from 'react'
 
 /**
  * FilterTray Component
@@ -32,101 +34,256 @@ function FilterTray({
   hasActiveFilters,
   onClearFilters,
 }) {
-  const categories = ['all', 'favorites', 'preferred']
+  const [showCategoryMenu, setShowCategoryMenu] = useState(false)
+  const [showGenreMenu, setShowGenreMenu] = useState(false)
+  const [showSourceMenu, setShowSourceMenu] = useState(false)
+  const [showSortMenu, setShowSortMenu] = useState(false)
+
+  const categories = [
+    { id: 'all', name: 'All Events' },
+    { id: 'favorites', name: 'Favorites' },
+    { id: 'divebars', name: 'Dive Bars' },
+    { id: 'preferred', name: 'Preferred Venues' },
+    { id: 'hidden', name: 'Hidden' },
+  ]
+
+  const sortOptions = [
+    { id: 'date', name: 'Sort by Date' },
+    { id: 'match', name: 'Sort by Match' },
+  ]
+
   const sources = ['ticketmaster', 'smokeyjoes', 'clttoday', 'fillmore', 'eternally-grateful']
 
+  const getSourceDisplayName = (source) => {
+    const names = {
+      smokeyjoes: "Smokey Joe's",
+      fillmore: 'The Fillmore',
+      'eternally-grateful': 'Eternally Grateful',
+      clttoday: 'CLTtoday',
+      ticketmaster: 'Ticketmaster',
+    }
+    return names[source] || source.charAt(0).toUpperCase() + source.slice(1)
+  }
+
+  const clearGenres = () => {
+    selectedGenres.forEach((genre) => onGenreToggle(genre))
+  }
+
+  const clearSources = () => {
+    selectedSources.forEach((source) => onSourceToggle(source))
+  }
+
   return (
-    <div className="bg-surface border border-outlinevariant rounded-2xl p-4 mb-6">
-      <div className="flex flex-wrap gap-4">
-        {/* Category Filter */}
-        <div className="flex-1 min-w-[200px]">
-          <label className="block text-sm font-medium text-onsurface mb-2">Category</label>
-          <select
-            value={selectedCategory}
-            onChange={(e) => onCategoryChange(e.target.value)}
-            className="w-full px-3 py-2 bg-white border border-outline rounded-lg text-onsurface focus:outline-none focus:ring-2 focus:ring-primary"
+    <div className="mb-6 p-6 bg-surface rounded-3xl border border-outlinevariant">
+      {/* Header */}
+      <h2 className="text-lg font-semibold text-onsurface mb-6">Filter & Sort</h2>
+
+      {/* Filter and Sort Controls */}
+      <div className="space-y-3">
+        {/* Category Menu */}
+        <div className="relative">
+          <button
+            onClick={() => setShowCategoryMenu(!showCategoryMenu)}
+            className="flex items-center gap-2 px-6 py-3 bg-secondarycontainer text-onsecondarycontainer rounded-full hover:shadow-md transition-all w-full font-medium"
           >
-            {categories.map((cat) => (
-              <option key={cat} value={cat}>
-                {cat.charAt(0).toUpperCase() + cat.slice(1)}
-              </option>
-            ))}
-          </select>
+            <span>{categories.find((cat) => cat.id === selectedCategory)?.name || 'All Events'}</span>
+            <svg className="w-5 h-5 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          {showCategoryMenu && (
+            <>
+              <div className="fixed inset-0 bg-black bg-opacity-30 z-40" onClick={() => setShowCategoryMenu(false)} />
+              <div className="absolute top-full left-0 mt-2 w-full bg-surface rounded-2xl shadow-2xl z-50 overflow-hidden border border-outlinevariant">
+                {categories.map((cat) => (
+                  <button
+                    key={cat.id}
+                    onClick={() => {
+                      onCategoryChange(cat.id)
+                      setShowCategoryMenu(false)
+                    }}
+                    className={`flex items-center gap-3 px-6 py-4 w-full text-left transition-all ${
+                      selectedCategory === cat.id
+                        ? 'bg-primarycontainer text-onprimarycontainer'
+                        : cat.id === 'hidden'
+                        ? 'text-onsurfacevariant hover:bg-surfacevariant'
+                        : 'text-onsurface hover:bg-surfacevariant'
+                    }`}
+                  >
+                    <span className="font-medium">{cat.name}</span>
+                    {selectedCategory === cat.id && (
+                      <svg className="w-5 h-5 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
         </div>
 
-        {/* Sort Filter */}
-        <div className="flex-1 min-w-[200px]">
-          <label className="block text-sm font-medium text-onsurface mb-2">Sort By</label>
-          <select
-            value={sortBy}
-            onChange={(e) => onSortChange(e.target.value)}
-            className="w-full px-3 py-2 bg-white border border-outline rounded-lg text-onsurface focus:outline-none focus:ring-2 focus:ring-primary"
+        {/* Genre Menu */}
+        <div className="relative">
+          <button
+            onClick={() => setShowGenreMenu(!showGenreMenu)}
+            className="flex items-center gap-2 px-6 py-3 bg-secondarycontainer text-onsecondarycontainer rounded-full hover:shadow-md transition-all w-full font-medium"
           >
-            <option value="date">Date</option>
-            <option value="name">Name</option>
-            <option value="venue">Venue</option>
-          </select>
+            <span>
+              {selectedGenres.length === 0
+                ? 'All Genres'
+                : `${selectedGenres.length} Genre${selectedGenres.length > 1 ? 's' : ''}`}
+            </span>
+            <svg className="w-5 h-5 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          {showGenreMenu && (
+            <>
+              <div className="fixed inset-0 bg-black bg-opacity-30 z-40" onClick={() => setShowGenreMenu(false)} />
+              <div className="absolute top-full left-0 mt-2 w-full bg-surface rounded-2xl shadow-2xl z-50 max-h-96 overflow-y-auto border border-outlinevariant">
+                {selectedGenres.length > 0 && (
+                  <button
+                    onClick={clearGenres}
+                    className="flex items-center gap-3 px-6 py-3 w-full text-left border-b border-outlinevariant text-primary hover:bg-primarycontainer font-medium"
+                  >
+                    Clear All
+                  </button>
+                )}
+                {availableGenres.map((genre) => (
+                  <button
+                    key={genre}
+                    onClick={() => onGenreToggle(genre)}
+                    className="flex items-center gap-3 px-6 py-3 w-full text-left transition-all text-onsurface hover:bg-surfacevariant"
+                  >
+                    <div
+                      className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+                        selectedGenres.includes(genre) ? 'bg-primary border-primary' : 'border-outline'
+                      }`}
+                    >
+                      {selectedGenres.includes(genre) && (
+                        <svg className="w-3 h-3 text-onprimary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
+                    </div>
+                    <span className="font-medium">{genre}</span>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
         </div>
 
-        {/* Clear Filters Button */}
+        {/* Source Menu */}
+        <div className="relative">
+          <button
+            onClick={() => setShowSourceMenu(!showSourceMenu)}
+            className="flex items-center gap-2 px-6 py-3 bg-secondarycontainer text-onsecondarycontainer rounded-full hover:shadow-md transition-all w-full font-medium"
+          >
+            <span>
+              {selectedSources.length === 0
+                ? 'All Sources'
+                : `${selectedSources.length} Source${selectedSources.length > 1 ? 's' : ''}`}
+            </span>
+            <svg className="w-5 h-5 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          {showSourceMenu && (
+            <>
+              <div className="fixed inset-0 bg-black bg-opacity-30 z-40" onClick={() => setShowSourceMenu(false)} />
+              <div className="absolute top-full left-0 mt-2 w-full bg-surface rounded-2xl shadow-2xl z-50 max-h-96 overflow-y-auto border border-outlinevariant">
+                {selectedSources.length > 0 && (
+                  <button
+                    onClick={clearSources}
+                    className="flex items-center gap-3 px-6 py-3 w-full text-left border-b border-outlinevariant text-primary hover:bg-primarycontainer font-medium"
+                  >
+                    Clear All
+                  </button>
+                )}
+                {sources.map((source) => (
+                  <button
+                    key={source}
+                    onClick={() => onSourceToggle(source)}
+                    className="flex items-center gap-3 px-6 py-3 w-full text-left transition-all text-onsurface hover:bg-surfacevariant"
+                  >
+                    <div
+                      className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+                        selectedSources.includes(source) ? 'bg-primary border-primary' : 'border-outline'
+                      }`}
+                    >
+                      {selectedSources.includes(source) && (
+                        <svg className="w-3 h-3 text-onprimary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
+                    </div>
+                    <span className="font-medium">{getSourceDisplayName(source)}</span>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Sort Menu */}
+        <div className="relative">
+          <button
+            onClick={() => setShowSortMenu(!showSortMenu)}
+            className="flex items-center gap-2 px-6 py-3 bg-secondarycontainer text-onsecondarycontainer rounded-full hover:shadow-md transition-all w-full font-medium"
+          >
+            <span>{sortOptions.find((opt) => opt.id === sortBy)?.name || 'Sort by Date'}</span>
+            <svg className="w-5 h-5 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          {showSortMenu && (
+            <>
+              <div className="fixed inset-0 bg-black bg-opacity-30 z-40" onClick={() => setShowSortMenu(false)} />
+              <div className="absolute top-full left-0 mt-2 w-full bg-surface rounded-2xl shadow-2xl z-50 overflow-hidden border border-outlinevariant">
+                {sortOptions.map((opt) => (
+                  <button
+                    key={opt.id}
+                    onClick={() => {
+                      onSortChange(opt.id)
+                      setShowSortMenu(false)
+                    }}
+                    className={`flex items-center gap-3 px-6 py-4 w-full text-left transition-all ${
+                      sortBy === opt.id
+                        ? 'bg-primarycontainer text-onprimarycontainer'
+                        : 'text-onsurface hover:bg-surfacevariant'
+                    }`}
+                  >
+                    <span className="font-medium">{opt.name}</span>
+                    {sortBy === opt.id && (
+                      <svg className="w-5 h-5 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Clear All Filters */}
         {hasActiveFilters && (
-          <div className="flex items-end">
-            <button
-              onClick={onClearFilters}
-              className="px-4 py-2 bg-tertiary text-white rounded-lg hover:bg-opacity-90 transition-colors"
-            >
-              Clear Filters
-            </button>
-          </div>
+          <button
+            onClick={onClearFilters}
+            className="flex items-center gap-2 px-6 py-3 text-primary hover:text-onprimarycontainer hover:bg-primarycontainer rounded-full transition-all w-full font-medium"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+            <span>Clear All Filters</span>
+          </button>
         )}
-      </div>
-
-      {/* Genre Filters */}
-      {availableGenres.length > 0 && (
-        <div className="mt-4">
-          <label className="block text-sm font-medium text-onsurface mb-2">Genres</label>
-          <div className="flex flex-wrap gap-2">
-            {availableGenres.map((genre) => (
-              <button
-                key={genre}
-                onClick={() => onGenreToggle(genre)}
-                className={`px-3 py-1 rounded-full text-sm transition-colors ${
-                  selectedGenres.includes(genre)
-                    ? 'bg-primary text-white'
-                    : 'bg-surfacevariant text-onsurfacevariant hover:bg-opacity-80'
-                }`}
-              >
-                {genre}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Source Filters */}
-      <div className="mt-4">
-        <label className="block text-sm font-medium text-onsurface mb-2">Sources</label>
-        <div className="flex flex-wrap gap-2">
-          {sources.map((source) => (
-            <button
-              key={source}
-              onClick={() => onSourceToggle(source)}
-              className={`px-3 py-1 rounded-full text-sm transition-colors ${
-                selectedSources.includes(source)
-                  ? 'bg-primary text-white'
-                  : 'bg-surfacevariant text-onsurfacevariant hover:bg-opacity-80'
-              }`}
-            >
-              {source === 'smokeyjoes'
-                ? "Smokey Joe's"
-                : source === 'fillmore'
-                ? 'The Fillmore'
-                : source === 'eternally-grateful'
-                ? 'Eternally Grateful'
-                : source.charAt(0).toUpperCase() + source.slice(1)}
-            </button>
-          ))}
-        </div>
       </div>
     </div>
   )
