@@ -174,11 +174,13 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide }) {
         )}
 
         {/* Divider before YouTube section - always show if not expanded */}
-        {!expandedYouTube && <div className="my-3 border-t border-outlinevariant"></div>}
+        {!expandedYouTube && event.genres && event.genres.length > 0 && (
+          <div className="my-3 border-t border-outlinevariant"></div>
+        )}
 
         {/* YouTube Player */}
         {event.youtubeLinks && event.youtubeLinks.length > 0 && (
-          <div className="mb-4 p-3 bg-tertiarycontainer rounded-lg">
+          <div className="mb-3 p-3 bg-tertiarycontainer rounded-lg">
             {expandedYouTube === null && (
               <div className="flex items-center gap-2 mb-2 text-sm font-semibold text-ontertiarycontainer">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -267,25 +269,17 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide }) {
         )}
 
         {/* Description - Only show if useful, hidden by default */}
-        {hasUsefulDescription(event) && !expandedDescription && (
+        {hasUsefulDescription(event) && (
           <button
-            onClick={() => setExpandedDescription(true)}
-            className="text-sm text-primary hover:text-onprimarycontainer font-medium mt-4 block"
+            onClick={() => setExpandedDescription(!expandedDescription)}
+            className="text-sm text-primary hover:text-onprimarycontainer font-medium mb-3 block"
           >
-            ▼ Show Description
+            {expandedDescription ? '▲ Hide Description' : '▼ Show Description'}
           </button>
         )}
 
         {hasUsefulDescription(event) && expandedDescription && (
-          <>
-            <button
-              onClick={() => setExpandedDescription(false)}
-              className="text-sm text-primary hover:text-onprimarycontainer font-medium mt-4 block"
-            >
-              ▲ Hide Description
-            </button>
-            <p className="text-onsurface mt-4">{event.description}</p>
-          </>
+          <p className="text-onsurface mb-3">{event.description}</p>
         )}
 
         {/* Action Buttons */}
