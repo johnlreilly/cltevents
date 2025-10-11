@@ -164,7 +164,7 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide }) {
               <div className="mb-3 p-3 bg-primarycontainer rounded-lg">
                 <div className="text-sm font-semibold text-onprimarycontainer mb-2">Available Dates:</div>
                 <div className="space-y-1">
-                  {event.dates.map((dateInfo, idx) => (
+                  {event.dates.slice(0, 7).map((dateInfo, idx) => (
                     <div key={idx} className="flex items-center justify-between text-sm">
                       <span className="text-onprimarycontainer">{formatDate(dateInfo.date)}</span>
                       {dateInfo.ticketUrl && (
