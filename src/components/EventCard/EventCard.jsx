@@ -131,6 +131,25 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide }) {
           )}
         </div>
 
+        {/* Genres */}
+        {event.genres && event.genres.length > 0 && (
+          <div className="mb-3 flex flex-wrap gap-2 items-center">
+            {event.genres.map((genre, idx) => (
+              <span
+                key={idx}
+                className="text-xs bg-primarycontainer text-onprimarycontainer px-3 py-1 rounded-full font-medium"
+              >
+                {genre}
+              </span>
+            ))}
+            {event.source === 'clttoday' && (
+              <svg className="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5m14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z" />
+              </svg>
+            )}
+          </div>
+        )}
+
         {/* Multiple Dates - Collapsed by default */}
         {event.dates.length > 1 && (
           <>
@@ -166,23 +185,18 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide }) {
           </>
         )}
 
-        {/* Genres */}
-        {event.genres && event.genres.length > 0 && (
-          <div className="mb-3 flex flex-wrap gap-2 items-center">
-            {event.genres.map((genre, idx) => (
-              <span
-                key={idx}
-                className="text-xs bg-primarycontainer text-onprimarycontainer px-3 py-1 rounded-full font-medium"
-              >
-                {genre}
-              </span>
-            ))}
-            {event.source === 'clttoday' && (
-              <svg className="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5m14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z" />
-              </svg>
-            )}
-          </div>
+        {/* Description - Only show if useful, hidden by default */}
+        {hasUsefulDescription(event) && (
+          <button
+            onClick={() => setExpandedDescription(!expandedDescription)}
+            className="text-sm text-primary hover:text-onprimarycontainer font-medium mb-3 block"
+          >
+            {expandedDescription ? '▲ Hide Description' : '▼ Show Description'}
+          </button>
+        )}
+
+        {hasUsefulDescription(event) && expandedDescription && (
+          <p className="text-onsurface mb-3">{event.description}</p>
         )}
 
         {/* YouTube Player */}
@@ -273,20 +287,6 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide }) {
               </button>
             )}
           </div>
-        )}
-
-        {/* Description - Only show if useful, hidden by default */}
-        {hasUsefulDescription(event) && (
-          <button
-            onClick={() => setExpandedDescription(!expandedDescription)}
-            className="text-sm text-primary hover:text-onprimarycontainer font-medium mb-3 block"
-          >
-            {expandedDescription ? '▲ Hide Description' : '▼ Show Description'}
-          </button>
-        )}
-
-        {hasUsefulDescription(event) && expandedDescription && (
-          <p className="text-onsurface mb-3">{event.description}</p>
         )}
 
         {/* Divider */}
