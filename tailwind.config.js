@@ -7,11 +7,11 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Material 3 Design colors - Dark Theme
-        primary: '#D0BCFF',
-        onprimary: '#381E72',
-        primarycontainer: '#4F378B',
-        onprimarycontainer: '#EADDFF',
+        // Material 3 Design colors - Dark Theme (Blue)
+        primary: '#A8C7FA',
+        onprimary: '#003258',
+        primarycontainer: '#004A77',
+        onprimarycontainer: '#D3E4FD',
         secondary: '#CCC2DC',
         onsecondary: '#332D41',
         secondarycontainer: '#4A4458',
