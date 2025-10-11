@@ -14,9 +14,10 @@ import ScrollToTop from './components/ScrollToTop/ScrollToTop'
 
 function App() {
   const [showFilterTray, setShowFilterTray] = useState(false)
-  const [showQuote, setShowQuote] = useState(false)
   const [currentQuote, setCurrentQuote] = useState(null)
   const [quotes, setQuotes] = useState([])
+  const [quoteDisplayTime, setQuoteDisplayTime] = useState(null)
+  const [hasScrolledPastTop, setHasScrolledPastTop] = useState(false)
   const { events, loading, initialLoad, availableGenres, refetch } = useEvents()
   const {
     filteredEvents,
@@ -44,72 +45,36 @@ function App() {
       .catch((err) => console.error('Error loading quotes:', err))
   }, [])
 
-  // Detect scroll beyond top
+  // Detect sticky header and scroll position
   useEffect(() => {
-    let lastScrollY = window.scrollY
-    let pullStartY = 0
-    let isPulling = false
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY
+      const headerHeight = 64 // Header height in pixels
 
-    const handleTouchStart = (e) => {
-      if (window.scrollY === 0) {
-        pullStartY = e.touches[0].clientY
-        isPulling = true
+      // Check if scrolled past header (date card would be sticky)
+      if (currentScrollY > headerHeight) {
+        setHasScrolledPastTop(true)
       }
-    }
 
-    const handleTouchMove = (e) => {
-      if (isPulling && window.scrollY === 0) {
-        const currentY = e.touches[0].clientY
-        const pullDistance = currentY - pullStartY
+      // User returned to top
+      if (currentScrollY === 0 && hasScrolledPastTop && quotes.length > 0) {
+        // Check if we can show a new quote
+        const now = Date.now()
+        const oneMinute = 60000
 
-        if (pullDistance > 100 && quotes.length > 0 && !showQuote) {
+        if (!quoteDisplayTime || now - quoteDisplayTime > oneMinute) {
+          // Show new random quote
           const randomQuote = quotes[Math.floor(Math.random() * quotes.length)]
           setCurrentQuote(randomQuote)
-          setShowQuote(true)
-          setTimeout(() => setShowQuote(false), 5000)
+          setQuoteDisplayTime(now)
+          setHasScrolledPastTop(false) // Reset so quote can change next time
         }
       }
     }
 
-    const handleTouchEnd = () => {
-      isPulling = false
-    }
-
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY
-
-      // Desktop: detect when trying to scroll up from top
-      if (currentScrollY === 0 && lastScrollY === 0 && quotes.length > 0 && !showQuote) {
-        // User is at top and trying to scroll up (wheel event will trigger this)
-      }
-
-      lastScrollY = currentScrollY
-    }
-
-    const handleWheel = (e) => {
-      if (window.scrollY === 0 && e.deltaY < 0 && quotes.length > 0 && !showQuote) {
-        // Scrolling up while at top
-        const randomQuote = quotes[Math.floor(Math.random() * quotes.length)]
-        setCurrentQuote(randomQuote)
-        setShowQuote(true)
-        setTimeout(() => setShowQuote(false), 5000)
-      }
-    }
-
     window.addEventListener('scroll', handleScroll)
-    window.addEventListener('wheel', handleWheel)
-    window.addEventListener('touchstart', handleTouchStart)
-    window.addEventListener('touchmove', handleTouchMove)
-    window.addEventListener('touchend', handleTouchEnd)
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll)
-      window.removeEventListener('wheel', handleWheel)
-      window.removeEventListener('touchstart', handleTouchStart)
-      window.removeEventListener('touchmove', handleTouchMove)
-      window.removeEventListener('touchend', handleTouchEnd)
-    }
-  }, [quotes, showQuote])
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [quotes, hasScrolledPastTop, quoteDisplayTime])
 
   const toggleFilterTray = () => {
     setShowFilterTray(!showFilterTray)
@@ -135,8 +100,8 @@ function App() {
         ) : (
           <>
             <div className="mb-6 text-lg text-center transition-all duration-500">
-              {showQuote && currentQuote ? (
-                <div className="text-primary animate-fade-in">
+              {currentQuote ? (
+                <div className="text-primary">
                   <p className="italic">"{currentQuote.quote}"</p>
                   <p className="text-sm text-onsurfacevariant mt-2">— {currentQuote.author}</p>
                 </div>
