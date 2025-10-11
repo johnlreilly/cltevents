@@ -98,7 +98,7 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide }) {
 
       <div className="p-5">
         {/* Event Title & Venue */}
-        <div className="mb-3">
+        <div className="mb-1">
           <h3 className="text-xl font-semibold text-onsurface mb-1">{toTitleCase(event.name)}</h3>
           <p className="text-sm text-onsurfacevariant">{event.venue}</p>
         </div>
@@ -172,7 +172,7 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide }) {
             {event.genres.map((genre, idx) => (
               <span
                 key={idx}
-                className="text-xs bg-secondarycontainer text-onsecondarycontainer px-3 py-1 rounded-full font-medium"
+                className="text-xs bg-primarycontainer text-onprimarycontainer px-3 py-1 rounded-full font-medium"
               >
                 {genre}
               </span>
@@ -183,11 +183,6 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide }) {
               </svg>
             )}
           </div>
-        )}
-
-        {/* Divider before YouTube section - always show if not expanded */}
-        {!expandedYouTube && event.genres && event.genres.length > 0 && (
-          <div className="my-3 border-t border-outlinevariant"></div>
         )}
 
         {/* YouTube Player */}
@@ -293,6 +288,9 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide }) {
         {hasUsefulDescription(event) && expandedDescription && (
           <p className="text-onsurface mb-3">{event.description}</p>
         )}
+
+        {/* Divider */}
+        <div className="mb-3 border-t border-outlinevariant"></div>
 
         {/* Action Buttons */}
         <div className="flex items-center justify-between gap-0">
