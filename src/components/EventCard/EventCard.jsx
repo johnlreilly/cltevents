@@ -19,6 +19,7 @@ import { cleanYouTubeTitle } from '../../utils/youtubeUtils'
  */
 function EventCard({ event, isFavorite, onToggleFavorite, onHide }) {
   const [expandedDescription, setExpandedDescription] = useState(false)
+  const [expandedDates, setExpandedDates] = useState(false)
   const [expandedYouTube, setExpandedYouTube] = useState(null) // null or video index
   const [pausedYouTube, setPausedYouTube] = useState(false)
 
@@ -130,33 +131,44 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide }) {
           )}
         </div>
 
-        {/* Multiple Dates */}
+        {/* Multiple Dates - Collapsed by default */}
         {event.dates.length > 1 && (
-          <div className="mb-4 p-3 bg-primarycontainer rounded-lg">
-            <div className="text-sm font-semibold text-onprimarycontainer mb-2">Available Dates:</div>
-            <div className="space-y-1">
-              {event.dates.map((dateInfo, idx) => (
-                <div key={idx} className="flex items-center justify-between text-sm">
-                  <span className="text-onprimarycontainer">{formatDate(dateInfo.date)}</span>
-                  {dateInfo.ticketUrl && (
-                    <a
-                      href={dateInfo.ticketUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary hover:text-onprimarycontainer text-xs underline"
-                    >
-                      Tickets
-                    </a>
-                  )}
+          <>
+            <button
+              onClick={() => setExpandedDates(!expandedDates)}
+              className="text-sm text-primary hover:text-onprimarycontainer font-medium mb-3 block"
+            >
+              {expandedDates ? '▲ Hide Dates' : '▼ Show Dates'}
+            </button>
+
+            {expandedDates && (
+              <div className="mb-3 p-3 bg-primarycontainer rounded-lg">
+                <div className="text-sm font-semibold text-onprimarycontainer mb-2">Available Dates:</div>
+                <div className="space-y-1">
+                  {event.dates.map((dateInfo, idx) => (
+                    <div key={idx} className="flex items-center justify-between text-sm">
+                      <span className="text-onprimarycontainer">{formatDate(dateInfo.date)}</span>
+                      {dateInfo.ticketUrl && (
+                        <a
+                          href={dateInfo.ticketUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary hover:text-onprimarycontainer text-xs underline"
+                        >
+                          Tickets
+                        </a>
+                      )}
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </div>
+              </div>
+            )}
+          </>
         )}
 
         {/* Genres */}
         {event.genres && event.genres.length > 0 && (
-          <div className="mb-4 flex flex-wrap gap-2 items-center">
+          <div className="mb-3 flex flex-wrap gap-2 items-center">
             {event.genres.map((genre, idx) => (
               <span
                 key={idx}
