@@ -3,10 +3,26 @@
  * Displays an individual event with full feature set
  */
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { formatDate, formatTime } from '../../utils/dateUtils'
 import { toTitleCase, createCalendarEvent, hasUsefulDescription } from '../../utils/eventUtils'
 import { cleanYouTubeTitle } from '../../utils/youtubeUtils'
+
+// Global state for current playing video across all event cards
+let globalCurrentVideo = null
+let globalVideoChangeCallbacks = []
+
+const registerVideoChangeCallback = (callback) => {
+  globalVideoChangeCallbacks.push(callback)
+  return () => {
+    globalVideoChangeCallbacks = globalVideoChangeCallbacks.filter((cb) => cb !== callback)
+  }
+}
+
+const setGlobalCurrentVideo = (eventId, videoIndex) => {
+  globalCurrentVideo = { eventId, videoIndex }
+  globalVideoChangeCallbacks.forEach((cb) => cb(eventId, videoIndex))
+}
 
 /**
  * EventCard Component
@@ -22,11 +38,25 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide }) {
   const [expandedDates, setExpandedDates] = useState(false)
   const [expandedYouTube, setExpandedYouTube] = useState(null) // null or video index
   const [pausedYouTube, setPausedYouTube] = useState(false)
+  const [showYouTubePanel, setShowYouTubePanel] = useState(false)
 
   const eventSlug = event.name
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
+
+  // Listen for global video changes
+  useEffect(() => {
+    const unregister = registerVideoChangeCallback((eventId, videoIndex) => {
+      if (eventId !== event.id) {
+        // Another event started playing - close this panel
+        setShowYouTubePanel(false)
+        setExpandedYouTube(null)
+        setPausedYouTube(false)
+      }
+    })
+    return unregister
+  }, [event.id])
 
   const handleAddToCalendar = () => {
     const icsContent = createCalendarEvent(event)
@@ -65,6 +95,19 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide }) {
       } catch (err) {
         console.error('Error copying to clipboard:', err)
       }
+    }
+  }
+
+  const handleVideoClick = (idx) => {
+    const isCurrentVideo = expandedYouTube === idx
+    if (isCurrentVideo) {
+      // Toggle pause for current video
+      setPausedYouTube(!pausedYouTube)
+    } else {
+      // Play new video
+      setExpandedYouTube(idx)
+      setPausedYouTube(false)
+      setGlobalCurrentVideo(event.id, idx)
     }
   }
 
@@ -201,92 +244,120 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide }) {
 
         {/* YouTube Player */}
         {event.youtubeLinks && event.youtubeLinks.length > 0 && (
-          <div className="mb-3 p-3 bg-tertiarycontainer rounded-lg">
-            {expandedYouTube === null && (
-              <div className="flex items-center gap-2 mb-2 text-sm font-semibold text-ontertiarycontainer">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
-                  />
-                </svg>
-                Listen on YouTube
-              </div>
-            )}
-
-            {/* Video Player */}
-            {expandedYouTube !== null && (() => {
-              const currentVideo = event.youtubeLinks[expandedYouTube]
-              if (!currentVideo) return null
-              const videoId = currentVideo.url.split('v=')[1] || currentVideo.url.split('/').pop()
-              const cleanedTitle = cleanYouTubeTitle(currentVideo.title)
-
-              return (
-                <div className="mb-3">
-                  <div
-                    className="rounded-lg overflow-hidden"
-                    style={{ position: 'relative', paddingBottom: '56.25%', height: 0 }}
-                  >
-                    <iframe
-                      style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
-                      src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
-                      title={cleanedTitle}
-                      frameBorder="0"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    />
-                  </div>
-                </div>
-              )
-            })()}
-
-            {/* Video List */}
-            <div className="space-y-1 mb-3">
-              {event.youtubeLinks.slice(0, 5).map((link, idx) => {
-                const cleanedTitle = cleanYouTubeTitle(link.title)
-                const isCurrentVideo = expandedYouTube === idx
-
-                return (
-                  <button
-                    key={idx}
-                    onClick={() => {
-                      if (isCurrentVideo) {
-                        setPausedYouTube(!pausedYouTube)
-                      } else {
-                        setExpandedYouTube(idx)
-                        setPausedYouTube(false)
-                      }
-                    }}
-                    className={`flex items-start gap-2 text-sm w-full text-left px-2 py-1 rounded transition-colors ${
-                      isCurrentVideo
-                        ? 'bg-tertiary text-ontertiary font-semibold'
-                        : 'text-tertiary hover:text-ontertiarycontainer hover:bg-surfacevariant'
-                    }`}
-                  >
-                    <svg className="w-3 h-3 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 24 24">
-                      <path d={isCurrentVideo && !pausedYouTube ? 'M6 4h4v16H6V4zm8 0h4v16h-4V4z' : 'M8 5v14l11-7z'} />
-                    </svg>
-                    {cleanedTitle}
-                  </button>
-                )
-              })}
-            </div>
-
-            {/* Close YouTube Button */}
-            {expandedYouTube !== null && (
+          <>
+            {!showYouTubePanel && (
               <button
                 onClick={() => {
-                  setExpandedYouTube(null)
-                  setPausedYouTube(false)
+                  setShowYouTubePanel(true)
+                  setExpandedYouTube(0)
+                  setGlobalCurrentVideo(event.id, 0)
                 }}
-                className="w-full px-4 py-2 bg-surfacevariant text-onsurface rounded-lg hover:shadow-md transition-all text-sm font-medium"
+                className="text-sm text-primary hover:text-onprimarycontainer font-medium mb-3 block"
               >
-                Close YouTube
+                ▼ Listen on YouTube
               </button>
             )}
-          </div>
+
+            {showYouTubePanel && (
+              <div className="mb-3 p-3 bg-primarycontainer rounded-lg">
+                <div className="flex items-center gap-2 mb-2 text-sm font-semibold text-onprimarycontainer">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
+                    />
+                  </svg>
+                  Listen on YouTube
+                </div>
+
+                {/* Video Player or Paused Placeholder */}
+                {expandedYouTube !== null && (() => {
+                  const currentVideo = event.youtubeLinks[expandedYouTube]
+                  if (!currentVideo) return null
+                  const videoId = currentVideo.url.split('v=')[1] || currentVideo.url.split('/').pop()
+                  const cleanedTitle = cleanYouTubeTitle(currentVideo.title)
+
+                  if (pausedYouTube) {
+                    // Show paused placeholder
+                    return (
+                      <div className="mb-3">
+                        <div
+                          className="rounded-lg overflow-hidden bg-black flex items-center justify-center"
+                          style={{ position: 'relative', paddingBottom: '56.25%', height: 0 }}
+                        >
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="text-center">
+                              <svg className="w-16 h-16 text-white mx-auto mb-2 opacity-50" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M8 5v14l11-7z" />
+                              </svg>
+                              <p className="text-white text-sm opacity-75">Video paused</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  }
+
+                  return (
+                    <div className="mb-3">
+                      <div
+                        className="rounded-lg overflow-hidden"
+                        style={{ position: 'relative', paddingBottom: '56.25%', height: 0 }}
+                      >
+                        <iframe
+                          style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+                          src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
+                          title={cleanedTitle}
+                          frameBorder="0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        />
+                      </div>
+                    </div>
+                  )
+                })()}
+
+                {/* Video List */}
+                <div className="space-y-1 mb-3">
+                  {event.youtubeLinks.slice(0, 5).map((link, idx) => {
+                    const cleanedTitle = cleanYouTubeTitle(link.title)
+                    const isCurrentVideo = expandedYouTube === idx
+
+                    return (
+                      <button
+                        key={idx}
+                        onClick={() => handleVideoClick(idx)}
+                        className={`flex items-start gap-2 text-sm w-full text-left px-2 py-1 rounded transition-colors ${
+                          isCurrentVideo
+                            ? 'bg-primary text-onprimary font-semibold'
+                            : 'text-onprimarycontainer hover:bg-surfacevariant'
+                        }`}
+                      >
+                        <svg className="w-3 h-3 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 24 24">
+                          <path d={isCurrentVideo && !pausedYouTube ? 'M6 4h4v16H6V4zm8 0h4v16h-4V4z' : 'M8 5v14l11-7z'} />
+                        </svg>
+                        {cleanedTitle}
+                      </button>
+                    )
+                  })}
+                </div>
+
+                {/* Close YouTube Button */}
+                <button
+                  onClick={() => {
+                    setShowYouTubePanel(false)
+                    setExpandedYouTube(null)
+                    setPausedYouTube(false)
+                  }}
+                  className="w-full px-4 py-2 bg-surfacevariant text-onsurface rounded-lg hover:shadow-md transition-all text-sm font-medium"
+                >
+                  Close YouTube
+                </button>
+              </div>
+            )}
+          </>
         )}
 
         {/* Divider */}
