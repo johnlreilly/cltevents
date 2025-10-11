@@ -3,7 +3,7 @@
  * @module hooks/useFilters
  */
 
-import { useMemo } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import useLocalStorage from './useLocalStorage'
 import {
   filterByCategory,
@@ -48,6 +48,21 @@ export function useFilters(events) {
   const [sortBy, setSortBy] = useLocalStorage('cltevents-sortBy', 'date')
   const [favorites, setFavorites] = useLocalStorage('cltevents-favorites', [])
   const [hidden, setHidden] = useLocalStorage('cltevents-hidden', [])
+
+  // Exclude keywords and genres (loaded from JSON)
+  const [excludeKeywords, setExcludeKeywords] = useState([])
+  const [excludeGenres, setExcludeGenres] = useState([])
+
+  // Load exclude keywords and genres from JSON file
+  useEffect(() => {
+    fetch('/data/excludeKeywords.json')
+      .then((res) => res.json())
+      .then((data) => {
+        setExcludeKeywords(data.keywords || [])
+        setExcludeGenres(data.genres || [])
+      })
+      .catch((err) => console.error('Error loading exclude keywords:', err))
+  }, [])
 
   /**
    * Toggle functions for filters
@@ -104,23 +119,45 @@ export function useFilters(events) {
       return event.dates && event.dates.some((dateInfo) => !isDateInPast(dateInfo.date))
     })
 
-    // Step 2: Filter by category
+    // Step 2: Filter out excluded keywords
+    filtered = filtered.filter((event) => {
+      const searchText = `${event.name} ${event.description || ''}`.toLowerCase()
+      return !excludeKeywords.some((keyword) => searchText.includes(keyword.toLowerCase()))
+    })
+
+    // Step 3: Filter out excluded genres
+    filtered = filtered.filter((event) => {
+      if (!event.genres || event.genres.length === 0) return true
+      return !event.genres.some((genre) => excludeGenres.some((eg) => genre.toLowerCase() === eg.toLowerCase()))
+    })
+
+    // Step 4: Filter by category
     filtered = filterByCategory(filtered, selectedCategory, favorites, hidden, PREFERRED_VENUES)
 
-    // Step 3: Filter by genre
+    // Step 5: Filter by genre
     filtered = filterByGenre(filtered, selectedGenres)
 
-    // Step 4: Filter by source
+    // Step 6: Filter by source
     filtered = filterBySource(filtered, selectedSources)
 
-    // Step 5: Group by name (combine multi-date events)
+    // Step 7: Group by name (combine multi-date events)
     const grouped = groupEventsByName(filtered)
 
-    // Step 6: Sort
+    // Step 8: Sort
     const sorted = sortEvents(grouped, sortBy, PREFERRED_VENUES)
 
     return sorted
-  }, [events, selectedCategory, favorites, hidden, selectedGenres, selectedSources, sortBy])
+  }, [
+    events,
+    selectedCategory,
+    favorites,
+    hidden,
+    selectedGenres,
+    selectedSources,
+    sortBy,
+    excludeKeywords,
+    excludeGenres,
+  ])
 
   return {
     // Filter state
