@@ -48,11 +48,11 @@ function EventList({ events, favorites, toggleFavorite, hidden, toggleHidden }) 
             {showDateSeparator && currentDate && (
               <div
                 id={dateId}
-                className="md:col-span-2 bg-[#1E3A5F] rounded-3xl h-16 flex flex-col justify-center items-start text-white sticky top-[62px] z-20 overflow-hidden relative p-4"
+                className="md:col-span-2 bg-[#1E3A5F] rounded-b-3xl h-24 flex flex-col justify-end items-start text-white sticky top-[62px] z-20 overflow-hidden relative px-4 pb-3"
               >
                 {/* Crown icon watermark */}
                 <svg
-                  className="absolute right-4 top-1/2 -translate-y-1/2 w-9 h-9 opacity-20"
+                  className="absolute right-4 bottom-3 w-9 h-9 opacity-20"
                   fill="currentColor"
                   viewBox="0 0 24 24"
                 >
