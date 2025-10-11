@@ -84,6 +84,7 @@
       const [expandedDescriptions, setExpandedDescriptions] = useState([]);
       const [expandedYouTube, setExpandedYouTube] = useState({});
       const [pausedYouTube, setPausedYouTube] = useState({});
+      const [youtubeLinks, setYoutubeLinks] = useState({});
       const [favoriteVideos, setFavoriteVideos] = useState(() => {
         const saved = localStorage.getItem('cltevents-favoriteVideos');
         return saved ? JSON.parse(saved) : [];
@@ -730,10 +731,8 @@ END:VCALENDAR`;
                 matchScore += 10;
               }
 
+              // Don't fetch YouTube videos upfront - fetch on-demand to save API quota
               let youtubeLinks = [];
-              if (eventType === 'music') {
-                youtubeLinks = await fetchYouTubeVideos(tmEvent.name);
-              }
 
               // Extract image URL - prefer high resolution images
               let imageUrl = null;
@@ -777,7 +776,8 @@ END:VCALENDAR`;
               // Smokey Joe's is a preferred venue, so give it a boost
               let matchScore = 70 + 15 + 10; // base + venue boost + music boost = 95
 
-              let youtubeLinks = await fetchYouTubeVideos(sjEvent.name);
+              // Don't fetch YouTube videos upfront - fetch on-demand to save API quota
+              let youtubeLinks = [];
               
               return {
                 id: `sj-${sjEvent.name}-${sjEvent.date}`,
@@ -941,6 +941,19 @@ END:VCALENDAR`;
 
           return [];
         }
+      };
+
+      const loadYouTubeVideos = async (event) => {
+        const eventId = event.id;
+        if (youtubeLinks[eventId]) {
+          return; // Already loaded
+        }
+
+        const videos = await fetchYouTubeVideos(event.name);
+        setYoutubeLinks(prev => ({
+          ...prev,
+          [eventId]: videos
+        }));
       };
 
       const hasActiveFilters = (dateRange.start && dateRange.start !== today) || dateRange.end || priceRange.min || priceRange.max || selectedGenres.length > 0 || selectedSources.length > 0;
@@ -1491,9 +1504,25 @@ END:VCALENDAR`;
                       <div className="my-3 border-t border-outlinevariant"></div>
                     )}
 
-                    {event.youtubeLinks && event.youtubeLinks.length > 0 && (
+                    {/* YouTube Section - Show button for music events, load on-demand */}
+                    {event.type === 'music' && (
                       <div className="mb-4 p-3 bg-tertiarycontainer rounded-lg">
-                        {expandedYouTube[eventSlug] === undefined && (
+                        {!youtubeLinks[event.id] && expandedYouTube[eventSlug] === undefined && (
+                          <button
+                            onClick={async () => {
+                              await loadYouTubeVideos(event);
+                              setExpandedYouTube({[eventSlug]: 0});
+                            }}
+                            className="flex items-center gap-2 text-sm font-semibold text-ontertiarycontainer hover:text-tertiary transition-colors"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                            </svg>
+                            Listen on YouTube
+                          </button>
+                        )}
+
+                        {youtubeLinks[event.id] && expandedYouTube[eventSlug] === undefined && (
                           <div className="flex items-center gap-2 mb-2 text-sm font-semibold text-ontertiarycontainer">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
@@ -1503,9 +1532,9 @@ END:VCALENDAR`;
                         )}
 
                         {/* Single YouTube Player */}
-                        {expandedYouTube[eventSlug] !== undefined && (() => {
+                        {youtubeLinks[event.id] && youtubeLinks[event.id].length > 0 && expandedYouTube[eventSlug] !== undefined && (() => {
                           const currentVideoIndex = typeof expandedYouTube[eventSlug] === 'number' ? expandedYouTube[eventSlug] : 0;
-                          const currentVideo = event.youtubeLinks[currentVideoIndex];
+                          const currentVideo = youtubeLinks[event.id][currentVideoIndex];
                           const isPaused = pausedYouTube[eventSlug];
 
                           // Extract video ID more robustly
@@ -1582,8 +1611,9 @@ END:VCALENDAR`;
                         })()}
 
                         {/* Video List - Limited to 5 */}
+                        {youtubeLinks[event.id] && youtubeLinks[event.id].length > 0 && (
                         <div className="space-y-1 mb-3">
-                          {event.youtubeLinks.slice(0, 5).map((link, idx) => {
+                          {youtubeLinks[event.id].slice(0, 5).map((link, idx) => {
                             const cleanedTitle = cleanYouTubeTitle(link.title);
                             const currentVideoIndex = typeof expandedYouTube[eventSlug] === 'number' ? expandedYouTube[eventSlug] : 0;
                             const isCurrentVideo = expandedYouTube[eventSlug] && currentVideoIndex === idx;
@@ -1619,9 +1649,10 @@ END:VCALENDAR`;
                             );
                           })}
                         </div>
+                        )}
 
                         {/* Close Button */}
-                        {expandedYouTube[eventSlug] !== undefined && (
+                        {youtubeLinks[event.id] && youtubeLinks[event.id].length > 0 && expandedYouTube[eventSlug] !== undefined && (
                           <button
                             onClick={() => {
                               setExpandedYouTube(prev => {
