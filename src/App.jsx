@@ -45,30 +45,30 @@ function App() {
       .catch((err) => console.error('Error loading quotes:', err))
   }, [])
 
-  // Detect sticky header and scroll position
+  // Detect sticky header and manage quote display
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY
       const headerHeight = 64 // Header height in pixels
 
       // Check if scrolled past header (date card would be sticky)
-      if (currentScrollY > headerHeight) {
+      if (currentScrollY > headerHeight && !hasScrolledPastTop) {
         setHasScrolledPastTop(true)
-      }
 
-      // User returned to top
-      if (currentScrollY === 0 && hasScrolledPastTop && quotes.length > 0) {
-        // Check if we can show a new quote
+        // Immediately prepare new quote if cooldown has passed
         const now = Date.now()
         const oneMinute = 60000
 
-        if (!quoteDisplayTime || now - quoteDisplayTime > oneMinute) {
-          // Show new random quote
+        if (quotes.length > 0 && (!quoteDisplayTime || now - quoteDisplayTime > oneMinute)) {
           const randomQuote = quotes[Math.floor(Math.random() * quotes.length)]
           setCurrentQuote(randomQuote)
           setQuoteDisplayTime(now)
-          setHasScrolledPastTop(false) // Reset so quote can change next time
         }
+      }
+
+      // Reset when back at top
+      if (currentScrollY === 0) {
+        setHasScrolledPastTop(false)
       }
     }
 
@@ -99,14 +99,16 @@ function App() {
           <LoadingSpinner />
         ) : (
           <>
-            <div className="mb-6 text-lg text-center transition-all duration-500">
+            <div className="my-6 text-lg text-center">
               {currentQuote ? (
                 <div className="text-primary">
                   <p className="italic">"{currentQuote.quote}"</p>
                   <p className="text-sm text-onsurfacevariant mt-2">— {currentQuote.author}</p>
                 </div>
               ) : (
-                <p className="text-gray-400">Charlotte shows... all in one place!</p>
+                <p className={`text-gray-400 transition-opacity duration-300 ${hasScrolledPastTop ? 'opacity-0' : 'opacity-100'}`}>
+                  Charlotte shows... all in one place!
+                </p>
               )}
             </div>
 
