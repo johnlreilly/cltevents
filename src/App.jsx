@@ -114,7 +114,7 @@ function App() {
           <LoadingSpinner />
         ) : (
           <>
-            <div className="my-6 text-lg text-center">
+            <div className="my-6 text-lg text-center min-h-[4.5rem] flex items-center justify-center">
               {currentQuote ? (
                 <div className="text-primary">
                   <p className="italic">
