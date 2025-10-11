@@ -304,7 +304,7 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide }) {
               className="p-2.5 rounded-full hover:bg-surfacevariant transition-colors"
             >
               <svg
-                className={`w-5 h-5 ${isFavorite ? 'fill-tertiary text-tertiary' : 'text-onsurfacevariant'}`}
+                className={`w-6 h-6 ${isFavorite ? 'fill-tertiary text-tertiary' : 'text-onsurfacevariant'}`}
                 fill={isFavorite ? 'currentColor' : 'none'}
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -324,7 +324,7 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide }) {
               title="Add to calendar"
               className="p-2.5 rounded-full hover:bg-surfacevariant transition-colors"
             >
-              <svg className="w-5 h-5 text-onsurfacevariant" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6 text-onsurfacevariant" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -340,7 +340,7 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide }) {
               title="Hide event"
               className="p-2.5 rounded-full hover:bg-surfacevariant transition-colors"
             >
-              <svg className="w-5 h-5 text-onsurfacevariant" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6 text-onsurfacevariant" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
@@ -351,7 +351,7 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide }) {
               className="p-2.5 rounded-full hover:bg-surfacevariant transition-colors"
               title="Share event"
             >
-              <svg className="w-5 h-5 text-onsurfacevariant" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6 text-onsurfacevariant" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -370,7 +370,7 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide }) {
               className="p-2.5 rounded-full hover:bg-surfacevariant transition-colors"
               title="Get directions"
             >
-              <svg className="w-5 h-5 text-onsurfacevariant" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6 text-onsurfacevariant" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -387,7 +387,7 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide }) {
               href={event.ticketUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="px-6 py-1.5 bg-primary text-onprimary rounded-full hover:shadow-md transition-all flex items-center justify-center font-medium text-xs"
+              className="px-6 py-1 bg-primary text-onprimary rounded-full hover:shadow-md transition-all flex items-center justify-center font-medium text-xs"
             >
               Get Tickets
             </a>
@@ -396,7 +396,7 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide }) {
               href={event.dates[0].ticketUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="px-6 py-1.5 bg-primary text-onprimary rounded-full hover:shadow-md transition-all flex items-center justify-center font-medium text-xs"
+              className="px-6 py-1 bg-primary text-onprimary rounded-full hover:shadow-md transition-all flex items-center justify-center font-medium text-xs"
             >
               Get Tickets
             </a>
