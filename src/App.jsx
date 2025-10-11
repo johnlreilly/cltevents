@@ -49,9 +49,18 @@ function App() {
     const handleScroll = () => {
       const currentScrollY = window.scrollY
       const headerHeight = 64 // Header height in pixels
+      const firstDateSeparator = document.querySelector('[id^="date-"]')
 
-      // Check if scrolled past header (date card would be sticky)
-      if (currentScrollY > headerHeight && !hasScrolledPastTop) {
+      // Check if the first date separator is actually stuck (sticky)
+      let isStickyHeaderActive = false
+      if (firstDateSeparator) {
+        const separatorTop = firstDateSeparator.getBoundingClientRect().top
+        // Date separator is sticky when it's at position top-[48px] = 48px from top
+        isStickyHeaderActive = separatorTop <= 48
+      }
+
+      // Trigger quote change when sticky header becomes active
+      if (isStickyHeaderActive && !hasScrolledPastTop) {
         setHasScrolledPastTop(true)
 
         // Only prepare new quote if cooldown has passed AND we're not at the top (quote not visible)
