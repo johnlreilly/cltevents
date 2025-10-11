@@ -42,8 +42,24 @@ export function useLocalStorage(key, initialValue) {
     try {
       // Get from local storage by key
       const item = window.localStorage.getItem(key)
-      // Parse stored json or if none return initialValue
-      return item ? JSON.parse(item) : initialValue
+      if (!item) return initialValue
+
+      // Try to parse as JSON
+      try {
+        return JSON.parse(item)
+      } catch (parseError) {
+        // If parsing fails, check if it's a plain string that matches the initial value
+        // This handles migration from old localStorage format
+        if (typeof initialValue === 'string' && item === initialValue) {
+          // Store it properly as JSON for future use
+          window.localStorage.setItem(key, JSON.stringify(item))
+          return item
+        }
+        // Otherwise, clear the bad value and return initial value
+        console.warn(`Clearing invalid localStorage key "${key}": ${parseError.message}`)
+        window.localStorage.removeItem(key)
+        return initialValue
+      }
     } catch (error) {
       // If error also return initialValue
       console.error(`Error loading localStorage key "${key}":`, error)
