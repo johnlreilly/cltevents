@@ -81,7 +81,7 @@ function FilterTray({
         <div className="relative">
           <button
             onClick={() => setShowCategoryMenu(!showCategoryMenu)}
-            className="flex items-center gap-2 px-6 py-3 bg-secondarycontainer text-onsecondarycontainer rounded-full hover:shadow-md transition-all w-full font-medium"
+            className="flex items-center gap-2 px-6 py-3 bg-primarycontainer text-onprimarycontainer rounded-full hover:shadow-md transition-all w-full font-medium"
           >
             <span>{categories.find((cat) => cat.id === selectedCategory)?.name || 'All Events'}</span>
             <svg className="w-5 h-5 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -125,7 +125,7 @@ function FilterTray({
         <div className="relative">
           <button
             onClick={() => setShowGenreMenu(!showGenreMenu)}
-            className="flex items-center gap-2 px-6 py-3 bg-secondarycontainer text-onsecondarycontainer rounded-full hover:shadow-md transition-all w-full font-medium"
+            className="flex items-center gap-2 px-6 py-3 bg-primarycontainer text-onprimarycontainer rounded-full hover:shadow-md transition-all w-full font-medium"
           >
             <span>
               {selectedGenres.length === 0
@@ -178,7 +178,7 @@ function FilterTray({
         <div className="relative">
           <button
             onClick={() => setShowSourceMenu(!showSourceMenu)}
-            className="flex items-center gap-2 px-6 py-3 bg-secondarycontainer text-onsecondarycontainer rounded-full hover:shadow-md transition-all w-full font-medium"
+            className="flex items-center gap-2 px-6 py-3 bg-primarycontainer text-onprimarycontainer rounded-full hover:shadow-md transition-all w-full font-medium"
           >
             <span>
               {selectedSources.length === 0
@@ -231,7 +231,7 @@ function FilterTray({
         <div className="relative">
           <button
             onClick={() => setShowSortMenu(!showSortMenu)}
-            className="flex items-center gap-2 px-6 py-3 bg-secondarycontainer text-onsecondarycontainer rounded-full hover:shadow-md transition-all w-full font-medium"
+            className="flex items-center gap-2 px-6 py-3 bg-primarycontainer text-onprimarycontainer rounded-full hover:shadow-md transition-all w-full font-medium"
           >
             <span>{sortOptions.find((opt) => opt.id === sortBy)?.name || 'Sort by Date'}</span>
             <svg className="w-5 h-5 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">

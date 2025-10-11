@@ -97,16 +97,6 @@ function App() {
         onToggleFilters={toggleFilterTray}
         showFilterTray={showFilterTray}
         hasActiveFilters={hasActiveFilters}
-        selectedCategory={selectedCategory}
-        onCategoryChange={setSelectedCategory}
-        selectedGenres={selectedGenres}
-        onGenreToggle={toggleGenre}
-        availableGenres={availableGenres}
-        selectedSources={selectedSources}
-        onSourceToggle={toggleSource}
-        sortBy={sortBy}
-        onSortChange={setSortBy}
-        onClearFilters={clearFilters}
       />
 
       {/* Main Content */}
@@ -141,6 +131,18 @@ function App() {
               toggleFavorite={toggleFavorite}
               hidden={hidden}
               toggleHidden={toggleHidden}
+              showFilterTray={showFilterTray}
+              selectedCategory={selectedCategory}
+              onCategoryChange={setSelectedCategory}
+              selectedGenres={selectedGenres}
+              onGenreToggle={toggleGenre}
+              availableGenres={availableGenres}
+              selectedSources={selectedSources}
+              onSourceToggle={toggleSource}
+              sortBy={sortBy}
+              onSortChange={setSortBy}
+              hasActiveFilters={hasActiveFilters}
+              onClearFilters={clearFilters}
             />
           </>
         )}
