@@ -74,10 +74,7 @@ function FilterTray({
   }
 
   return (
-    <div className="mb-6 p-6 bg-surface rounded-3xl border border-outlinevariant">
-      {/* Header */}
-      <h2 className="text-lg font-semibold text-onsurface mb-6">Filter & Sort</h2>
-
+    <div className="pt-4">
       {/* Filter and Sort Controls */}
       <div className="space-y-3">
         {/* Category Menu */}

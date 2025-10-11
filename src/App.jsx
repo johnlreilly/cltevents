@@ -9,7 +9,6 @@ import useFilters from './hooks/useFilters'
 import Header from './components/Header/Header'
 import LoadingSpinner from './components/LoadingSpinner/LoadingSpinner'
 import EventList from './components/EventList/EventList'
-import FilterTray from './components/FilterTray/FilterTray'
 import ScrollToTop from './components/ScrollToTop/ScrollToTop'
 
 function App() {
@@ -77,10 +76,17 @@ function App() {
   }, [quotes, hasScrolledPastTop, quoteDisplayTime])
 
   const toggleFilterTray = () => {
-    setShowFilterTray(!showFilterTray)
     if (!showFilterTray) {
-      window.scrollTo({ top: 0, behavior: 'smooth' })
+      // Opening filter tray - scroll to ensure sticky header is active
+      const firstDateSeparator = document.querySelector('[id^="date-"]')
+      if (firstDateSeparator) {
+        // Scroll to make the first date separator sticky (just past the header)
+        const headerHeight = 64
+        const targetPosition = firstDateSeparator.offsetTop - headerHeight - 1
+        window.scrollTo({ top: Math.max(0, targetPosition), behavior: 'smooth' })
+      }
     }
+    setShowFilterTray(!showFilterTray)
   }
 
   return (
@@ -91,6 +97,16 @@ function App() {
         onToggleFilters={toggleFilterTray}
         showFilterTray={showFilterTray}
         hasActiveFilters={hasActiveFilters}
+        selectedCategory={selectedCategory}
+        onCategoryChange={setSelectedCategory}
+        selectedGenres={selectedGenres}
+        onGenreToggle={toggleGenre}
+        availableGenres={availableGenres}
+        selectedSources={selectedSources}
+        onSourceToggle={toggleSource}
+        sortBy={sortBy}
+        onSortChange={setSortBy}
+        onClearFilters={clearFilters}
       />
 
       {/* Main Content */}
@@ -118,22 +134,6 @@ function App() {
                 </p>
               )}
             </div>
-
-            {showFilterTray && (
-              <FilterTray
-                selectedCategory={selectedCategory}
-                onCategoryChange={setSelectedCategory}
-                selectedGenres={selectedGenres}
-                onGenreToggle={toggleGenre}
-                availableGenres={availableGenres}
-                selectedSources={selectedSources}
-                onSourceToggle={toggleSource}
-                sortBy={sortBy}
-                onSortChange={setSortBy}
-                hasActiveFilters={hasActiveFilters}
-                onClearFilters={clearFilters}
-              />
-            )}
 
             <EventList
               events={filteredEvents}
