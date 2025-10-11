@@ -3,7 +3,7 @@
  * MVP version - to be refactored into smaller components
  */
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import useEvents from './hooks/useEvents'
 import useFilters from './hooks/useFilters'
 import Header from './components/Header/Header'
@@ -14,6 +14,9 @@ import ScrollToTop from './components/ScrollToTop/ScrollToTop'
 
 function App() {
   const [showFilterTray, setShowFilterTray] = useState(false)
+  const [showQuote, setShowQuote] = useState(false)
+  const [currentQuote, setCurrentQuote] = useState(null)
+  const [quotes, setQuotes] = useState([])
   const { events, loading, initialLoad, availableGenres, refetch } = useEvents()
   const {
     filteredEvents,
@@ -32,6 +35,81 @@ function App() {
     hidden,
     toggleHidden,
   } = useFilters(events)
+
+  // Load quotes on mount
+  useEffect(() => {
+    fetch('/quotes/quotes-look-back.json')
+      .then((res) => res.json())
+      .then((data) => setQuotes(data))
+      .catch((err) => console.error('Error loading quotes:', err))
+  }, [])
+
+  // Detect scroll beyond top
+  useEffect(() => {
+    let lastScrollY = window.scrollY
+    let pullStartY = 0
+    let isPulling = false
+
+    const handleTouchStart = (e) => {
+      if (window.scrollY === 0) {
+        pullStartY = e.touches[0].clientY
+        isPulling = true
+      }
+    }
+
+    const handleTouchMove = (e) => {
+      if (isPulling && window.scrollY === 0) {
+        const currentY = e.touches[0].clientY
+        const pullDistance = currentY - pullStartY
+
+        if (pullDistance > 100 && quotes.length > 0 && !showQuote) {
+          const randomQuote = quotes[Math.floor(Math.random() * quotes.length)]
+          setCurrentQuote(randomQuote)
+          setShowQuote(true)
+          setTimeout(() => setShowQuote(false), 5000)
+        }
+      }
+    }
+
+    const handleTouchEnd = () => {
+      isPulling = false
+    }
+
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY
+
+      // Desktop: detect when trying to scroll up from top
+      if (currentScrollY === 0 && lastScrollY === 0 && quotes.length > 0 && !showQuote) {
+        // User is at top and trying to scroll up (wheel event will trigger this)
+      }
+
+      lastScrollY = currentScrollY
+    }
+
+    const handleWheel = (e) => {
+      if (window.scrollY === 0 && e.deltaY < 0 && quotes.length > 0 && !showQuote) {
+        // Scrolling up while at top
+        const randomQuote = quotes[Math.floor(Math.random() * quotes.length)]
+        setCurrentQuote(randomQuote)
+        setShowQuote(true)
+        setTimeout(() => setShowQuote(false), 5000)
+      }
+    }
+
+    window.addEventListener('scroll', handleScroll)
+    window.addEventListener('wheel', handleWheel)
+    window.addEventListener('touchstart', handleTouchStart)
+    window.addEventListener('touchmove', handleTouchMove)
+    window.addEventListener('touchend', handleTouchEnd)
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+      window.removeEventListener('wheel', handleWheel)
+      window.removeEventListener('touchstart', handleTouchStart)
+      window.removeEventListener('touchmove', handleTouchMove)
+      window.removeEventListener('touchend', handleTouchEnd)
+    }
+  }, [quotes, showQuote])
 
   const toggleFilterTray = () => {
     setShowFilterTray(!showFilterTray)
@@ -56,8 +134,15 @@ function App() {
           <LoadingSpinner />
         ) : (
           <>
-            <div className="mb-6 text-lg text-gray-400 text-center">
-              Charlotte shows... all in one place!
+            <div className="mb-6 text-lg text-center transition-all duration-500">
+              {showQuote && currentQuote ? (
+                <div className="text-primary animate-fade-in">
+                  <p className="italic">"{currentQuote.quote}"</p>
+                  <p className="text-sm text-onsurfacevariant mt-2">— {currentQuote.author}</p>
+                </div>
+              ) : (
+                <p className="text-gray-400">Charlotte shows... all in one place!</p>
+              )}
             </div>
 
             {showFilterTray && (
