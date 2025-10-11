@@ -3,6 +3,7 @@
  * MVP version - to be refactored into smaller components
  */
 
+import { useState } from 'react'
 import useEvents from './hooks/useEvents'
 import useFilters from './hooks/useFilters'
 import Header from './components/Header/Header'
@@ -12,6 +13,7 @@ import FilterTray from './components/FilterTray/FilterTray'
 import ScrollToTop from './components/ScrollToTop/ScrollToTop'
 
 function App() {
+  const [showFilterTray, setShowFilterTray] = useState(false)
   const { events, loading, initialLoad, availableGenres, refetch } = useEvents()
   const {
     filteredEvents,
@@ -31,9 +33,22 @@ function App() {
     toggleHidden,
   } = useFilters(events)
 
+  const toggleFilterTray = () => {
+    setShowFilterTray(!showFilterTray)
+    if (!showFilterTray) {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }
+
   return (
-    <div className="min-h-screen bg-black">
-      <Header onRefresh={refetch} loading={loading} />
+    <div className="min-h-screen bg-[#1C1B1F]">
+      <Header
+        onRefresh={refetch}
+        loading={loading}
+        onToggleFilters={toggleFilterTray}
+        showFilterTray={showFilterTray}
+        hasActiveFilters={hasActiveFilters}
+      />
 
       {/* Main Content */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-2">
@@ -45,19 +60,21 @@ function App() {
               Charlotte shows... all in one place!
             </div>
 
-            <FilterTray
-              selectedCategory={selectedCategory}
-              onCategoryChange={setSelectedCategory}
-              selectedGenres={selectedGenres}
-              onGenreToggle={toggleGenre}
-              availableGenres={availableGenres}
-              selectedSources={selectedSources}
-              onSourceToggle={toggleSource}
-              sortBy={sortBy}
-              onSortChange={setSortBy}
-              hasActiveFilters={hasActiveFilters}
-              onClearFilters={clearFilters}
-            />
+            {showFilterTray && (
+              <FilterTray
+                selectedCategory={selectedCategory}
+                onCategoryChange={setSelectedCategory}
+                selectedGenres={selectedGenres}
+                onGenreToggle={toggleGenre}
+                availableGenres={availableGenres}
+                selectedSources={selectedSources}
+                onSourceToggle={toggleSource}
+                sortBy={sortBy}
+                onSortChange={setSortBy}
+                hasActiveFilters={hasActiveFilters}
+                onClearFilters={clearFilters}
+              />
+            )}
 
             <EventList
               events={filteredEvents}
