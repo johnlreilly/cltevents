@@ -129,7 +129,9 @@ export function useEvents() {
           YOUTUBE_VENUES.some((v) => venue.toLowerCase().includes(v))
 
         if (shouldFetchYouTube) {
+          console.log(`Fetching YouTube for ${tmEvent.name} at ${venue}`)
           youtubeLinks = await fetchYouTubeVideos(tmEvent.name, youtubeCache.current)
+          console.log(`Got ${youtubeLinks.length} YouTube videos for ${tmEvent.name}`)
         }
 
         // Extract highest resolution image
@@ -171,7 +173,9 @@ export function useEvents() {
         const matchScore = 70 + 15 + 10 // base + venue boost + music boost = 95
 
         // Fetch YouTube videos for Smokey Joe's events
+        console.log(`Fetching YouTube for Smokey Joe's event: ${sjEvent.name}`)
         const youtubeLinks = await fetchYouTubeVideos(sjEvent.name, youtubeCache.current)
+        console.log(`Got ${youtubeLinks.length} YouTube videos for ${sjEvent.name}`)
 
         return {
           id: `sj-${sjEvent.name}-${sjEvent.date}`,
