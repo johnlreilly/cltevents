@@ -102,7 +102,14 @@ function App() {
             <div className="my-6 text-lg text-center">
               {currentQuote ? (
                 <div className="text-primary">
-                  <p className="italic">"{currentQuote.quote}"</p>
+                  <p className="italic">
+                    "{currentQuote.quote.split('|').map((line, index, array) => (
+                      <span key={index}>
+                        {line}
+                        {index < array.length - 1 && <br />}
+                      </span>
+                    ))}"
+                  </p>
                   <p className="text-sm text-onsurfacevariant mt-2">— {currentQuote.author}</p>
                 </div>
               ) : (
