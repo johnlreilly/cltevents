@@ -5,7 +5,7 @@
 
 import { useState } from 'react'
 import { formatDate, formatTime } from '../../utils/dateUtils'
-import { toTitleCase, createCalendarEvent } from '../../utils/eventUtils'
+import { toTitleCase, createCalendarEvent, hasUsefulDescription } from '../../utils/eventUtils'
 import { cleanYouTubeTitle } from '../../utils/youtubeUtils'
 
 /**
@@ -173,9 +173,8 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide }) {
           </div>
         )}
 
-        {event.genres && event.genres.length > 0 && !expandedYouTube && (
-          <div className="my-3 border-t border-outlinevariant"></div>
-        )}
+        {/* Divider before YouTube section - always show if not expanded */}
+        {!expandedYouTube && <div className="my-3 border-t border-outlinevariant"></div>}
 
         {/* YouTube Player */}
         {event.youtubeLinks && event.youtubeLinks.length > 0 && (
@@ -267,23 +266,26 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide }) {
           </div>
         )}
 
-        {/* Description */}
-        {event.description && (
-          <div className="mb-4">
-            <p
-              className={`text-sm text-onsurfacevariant ${expandedDescription ? '' : 'line-clamp-3'}`}
+        {/* Description - Only show if useful, hidden by default */}
+        {hasUsefulDescription(event) && !expandedDescription && (
+          <button
+            onClick={() => setExpandedDescription(true)}
+            className="text-sm text-primary hover:text-onprimarycontainer font-medium mt-4 block"
+          >
+            ▼ Show Description
+          </button>
+        )}
+
+        {hasUsefulDescription(event) && expandedDescription && (
+          <>
+            <button
+              onClick={() => setExpandedDescription(false)}
+              className="text-sm text-primary hover:text-onprimarycontainer font-medium mt-4 block"
             >
-              {event.description}
-            </p>
-            {event.description.length > 150 && (
-              <button
-                onClick={() => setExpandedDescription(!expandedDescription)}
-                className="text-sm text-tertiary hover:text-ontertiarycontainer mt-1"
-              >
-                {expandedDescription ? 'Show less' : 'Show more'}
-              </button>
-            )}
-          </div>
+              ▲ Hide Description
+            </button>
+            <p className="text-onsurface mt-4">{event.description}</p>
+          </>
         )}
 
         {/* Action Buttons */}
@@ -352,18 +354,50 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide }) {
                 />
               </svg>
             </button>
+
+            {/* Get Directions Button */}
+            <button
+              onClick={() => {
+                const query = encodeURIComponent(`${event.name} ${event.venue}`)
+                window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank')
+              }}
+              className="p-2.5 rounded-full hover:bg-surfacevariant transition-colors"
+              title="Get directions"
+            >
+              <svg className="w-5 h-5 text-onsurfacevariant" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
+                />
+              </svg>
+            </button>
           </div>
 
           {/* Ticket Button */}
-          {event.ticketUrl && (
+          {event.ticketUrl ? (
             <a
               href={event.ticketUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="px-6 py-2 bg-primarycontainer text-onprimarycontainer rounded-full hover:shadow-md transition-all text-sm font-medium"
+              className="px-6 py-1.5 bg-primary text-onprimary rounded-full hover:shadow-md transition-all flex items-center justify-center font-medium text-xs"
             >
-              Tickets
+              Get Tickets
             </a>
+          ) : event.dates.length === 1 && event.dates[0].ticketUrl ? (
+            <a
+              href={event.dates[0].ticketUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-6 py-1.5 bg-primary text-onprimary rounded-full hover:shadow-md transition-all flex items-center justify-center font-medium text-xs"
+            >
+              Get Tickets
+            </a>
+          ) : (
+            <button className="px-6 py-1.5 bg-primary text-onprimary rounded-full hover:shadow-md transition-all flex items-center justify-center font-medium text-xs">
+              Get Tickets
+            </button>
           )}
         </div>
       </div>
