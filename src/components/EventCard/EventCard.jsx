@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react'
 import { formatDate, formatTime } from '../../utils/dateUtils'
 import { toTitleCase, createCalendarEvent, hasUsefulDescription } from '../../utils/eventUtils'
 import { cleanYouTubeTitle } from '../../utils/youtubeUtils'
+import { getCachedSmartCrop, getObjectPosition } from '../../utils/imageUtils'
 
 // Global state for current playing video across all event cards
 let globalCurrentVideo = null
@@ -39,6 +40,7 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide }) {
   const [expandedYouTube, setExpandedYouTube] = useState(null) // null or video index
   const [pausedYouTube, setPausedYouTube] = useState(false)
   const [showYouTubePanel, setShowYouTubePanel] = useState(false)
+  const [imagePosition, setImagePosition] = useState('center center')
 
   const eventSlug = event.name
     .toLowerCase()
@@ -57,6 +59,35 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide }) {
     })
     return unregister
   }, [event.id])
+
+  // Analyze image with smartcrop when component mounts
+  useEffect(() => {
+    if (event.imageUrl) {
+      const analyzeImage = async () => {
+        try {
+          // Get the container dimensions (approximate)
+          const containerWidth = 800 // typical card width
+          const containerHeight = window.innerHeight * 0.2 // 20vh
+
+          const cropData = await getCachedSmartCrop(event.imageUrl, containerWidth, containerHeight)
+
+          // We'll use a temporary image to get actual dimensions
+          const img = new Image()
+          img.crossOrigin = 'anonymous'
+          img.onload = () => {
+            const position = getObjectPosition(cropData, img.width, img.height)
+            setImagePosition(position)
+          }
+          img.src = event.imageUrl
+        } catch (error) {
+          console.error('Error analyzing image:', error)
+          // Keep default center center position
+        }
+      }
+
+      analyzeImage()
+    }
+  }, [event.imageUrl])
 
   const handleAddToCalendar = () => {
     const icsContent = createCalendarEvent(event)
@@ -126,6 +157,7 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide }) {
               width: '100%',
               height: '100%',
               objectFit: 'cover',
+              objectPosition: imagePosition,
               display: 'block',
               minWidth: '100%',
               maxWidth: '100%',
