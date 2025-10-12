@@ -8,6 +8,7 @@ import { formatDate, formatTime } from '../../utils/dateUtils'
 import { toTitleCase, createCalendarEvent, hasUsefulDescription } from '../../utils/eventUtils'
 import { cleanYouTubeTitle } from '../../utils/youtubeUtils'
 import { getCachedSmartCrop, getObjectPosition } from '../../utils/imageUtils'
+import { getImageHeightClass } from '../../utils/imageDetection'
 
 // Global state for current playing video across all event cards
 let globalCurrentVideo = null
@@ -41,6 +42,7 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide }) {
   const [pausedYouTube, setPausedYouTube] = useState(false)
   const [showYouTubePanel, setShowYouTubePanel] = useState(false)
   const [imagePosition, setImagePosition] = useState('center center')
+  const [imageHeightClass, setImageHeightClass] = useState('h-[20vh]')
 
   const eventSlug = event.name
     .toLowerCase()
@@ -63,6 +65,10 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide }) {
   // Analyze image with smartcrop when component mounts
   useEffect(() => {
     if (event.imageUrl) {
+      // Check if it's a placeholder image (fast URL check)
+      const heightClass = getImageHeightClass(event.imageUrl)
+      setImageHeightClass(heightClass)
+
       const analyzeImage = async () => {
         try {
           // Get the container dimensions (approximate)
@@ -149,7 +155,7 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide }) {
     >
       {/* Event Image */}
       {event.imageUrl && (
-        <div className="bg-black h-[20vh]" style={{ width: '100%', minWidth: '100%', maxWidth: '100%' }}>
+        <div className={`bg-black ${imageHeightClass}`} style={{ width: '100%', minWidth: '100%', maxWidth: '100%' }}>
           <img
             src={event.imageUrl}
             alt={event.name}
