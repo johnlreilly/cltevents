@@ -80,15 +80,15 @@ export const getSmartCrop = async (imageUrl, width, height) => {
 
 /**
  * Calculates CSS object-position based on smart crop result
- * Binary decision: if crop starts in upper half, align to top; otherwise center
- * Smartcrop is only used to determine the decision, not the actual positioning
+ * Three-bucket system: way above center → top, somewhat above → 25%, otherwise → center
+ * Smartcrop is only used to determine the zone, not the actual positioning
  * @param {Object} cropData - Result from getSmartCrop
  * @param {number} imageWidth - Original image width
  * @param {number} imageHeight - Original image height
- * @returns {string} CSS object-position value (either "center top" or "center center")
+ * @returns {string} CSS object-position value
  * @example
  * const position = getObjectPosition(cropData, 1200, 800)
- * // Returns "center top" if crop starts in upper half, "center center" otherwise
+ * // Returns "center top", "center 25%", or "center center" based on crop position
  */
 export const getObjectPosition = (cropData, imageWidth, imageHeight) => {
   if (!cropData || !cropData.topCrop) {
@@ -98,14 +98,22 @@ export const getObjectPosition = (cropData, imageWidth, imageHeight) => {
   const crop = cropData.topCrop
   const imageCenterY = imageHeight / 2
 
-  // Binary decision: if crop rectangle STARTS in the upper half, align image to top
-  // We check where the crop starts (crop.y), not its center
-  // This shows 20vh of the image starting from the top, full width
-  if (crop.y < imageCenterY) {
+  // Three-bucket system based on where the crop starts
+  // Zone 1: Upper quarter (0 to 25%) → align to top
+  // Zone 2: Upper-middle (25% to 50%) → align to 25% from top
+  // Zone 3: Lower half (50% to 100%) → center
+
+  const upperQuarterLine = imageHeight * 0.25
+
+  if (crop.y < upperQuarterLine) {
+    // Way above center - use top alignment
     return 'center top'
+  } else if (crop.y < imageCenterY) {
+    // Somewhat above center - use 25% from top
+    return 'center 25%'
   }
 
-  // Otherwise, use center positioning
+  // At or below center - use center positioning
   return 'center center'
 }
 
@@ -123,7 +131,7 @@ const cropCache = new Map()
  */
 export const getCachedSmartCrop = async (imageUrl, width, height) => {
   // Version the cache key to force fresh analysis when algorithm changes
-  const cacheVersion = 'v3'
+  const cacheVersion = 'v4'
   const cacheKey = `${cacheVersion}-${imageUrl}-${width}-${height}`
 
   if (cropCache.has(cacheKey)) {

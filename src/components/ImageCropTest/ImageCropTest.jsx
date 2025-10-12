@@ -36,9 +36,17 @@ function ImageCropTest() {
               const centerY = cropData.topCrop.y + (cropData.topCrop.height / 2)
               const imageCenterY = img.height / 2
 
+              // Calculate smartcrop's recommended position
+              const cropCenterX = cropData.topCrop.x + (cropData.topCrop.width / 2)
+              const cropCenterY = cropData.topCrop.y + (cropData.topCrop.height / 2)
+              const xPercent = (cropCenterX / img.width) * 100
+              const yPercent = (cropCenterY / img.height) * 100
+              const smartcropPosition = `${xPercent.toFixed(1)}% ${yPercent.toFixed(1)}%`
+
               analyzed.push({
                 url: imageUrl,
                 position,
+                smartcropPosition,
                 cropData: cropData.topCrop,
                 imageWidth: img.width,
                 imageHeight: img.height,
@@ -69,7 +77,7 @@ function ImageCropTest() {
 
   return (
     <div className="p-8 bg-white min-h-screen">
-      <h1 className="text-3xl font-bold mb-6 text-black">Smart Crop Test <span className="text-sm text-gray-500">(v3.0 - Crop Start Position)</span></h1>
+      <h1 className="text-3xl font-bold mb-6 text-black">Smart Crop Test <span className="text-sm text-gray-500">(v4.0 - Three Buckets)</span></h1>
 
       {results.length === 0 && (
         <div className="text-black text-xl">Loading images... ({testImages.length} images)</div>
@@ -77,8 +85,13 @@ function ImageCropTest() {
 
       {results.length > 0 && (
         <div className="mb-4 p-4 bg-blue-100 border border-blue-300 rounded">
-          <p className="text-black font-semibold">Logic: If focus is above center → "center top" | If focus is below center → "center center"</p>
-          <p className="text-sm text-gray-700">Analyzed {results.length} images</p>
+          <p className="text-black font-semibold">Three-Bucket Logic:</p>
+          <ul className="text-sm text-gray-700 list-disc list-inside">
+            <li>Crop starts 0-25%: "center top"</li>
+            <li>Crop starts 25-50%: "center 25%"</li>
+            <li>Crop starts 50-100%: "center center"</li>
+          </ul>
+          <p className="text-sm text-gray-700 mt-2">Analyzed {results.length} images</p>
         </div>
       )}
 
@@ -89,7 +102,7 @@ function ImageCropTest() {
               Image {idx + 1}
             </h2>
 
-            <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="space-y-4 mb-4">
               {/* Original Image */}
               <div>
                 <h3 className="text-sm font-medium mb-2 text-black">Original</h3>
@@ -100,18 +113,36 @@ function ImageCropTest() {
                 />
               </div>
 
-              {/* Cropped Preview */}
+              {/* Binary Decision Preview */}
               <div>
-                <h3 className="text-sm font-medium mb-2 text-black">Cropped (h-[20vh])</h3>
+                <h3 className="text-sm font-medium mb-2 text-black">Binary: {result.position}</h3>
                 <div className="bg-black h-[20vh] border border-gray-300">
                   <img
                     src={result.url}
-                    alt={`Cropped ${idx + 1}`}
+                    alt={`Binary ${idx + 1}`}
                     style={{
                       width: '100%',
                       height: '100%',
                       objectFit: 'cover',
                       objectPosition: result.position,
+                      display: 'block',
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Smartcrop Recommended Preview */}
+              <div>
+                <h3 className="text-sm font-medium mb-2 text-black">Smartcrop: {result.smartcropPosition}</h3>
+                <div className="bg-black h-[20vh] border border-gray-300">
+                  <img
+                    src={result.url}
+                    alt={`Smartcrop ${idx + 1}`}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      objectPosition: result.smartcropPosition,
                       display: 'block',
                     }}
                   />
