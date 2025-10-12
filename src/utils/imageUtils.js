@@ -21,7 +21,6 @@ export const getSmartCrop = async (imageUrl, width, height) => {
   try {
     // Create an image element
     const img = new Image()
-    img.crossOrigin = 'anonymous'
 
     // Load the image
     await new Promise((resolve, reject) => {
@@ -81,13 +80,15 @@ export const getSmartCrop = async (imageUrl, width, height) => {
 
 /**
  * Calculates CSS object-position based on smart crop result
+ * Binary decision: if crop starts in upper half, align to top; otherwise center
+ * Smartcrop is only used to determine the decision, not the actual positioning
  * @param {Object} cropData - Result from getSmartCrop
  * @param {number} imageWidth - Original image width
  * @param {number} imageHeight - Original image height
- * @returns {string} CSS object-position value (e.g., "25% 50%")
+ * @returns {string} CSS object-position value (either "center top" or "center center")
  * @example
  * const position = getObjectPosition(cropData, 1200, 800)
- * // Returns something like "30% 40%"
+ * // Returns "center top" if crop starts in upper half, "center center" otherwise
  */
 export const getObjectPosition = (cropData, imageWidth, imageHeight) => {
   if (!cropData || !cropData.topCrop) {
@@ -95,16 +96,17 @@ export const getObjectPosition = (cropData, imageWidth, imageHeight) => {
   }
 
   const crop = cropData.topCrop
+  const imageCenterY = imageHeight / 2
 
-  // Calculate the center of the crop area
-  const centerX = crop.x + (crop.width / 2)
-  const centerY = crop.y + (crop.height / 2)
+  // Binary decision: if crop rectangle STARTS in the upper half, align image to top
+  // We check where the crop starts (crop.y), not its center
+  // This shows 20vh of the image starting from the top, full width
+  if (crop.y < imageCenterY) {
+    return 'center top'
+  }
 
-  // Convert to percentages
-  const xPercent = (centerX / imageWidth) * 100
-  const yPercent = (centerY / imageHeight) * 100
-
-  return `${xPercent.toFixed(1)}% ${yPercent.toFixed(1)}%`
+  // Otherwise, use center positioning
+  return 'center center'
 }
 
 /**
@@ -120,7 +122,9 @@ const cropCache = new Map()
  * @returns {Promise<Object>} Cached or fresh crop data
  */
 export const getCachedSmartCrop = async (imageUrl, width, height) => {
-  const cacheKey = `${imageUrl}-${width}-${height}`
+  // Version the cache key to force fresh analysis when algorithm changes
+  const cacheVersion = 'v3'
+  const cacheKey = `${cacheVersion}-${imageUrl}-${width}-${height}`
 
   if (cropCache.has(cacheKey)) {
     console.log('Using cached smart crop for:', imageUrl)
@@ -139,4 +143,5 @@ export const getCachedSmartCrop = async (imageUrl, width, height) => {
  */
 export const clearCropCache = () => {
   cropCache.clear()
+  console.log('Crop cache cleared')
 }

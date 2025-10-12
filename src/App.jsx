@@ -10,8 +10,17 @@ import Header from './components/Header/Header'
 import LoadingSpinner from './components/LoadingSpinner/LoadingSpinner'
 import EventList from './components/EventList/EventList'
 import ScrollToTop from './components/ScrollToTop/ScrollToTop'
+import ImageCropTest from './components/ImageCropTest/ImageCropTest'
 
 function App() {
+  // Check if we're in test mode
+  const urlParams = new URLSearchParams(window.location.search)
+  const isTestMode = urlParams.get('test') === 'crop'
+
+  if (isTestMode) {
+    return <ImageCropTest />
+  }
+
   const [showFilterTray, setShowFilterTray] = useState(false)
   const [currentQuote, setCurrentQuote] = useState(null)
   const [quotes, setQuotes] = useState([])

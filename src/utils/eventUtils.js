@@ -21,15 +21,17 @@ export const toTitleCase = (str) => {
 
 /**
  * Groups events by name, combining multiple dates
- * Events with same name (ignoring parentheses) are combined
+ * Events with same name (ignoring parentheses and text after hyphen) are combined
  * @param {Array} events - Array of event objects
  * @returns {Array} Grouped events with dates array
  * @example
  * groupEventsByName([
  *   { name: 'Concert (Night 1)', date: '2024-12-15' },
- *   { name: 'Concert (Night 2)', date: '2024-12-16' }
+ *   { name: 'Concert (Night 2)', date: '2024-12-16' },
+ *   { name: 'Nourished by Time - The Passionate Ones Tour', date: '2024-12-20' },
+ *   { name: 'Nourished by Time', date: '2024-12-20' }
  * ])
- * // Returns [{ name: 'Concert', dates: [{date: '2024-12-15'}, {date: '2024-12-16'}] }]
+ * // Returns [{ name: 'Concert', dates: [...]}, { name: 'Nourished by Time', dates: [...]}]
  */
 export const groupEventsByName = (events) => {
   const grouped = {}
@@ -38,21 +40,42 @@ export const groupEventsByName = (events) => {
     if (!event || !event.name || !event.date) return
 
     // Remove text in parentheses and normalize for grouping
-    const baseName = event.name.replace(/\s*\([^)]*\)/g, '').toLowerCase().trim()
-    const key = baseName
+    let baseName = event.name.replace(/\s*\([^)]*\)/g, '').trim()
+
+    // Extract text before hyphen for duplicate detection
+    // This treats "Artist - Tour Name" and "Artist" as the same event
+    const hyphenIndex = baseName.indexOf(' - ')
+    const keyName = hyphenIndex > 0 ? baseName.substring(0, hyphenIndex).trim() : baseName
+
+    // Create grouping key with date to ensure same event on same date is deduplicated
+    const key = `${keyName.toLowerCase()}|${event.date}`
 
     if (!grouped[key]) {
       grouped[key] = {
         ...event,
-        name: event.name.replace(/\s*\([^)]*\)/g, '').trim(), // Use base name without parentheses
+        name: keyName, // Use name before hyphen as the canonical name
         dates: [{ date: event.date, id: event.id, ticketUrl: event.ticketUrl }],
       }
     } else {
-      grouped[key].dates.push({ date: event.date, id: event.id, ticketUrl: event.ticketUrl })
+      // Event already exists for this date, skip adding duplicate date
+      // But keep the first occurrence's data
     }
   })
 
-  return Object.values(grouped).map((event) => ({
+  // Now group by name only (without date) to combine multiple dates
+  const finalGrouped = {}
+  Object.values(grouped).forEach((event) => {
+    const nameKey = event.name.toLowerCase()
+
+    if (!finalGrouped[nameKey]) {
+      finalGrouped[nameKey] = event
+    } else {
+      // Merge dates from duplicate events
+      finalGrouped[nameKey].dates.push(...event.dates)
+    }
+  })
+
+  return Object.values(finalGrouped).map((event) => ({
     ...event,
     dates: event.dates.sort((a, b) => new Date(a.date) - new Date(b.date)),
   }))
