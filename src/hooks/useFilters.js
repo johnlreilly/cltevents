@@ -118,10 +118,25 @@ export function useFilters(events) {
       return event.date && !isDateInPast(event.date)
     })
 
-    // Step 2: Filter out excluded keywords
+    // Step 2: Filter out excluded keywords (with source-specific filtering)
     filtered = filtered.filter((event) => {
       const searchText = `${event.name} ${event.description || ''}`.toLowerCase()
-      return !excludeKeywords.some((keyword) => searchText.includes(keyword.toLowerCase()))
+      const eventSource = event.source || ''
+
+      return !excludeKeywords.some((item) => {
+        // Handle both old string format and new object format
+        const keyword = typeof item === 'string' ? item : item.keyword
+        const source = typeof item === 'string' ? 'all' : (item.source || 'all')
+
+        // Check if keyword matches
+        const keywordMatches = searchText.includes(keyword.toLowerCase())
+        if (!keywordMatches) return false
+
+        // Check if source matches (empty string or 'all' means apply to all sources)
+        const sourceMatches = source === 'all' || source === '' || eventSource === source
+
+        return keywordMatches && sourceMatches
+      })
     })
 
     // Step 3: Filter out excluded genres
