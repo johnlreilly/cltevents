@@ -1,0 +1,20 @@
+{
+  "teams": [
+    {
+      "name": "Charlotte Hornets",
+      "position": "center center"
+    },
+    {
+      "name": "Charlotte Checkers",
+      "position": "center center"
+    },
+    {
+      "name": "Charlotte FC",
+      "position": "center center"
+    },
+    {
+      "name": "Carolina Panthers",
+      "position": "center center"
+    }
+  ]
+}

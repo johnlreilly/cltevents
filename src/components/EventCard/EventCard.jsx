@@ -43,11 +43,22 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide }) {
   const [showYouTubePanel, setShowYouTubePanel] = useState(false)
   const [imagePosition, setImagePosition] = useState('center center')
   const [imageHeightClass, setImageHeightClass] = useState('h-[20vh]')
+  const [sportsTeams, setSportsTeams] = useState([])
 
   const eventSlug = event.name
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
+
+  // Load sports teams configuration
+  useEffect(() => {
+    fetch('/data/sportsTeams.json')
+      .then((res) => res.json())
+      .then((data) => {
+        setSportsTeams(data.teams || [])
+      })
+      .catch((err) => console.error('Error loading sports teams:', err))
+  }, [])
 
   // Listen for global video changes
   useEffect(() => {
@@ -69,31 +80,42 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide }) {
       const heightClass = getImageHeightClass(event.imageUrl)
       setImageHeightClass(heightClass)
 
-      const analyzeImage = async () => {
-        try {
-          // Get the container dimensions (approximate)
-          const containerWidth = 800 // typical card width
-          const containerHeight = window.innerHeight * 0.2 // 20vh
+      // Check if this event is a sports team that should bypass smartcrop
+      const matchingSportsTeam = sportsTeams.find((team) =>
+        event.name.toLowerCase().includes(team.name.toLowerCase())
+      )
 
-          const cropData = await getCachedSmartCrop(event.imageUrl, containerWidth, containerHeight)
+      if (matchingSportsTeam) {
+        // Use the configured position (center center) instead of smartcrop
+        setImagePosition(matchingSportsTeam.position)
+      } else {
+        // Use smartcrop for non-sports events
+        const analyzeImage = async () => {
+          try {
+            // Get the container dimensions (approximate)
+            const containerWidth = 800 // typical card width
+            const containerHeight = window.innerHeight * 0.2 // 20vh
 
-          // We'll use a temporary image to get actual dimensions
-          const img = new Image()
-          img.crossOrigin = 'anonymous'
-          img.onload = () => {
-            const position = getObjectPosition(cropData, img.width, img.height)
-            setImagePosition(position)
+            const cropData = await getCachedSmartCrop(event.imageUrl, containerWidth, containerHeight)
+
+            // We'll use a temporary image to get actual dimensions
+            const img = new Image()
+            img.crossOrigin = 'anonymous'
+            img.onload = () => {
+              const position = getObjectPosition(cropData, img.width, img.height)
+              setImagePosition(position)
+            }
+            img.src = event.imageUrl
+          } catch (error) {
+            console.error('Error analyzing image:', error)
+            // Keep default center center position
           }
-          img.src = event.imageUrl
-        } catch (error) {
-          console.error('Error analyzing image:', error)
-          // Keep default center center position
         }
-      }
 
-      analyzeImage()
+        analyzeImage()
+      }
     }
-  }, [event.imageUrl])
+  }, [event.imageUrl, sportsTeams])
 
   const handleAddToCalendar = () => {
     const icsContent = createCalendarEvent(event)
