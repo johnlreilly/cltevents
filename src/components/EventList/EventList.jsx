@@ -25,6 +25,7 @@ function EventList({
   toggleHidden,
 }) {
   const [specialDates, setSpecialDates] = useState({})
+  const [sportsTeams, setSportsTeams] = useState([])
 
   // Load special dates configuration
   useEffect(() => {
@@ -39,6 +40,16 @@ function EventList({
         setSpecialDates(datesMap)
       })
       .catch((err) => console.error('Error loading special dates:', err))
+  }, [])
+
+  // Load sports teams configuration
+  useEffect(() => {
+    fetch('/data/sportsTeams.json')
+      .then((res) => res.json())
+      .then((data) => {
+        setSportsTeams(data.teams || [])
+      })
+      .catch((err) => console.error('Error loading sports teams:', err))
   }, [])
 
   if (events.length === 0) {
@@ -101,6 +112,7 @@ function EventList({
               isFavorite={favorites.includes(event.id)}
               onToggleFavorite={() => toggleFavorite(event.id)}
               onHide={() => toggleHidden(event)}
+              sportsTeams={sportsTeams}
             />
           </Fragment>
         )

@@ -33,9 +33,10 @@ const setGlobalCurrentVideo = (eventId, videoIndex) => {
  * @param {boolean} props.isFavorite - Whether event is favorited
  * @param {Function} props.onToggleFavorite - Toggle favorite callback
  * @param {Function} props.onHide - Hide event callback
+ * @param {Array} props.sportsTeams - Array of sports teams for positioning override
  * @returns {JSX.Element} The event card component
  */
-function EventCard({ event, isFavorite, onToggleFavorite, onHide }) {
+function EventCard({ event, isFavorite, onToggleFavorite, onHide, sportsTeams = [] }) {
   const [expandedDescription, setExpandedDescription] = useState(false)
   const [expandedDates, setExpandedDates] = useState(false)
   const [expandedYouTube, setExpandedYouTube] = useState(null) // null or video index
@@ -43,22 +44,11 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide }) {
   const [showYouTubePanel, setShowYouTubePanel] = useState(false)
   const [imagePosition, setImagePosition] = useState('center center')
   const [imageHeightClass, setImageHeightClass] = useState('h-[20vh]')
-  const [sportsTeams, setSportsTeams] = useState([])
 
   const eventSlug = event.name
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
-
-  // Load sports teams configuration
-  useEffect(() => {
-    fetch('/data/sportsTeams.json')
-      .then((res) => res.json())
-      .then((data) => {
-        setSportsTeams(data.teams || [])
-      })
-      .catch((err) => console.error('Error loading sports teams:', err))
-  }, [])
 
   // Listen for global video changes
   useEffect(() => {
@@ -88,7 +78,8 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide }) {
       if (matchingSportsTeam) {
         // Use the configured position (center center) instead of smartcrop
         setImagePosition(matchingSportsTeam.position)
-      } else {
+      } else if (sportsTeams.length > 0) {
+        // Only run smartcrop after sports teams have loaded to avoid re-processing
         // Use smartcrop for non-sports events
         const analyzeImage = async () => {
           try {
