@@ -1,0 +1,32 @@
+{
+  "dates": [
+    {
+      "date": "2024-10-31",
+      "name": "Halloween",
+      "backgroundColor": "#FF8C00",
+      "textColor": "#000000",
+      "icon": "jack-o-lantern"
+    },
+    {
+      "date": "2024-12-25",
+      "name": "Christmas",
+      "backgroundColor": "#C41E3A",
+      "textColor": "#FFFFFF",
+      "icon": "gift"
+    },
+    {
+      "date": "2024-12-31",
+      "name": "New Year's Eve",
+      "backgroundColor": "#FFD700",
+      "textColor": "#000000",
+      "icon": "champagne"
+    },
+    {
+      "date": "2025-02-14",
+      "name": "Valentine's Day",
+      "backgroundColor": "#FF1493",
+      "textColor": "#FFFFFF",
+      "icon": "heart"
+    }
+  ]
+}

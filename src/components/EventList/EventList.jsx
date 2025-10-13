@@ -3,8 +3,9 @@
  * Displays a list of events with date separators
  */
 
-import { Fragment } from 'react'
+import { Fragment, useState, useEffect } from 'react'
 import EventCard from '../EventCard/EventCard'
+import { getIcon } from '../../utils/specialDateIcons'
 
 /**
  * EventList Component
@@ -23,6 +24,23 @@ function EventList({
   hidden,
   toggleHidden,
 }) {
+  const [specialDates, setSpecialDates] = useState({})
+
+  // Load special dates configuration
+  useEffect(() => {
+    fetch('/data/specialDates.json')
+      .then((res) => res.json())
+      .then((data) => {
+        // Convert array to map for quick lookup
+        const datesMap = {}
+        data.dates.forEach((specialDate) => {
+          datesMap[specialDate.date] = specialDate
+        })
+        setSpecialDates(datesMap)
+      })
+      .catch((err) => console.error('Error loading special dates:', err))
+  }, [])
+
   if (events.length === 0) {
     return (
       <div className="text-center py-12">
@@ -48,26 +66,32 @@ function EventList({
         const showDateSeparator = currentDate !== previousDate
 
         const dateId = `date-${currentDate}`
+        const specialDate = specialDates[currentDate]
+
+        // Use special date styling or default styling
+        const backgroundColor = specialDate?.backgroundColor || '#1E3A5F'
+        const textColor = specialDate?.textColor || '#FFFFFF'
+        const icon = specialDate?.icon ? getIcon(specialDate.icon) : getIcon('crown')
 
         return (
           <Fragment key={event.id}>
             {showDateSeparator && currentDate && (
               <div
                 id={dateId}
-                className="md:col-span-2 bg-[#1E3A5F] rounded-3xl flex flex-col items-start text-white sticky top-[48px] z-20 overflow-hidden relative h-20"
+                className="md:col-span-2 rounded-3xl flex flex-col items-start sticky top-[48px] z-20 overflow-hidden relative h-20"
+                style={{ backgroundColor, color: textColor }}
               >
                 {/* Date separator content */}
                 <div className="w-full h-full flex flex-col justify-end items-start px-4 pb-3 relative">
-                  {/* Crown icon watermark */}
-                  <svg
-                    className="absolute right-4 bottom-3 w-9 h-9 opacity-20"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5m14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z" />
-                  </svg>
+                  {/* Icon watermark */}
+                  <div className="absolute right-4 bottom-3 opacity-20">
+                    {icon}
+                  </div>
                   <div className="text-xl font-semibold">
                     {formatDateSeparator(currentDate).monthDay}, {formatDateSeparator(currentDate).dayOfWeek}
+                    {specialDate && (
+                      <span className="ml-2 text-sm opacity-80">• {specialDate.name}</span>
+                    )}
                   </div>
                 </div>
               </div>
