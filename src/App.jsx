@@ -94,16 +94,6 @@ function App() {
   }, [quotes, hasScrolledPastTop, quoteDisplayTime])
 
   const toggleFilterTray = () => {
-    if (!showFilterTray) {
-      // Opening filter tray - scroll to ensure sticky header is active
-      const firstDateSeparator = document.querySelector('[id^="date-"]')
-      if (firstDateSeparator) {
-        // Scroll to make the first date separator sticky (just past the header)
-        const headerHeight = 64
-        const targetPosition = firstDateSeparator.offsetTop - headerHeight - 1
-        window.scrollTo({ top: Math.max(0, targetPosition), behavior: 'smooth' })
-      }
-    }
     setShowFilterTray(!showFilterTray)
   }
 
@@ -115,6 +105,16 @@ function App() {
         onToggleFilters={toggleFilterTray}
         showFilterTray={showFilterTray}
         hasActiveFilters={hasActiveFilters}
+        selectedCategory={selectedCategory}
+        onCategoryChange={setSelectedCategory}
+        selectedGenres={selectedGenres}
+        onGenreToggle={toggleGenre}
+        availableGenres={availableGenres}
+        selectedSources={selectedSources}
+        onSourceToggle={toggleSource}
+        sortBy={sortBy}
+        onSortChange={setSortBy}
+        onClearFilters={clearFilters}
       />
 
       {/* Main Content */}
@@ -149,18 +149,6 @@ function App() {
               toggleFavorite={toggleFavorite}
               hidden={hidden}
               toggleHidden={toggleHidden}
-              showFilterTray={showFilterTray}
-              selectedCategory={selectedCategory}
-              onCategoryChange={setSelectedCategory}
-              selectedGenres={selectedGenres}
-              onGenreToggle={toggleGenre}
-              availableGenres={availableGenres}
-              selectedSources={selectedSources}
-              onSourceToggle={toggleSource}
-              sortBy={sortBy}
-              onSortChange={setSortBy}
-              hasActiveFilters={hasActiveFilters}
-              onClearFilters={clearFilters}
             />
           </>
         )}

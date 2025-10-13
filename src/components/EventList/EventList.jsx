@@ -5,7 +5,6 @@
 
 import { Fragment } from 'react'
 import EventCard from '../EventCard/EventCard'
-import FilterTray from '../FilterTray/FilterTray'
 
 /**
  * EventList Component
@@ -15,18 +14,6 @@ import FilterTray from '../FilterTray/FilterTray'
  * @param {Function} props.toggleFavorite - Function to toggle favorite status
  * @param {Array} props.hidden - Array of hidden event IDs
  * @param {Function} props.toggleHidden - Function to toggle hidden status
- * @param {boolean} props.showFilterTray - Whether filter tray is visible
- * @param {string} props.selectedCategory - Currently selected category
- * @param {Function} props.onCategoryChange - Category change handler
- * @param {Array} props.selectedGenres - Array of selected genre strings
- * @param {Function} props.onGenreToggle - Genre toggle handler
- * @param {Array} props.availableGenres - Array of available genres
- * @param {Array} props.selectedSources - Array of selected source strings
- * @param {Function} props.onSourceToggle - Source toggle handler
- * @param {string} props.sortBy - Current sort method
- * @param {Function} props.onSortChange - Sort change handler
- * @param {boolean} props.hasActiveFilters - Whether any filters are active
- * @param {Function} props.onClearFilters - Clear all filters handler
  * @returns {JSX.Element} The event list component
  */
 function EventList({
@@ -35,18 +22,6 @@ function EventList({
   toggleFavorite,
   hidden,
   toggleHidden,
-  showFilterTray,
-  selectedCategory,
-  onCategoryChange,
-  selectedGenres,
-  onGenreToggle,
-  availableGenres,
-  selectedSources,
-  onSourceToggle,
-  sortBy,
-  onSortChange,
-  hasActiveFilters,
-  onClearFilters,
 }) {
   if (events.length === 0) {
     return (
@@ -79,11 +54,10 @@ function EventList({
             {showDateSeparator && currentDate && (
               <div
                 id={dateId}
-                className="md:col-span-2 bg-[#1E3A5F] rounded-3xl flex flex-col items-start text-white sticky top-[48px] z-20 overflow-hidden relative"
-                style={{ minHeight: showFilterTray && index === 0 ? 'auto' : '5rem' }}
+                className="md:col-span-2 bg-[#1E3A5F] rounded-3xl flex flex-col items-start text-white sticky top-[64px] z-20 overflow-hidden relative h-20"
               >
                 {/* Date separator content */}
-                <div className="w-full h-20 flex flex-col justify-end items-start px-4 pb-3 relative">
+                <div className="w-full h-full flex flex-col justify-end items-start px-4 pb-3 relative">
                   {/* Crown icon watermark */}
                   <svg
                     className="absolute right-4 bottom-3 w-9 h-9 opacity-20"
@@ -96,25 +70,6 @@ function EventList({
                     {formatDateSeparator(currentDate).monthDay}, {formatDateSeparator(currentDate).dayOfWeek}
                   </div>
                 </div>
-
-                {/* Filter tray in first sticky header only */}
-                {showFilterTray && index === 0 && (
-                  <div className="w-full px-4 pb-4">
-                    <FilterTray
-                      selectedCategory={selectedCategory}
-                      onCategoryChange={onCategoryChange}
-                      selectedGenres={selectedGenres}
-                      onGenreToggle={onGenreToggle}
-                      availableGenres={availableGenres}
-                      selectedSources={selectedSources}
-                      onSourceToggle={onSourceToggle}
-                      sortBy={sortBy}
-                      onSortChange={onSortChange}
-                      hasActiveFilters={hasActiveFilters}
-                      onClearFilters={onClearFilters}
-                    />
-                  </div>
-                )}
               </div>
             )}
             <EventCard
