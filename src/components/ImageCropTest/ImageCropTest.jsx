@@ -77,7 +77,7 @@ function ImageCropTest() {
 
   return (
     <div className="p-8 bg-white min-h-screen">
-      <h1 className="text-3xl font-bold mb-6 text-black">Smart Crop Test <span className="text-sm text-gray-500">(v4.0 - Three Buckets)</span></h1>
+      <h1 className="text-3xl font-bold mb-6 text-black">Smart Crop Test <span className="text-sm text-gray-500">(v5.0 - Smartcrop Positioning)</span></h1>
 
       {results.length === 0 && (
         <div className="text-black text-xl">Loading images... ({testImages.length} images)</div>
@@ -85,12 +85,8 @@ function ImageCropTest() {
 
       {results.length > 0 && (
         <div className="mb-4 p-4 bg-blue-100 border border-blue-300 rounded">
-          <p className="text-black font-semibold">Three-Bucket Logic:</p>
-          <ul className="text-sm text-gray-700 list-disc list-inside">
-            <li>Crop starts 0-25%: "center top"</li>
-            <li>Crop starts 25-50%: "center 25%"</li>
-            <li>Crop starts 50-100%: "center center"</li>
-          </ul>
+          <p className="text-black font-semibold">Using Smartcrop's Recommendation:</p>
+          <p className="text-sm text-gray-700">Images are positioned based on smartcrop's analysis of faces, edges, and saturation.</p>
           <p className="text-sm text-gray-700 mt-2">Analyzed {results.length} images</p>
         </div>
       )}

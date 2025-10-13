@@ -80,15 +80,14 @@ export const getSmartCrop = async (imageUrl, width, height) => {
 
 /**
  * Calculates CSS object-position based on smart crop result
- * Three-bucket system: way above center → top, somewhat above → 25%, otherwise → center
- * Smartcrop is only used to determine the zone, not the actual positioning
+ * Uses smartcrop's actual recommendation for precise positioning
  * @param {Object} cropData - Result from getSmartCrop
  * @param {number} imageWidth - Original image width
  * @param {number} imageHeight - Original image height
- * @returns {string} CSS object-position value
+ * @returns {string} CSS object-position value (percentage-based)
  * @example
  * const position = getObjectPosition(cropData, 1200, 800)
- * // Returns "center top", "center 25%", or "center center" based on crop position
+ * // Returns something like "50.0% 30.5%" based on smartcrop analysis
  */
 export const getObjectPosition = (cropData, imageWidth, imageHeight) => {
   if (!cropData || !cropData.topCrop) {
@@ -96,25 +95,16 @@ export const getObjectPosition = (cropData, imageWidth, imageHeight) => {
   }
 
   const crop = cropData.topCrop
-  const imageCenterY = imageHeight / 2
 
-  // Three-bucket system based on where the crop starts
-  // Zone 1: Upper quarter (0 to 25%) → align to top
-  // Zone 2: Upper-middle (25% to 50%) → align to 25% from top
-  // Zone 3: Lower half (50% to 100%) → center
+  // Calculate the center of the crop area
+  const cropCenterX = crop.x + (crop.width / 2)
+  const cropCenterY = crop.y + (crop.height / 2)
 
-  const upperQuarterLine = imageHeight * 0.25
+  // Convert to percentages
+  const xPercent = (cropCenterX / imageWidth) * 100
+  const yPercent = (cropCenterY / imageHeight) * 100
 
-  if (crop.y < upperQuarterLine) {
-    // Way above center - use top alignment
-    return 'center top'
-  } else if (crop.y < imageCenterY) {
-    // Somewhat above center - use 25% from top
-    return 'center 25%'
-  }
-
-  // At or below center - use center positioning
-  return 'center center'
+  return `${xPercent.toFixed(1)}% ${yPercent.toFixed(1)}%`
 }
 
 /**
@@ -131,7 +121,7 @@ const cropCache = new Map()
  */
 export const getCachedSmartCrop = async (imageUrl, width, height) => {
   // Version the cache key to force fresh analysis when algorithm changes
-  const cacheVersion = 'v4'
+  const cacheVersion = 'v5'
   const cacheKey = `${cacheVersion}-${imageUrl}-${width}-${height}`
 
   if (cropCache.has(cacheKey)) {
