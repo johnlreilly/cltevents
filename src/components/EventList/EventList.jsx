@@ -54,7 +54,7 @@ function EventList({
             {showDateSeparator && currentDate && (
               <div
                 id={dateId}
-                className="md:col-span-2 bg-[#1E3A5F] rounded-3xl flex flex-col items-start text-white sticky top-[64px] z-20 overflow-hidden relative h-20"
+                className="md:col-span-2 bg-[#1E3A5F] rounded-3xl flex flex-col items-start text-white sticky top-[48px] z-20 overflow-hidden relative h-20"
               >
                 {/* Date separator content */}
                 <div className="w-full h-full flex flex-col justify-end items-start px-4 pb-3 relative">
