@@ -1,9 +1,10 @@
 /**
  * ScrollToTop component
- * Floating button that appears when scrolling down and scrolls to top when clicked
+ * Draggable floating button that appears when scrolling down and scrolls to top when clicked
+ * Position is persisted to localStorage
  */
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 /**
  * ScrollToTop Component
@@ -11,6 +12,14 @@ import { useState, useEffect } from 'react'
  */
 function ScrollToTop() {
   const [isVisible, setIsVisible] = useState(false)
+  const [position, setPosition] = useState(() => {
+    // Load saved position from localStorage
+    const saved = localStorage.getItem('scrollToTop-position')
+    return saved ? JSON.parse(saved) : { right: 32, bottom: 32 }
+  })
+  const [isDragging, setIsDragging] = useState(false)
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
+  const buttonRef = useRef(null)
 
   useEffect(() => {
     const toggleVisibility = () => {
@@ -29,11 +38,59 @@ function ScrollToTop() {
     }
   }, [])
 
-  const scrollToTop = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth',
-    })
+  // Save position to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem('scrollToTop-position', JSON.stringify(position))
+  }, [position])
+
+  const handleMouseDown = (e) => {
+    if (buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect()
+      setDragOffset({
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top,
+      })
+      setIsDragging(true)
+    }
+  }
+
+  const handleMouseMove = (e) => {
+    if (isDragging) {
+      const newRight = window.innerWidth - e.clientX - dragOffset.x
+      const newBottom = window.innerHeight - e.clientY - dragOffset.y
+
+      // Keep button within viewport bounds
+      const clampedRight = Math.max(0, Math.min(newRight, window.innerWidth - 64))
+      const clampedBottom = Math.max(0, Math.min(newBottom, window.innerHeight - 64))
+
+      setPosition({ right: clampedRight, bottom: clampedBottom })
+    }
+  }
+
+  const handleMouseUp = () => {
+    setIsDragging(false)
+  }
+
+  useEffect(() => {
+    if (isDragging) {
+      window.addEventListener('mousemove', handleMouseMove)
+      window.addEventListener('mouseup', handleMouseUp)
+
+      return () => {
+        window.removeEventListener('mousemove', handleMouseMove)
+        window.removeEventListener('mouseup', handleMouseUp)
+      }
+    }
+  }, [isDragging, dragOffset])
+
+  const scrollToTop = (e) => {
+    // Only scroll if not dragging (to prevent accidental scrolls while dragging)
+    if (!isDragging) {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth',
+      })
+    }
   }
 
   if (!isVisible) {
@@ -42,9 +99,16 @@ function ScrollToTop() {
 
   return (
     <button
+      ref={buttonRef}
       onClick={scrollToTop}
-      className="fixed bottom-8 right-8 p-4 bg-primarycontainer text-onprimarycontainer rounded-full shadow-lg hover:shadow-xl transition-all z-50"
-      title="Scroll to top"
+      onMouseDown={handleMouseDown}
+      className="fixed p-4 bg-primarycontainer text-onprimarycontainer rounded-full shadow-lg hover:shadow-xl transition-shadow z-50 opacity-70 hover:opacity-100"
+      style={{
+        right: `${position.right}px`,
+        bottom: `${position.bottom}px`,
+        cursor: isDragging ? 'grabbing' : 'grab',
+      }}
+      title="Scroll to top (draggable)"
       aria-label="Scroll to top"
     >
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
