@@ -374,6 +374,15 @@ export function useEvents() {
 
       setEvents(allEvents)
 
+      // Log event counts by source
+      const eventCountsBySource = {}
+      allEvents.forEach((event) => {
+        const source = event.source || 'unknown'
+        eventCountsBySource[source] = (eventCountsBySource[source] || 0) + 1
+      })
+      console.log('📊 Events by source:', eventCountsBySource)
+      console.log(`📊 Total events: ${allEvents.length}`)
+
       // Extract unique genres for filtering (excluding certain genres)
       const genres = extractGenres(allEvents).filter(
         (genre) => !EXCLUDE_GENRES.some((excluded) => genre.toLowerCase().includes(excluded.toLowerCase()))

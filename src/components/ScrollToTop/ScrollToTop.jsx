@@ -102,7 +102,7 @@ function ScrollToTop() {
       ref={buttonRef}
       onClick={scrollToTop}
       onMouseDown={handleMouseDown}
-      className="fixed p-4 bg-primarycontainer text-onprimarycontainer rounded-full shadow-lg hover:shadow-xl transition-shadow z-50 opacity-70 hover:opacity-100"
+      className="fixed p-4 bg-primarycontainer text-onprimarycontainer rounded-full shadow-lg hover:shadow-xl transition-shadow z-50 opacity-50 hover:opacity-100"
       style={{
         right: `${position.right}px`,
         bottom: `${position.bottom}px`,
