@@ -399,7 +399,7 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide }) {
         )}
 
         {/* Divider */}
-        <div className="mt-3 mb-3 border-t border-outlinevariant"></div>
+        <div className="mt-4 mb-3 border-t border-outlinevariant"></div>
 
         {/* Action Buttons */}
         <div className="flex items-center justify-between gap-0">

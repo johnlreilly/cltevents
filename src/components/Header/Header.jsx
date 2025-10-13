@@ -97,6 +97,7 @@ function Header({
             onSortChange={onSortChange}
             hasActiveFilters={hasActiveFilters}
             onClearFilters={onClearFilters}
+            onClose={onToggleFilters}
           />
         </div>
       )}

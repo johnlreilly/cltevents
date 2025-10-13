@@ -19,6 +19,7 @@ import { useState } from 'react'
  * @param {Function} props.onSortChange - Sort change handler
  * @param {boolean} props.hasActiveFilters - Whether any filters are active
  * @param {Function} props.onClearFilters - Clear all filters handler
+ * @param {Function} props.onClose - Close filter tray handler
  * @returns {JSX.Element} The filter tray component
  */
 function FilterTray({
@@ -33,6 +34,7 @@ function FilterTray({
   onSortChange,
   hasActiveFilters,
   onClearFilters,
+  onClose,
 }) {
   const [showCategoryMenu, setShowCategoryMenu] = useState(false)
   const [showGenreMenu, setShowGenreMenu] = useState(false)
@@ -281,6 +283,14 @@ function FilterTray({
             <span>Clear All Filters</span>
           </button>
         )}
+
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          className="flex items-center justify-center gap-2 px-6 py-3 bg-surfacevariant text-onsurface hover:bg-surface rounded-full transition-all w-full font-medium"
+        >
+          <span>Close</span>
+        </button>
       </div>
     </div>
   )
