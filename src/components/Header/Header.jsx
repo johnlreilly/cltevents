@@ -43,7 +43,7 @@ function Header({
   onClearFilters
 }) {
   return (
-    <div className="bg-surface shadow-sm sticky top-0 z-30 border-b border-outlinevariant">
+    <div className={`bg-surface shadow-sm sticky top-0 z-30 border-b border-outlinevariant ${showFilterTray ? 'rounded-b-3xl' : ''}`}>
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
         <h1 className="text-xl font-semibold text-onsurface">CLT.show</h1>
         <div className="flex items-center gap-2">
@@ -84,7 +84,7 @@ function Header({
 
       {/* Filter tray */}
       {showFilterTray && (
-        <div className="max-w-6xl mx-auto px-4 pb-4 rounded-b-3xl">
+        <div className="max-w-6xl mx-auto px-4 pb-4">
           <FilterTray
             selectedCategory={selectedCategory}
             onCategoryChange={onCategoryChange}
