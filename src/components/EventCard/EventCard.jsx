@@ -3,7 +3,7 @@
  * Displays an individual event with full feature set
  */
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { formatDate, formatTime } from '../../utils/dateUtils'
 import { toTitleCase, createCalendarEvent, hasUsefulDescription } from '../../utils/eventUtils'
 import { cleanYouTubeTitle } from '../../utils/youtubeUtils'
@@ -44,6 +44,7 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide, sportsTeams = 
   const [showYouTubePanel, setShowYouTubePanel] = useState(false)
   const [imagePosition, setImagePosition] = useState('center center')
   const [imageHeightClass, setImageHeightClass] = useState('h-[20vh]')
+  const imageProcessedRef = useRef(false)
 
   const eventSlug = event.name
     .toLowerCase()
@@ -65,7 +66,7 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide, sportsTeams = 
 
   // Analyze image with smartcrop when component mounts
   useEffect(() => {
-    if (event.imageUrl) {
+    if (event.imageUrl && !imageProcessedRef.current) {
       // Check if it's a placeholder image (fast URL check)
       const heightClass = getImageHeightClass(event.imageUrl)
       setImageHeightClass(heightClass)
@@ -78,8 +79,8 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide, sportsTeams = 
       if (matchingSportsTeam) {
         // Use the configured position (center center) instead of smartcrop
         setImagePosition(matchingSportsTeam.position)
-      } else if (sportsTeams.length > 0) {
-        // Only run smartcrop after sports teams have loaded to avoid re-processing
+        imageProcessedRef.current = true
+      } else {
         // Use smartcrop for non-sports events
         const analyzeImage = async () => {
           try {
@@ -95,11 +96,13 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide, sportsTeams = 
             img.onload = () => {
               const position = getObjectPosition(cropData, img.width, img.height)
               setImagePosition(position)
+              imageProcessedRef.current = true
             }
             img.src = event.imageUrl
           } catch (error) {
             console.error('Error analyzing image:', error)
             // Keep default center center position
+            imageProcessedRef.current = true
           }
         }
 
