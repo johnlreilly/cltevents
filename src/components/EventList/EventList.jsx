@@ -71,8 +71,22 @@ function EventList({
   // Get all dates that have events
   const eventDates = new Set(events.map(event => event.dates[0]?.date).filter(Boolean))
 
-  // Find special dates that don't have events and should be shown
-  const specialDatesWithoutEvents = Object.keys(specialDates).filter(date => !eventDates.has(date))
+  // Get today's date at midnight for comparison
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const thirtyDaysFromNow = new Date(today)
+  thirtyDaysFromNow.setDate(today.getDate() + 30)
+
+  // Find special dates that don't have events, are within 30 days, and should be shown
+  const specialDatesWithoutEvents = Object.keys(specialDates).filter(date => {
+    if (eventDates.has(date)) return false
+
+    const specialDate = new Date(date)
+    specialDate.setHours(0, 0, 0, 0)
+
+    // Only show special dates within 30 days from today
+    return specialDate >= today && specialDate <= thirtyDaysFromNow
+  })
 
   // Create an array of items to render (events + special dates without events)
   const renderItems = []
