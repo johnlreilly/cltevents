@@ -84,7 +84,7 @@ function Header({
 
       {/* Filter tray */}
       {showFilterTray && (
-        <div className="max-w-6xl mx-auto px-4 pb-4">
+        <div className="max-w-6xl mx-auto px-4 pb-4 rounded-b-3xl">
           <FilterTray
             selectedCategory={selectedCategory}
             onCategoryChange={onCategoryChange}

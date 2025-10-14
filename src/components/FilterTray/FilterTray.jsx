@@ -85,7 +85,11 @@ function FilterTray({
             onClick={() => setShowCategoryMenu(!showCategoryMenu)}
             className="flex items-center gap-2 px-6 py-3 bg-primarycontainer text-onprimarycontainer rounded-full hover:shadow-md transition-all w-full font-medium"
           >
-            <span>{categories.find((cat) => cat.id === selectedCategory)?.name || 'All Events'}</span>
+            <span>
+              {selectedCategory === 'all'
+                ? 'All Events'
+                : `Only showing ${categories.find((cat) => cat.id === selectedCategory)?.name || 'All Events'}`}
+            </span>
             <svg className="w-5 h-5 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
@@ -132,7 +136,7 @@ function FilterTray({
             <span>
               {selectedGenres.length === 0
                 ? 'All Genres'
-                : `${selectedGenres.length} Genre${selectedGenres.length > 1 ? 's' : ''}`}
+                : `Only showing ${selectedGenres.length} Genre${selectedGenres.length > 1 ? 's' : ''}`}
             </span>
             <svg className="w-5 h-5 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -185,7 +189,7 @@ function FilterTray({
             <span>
               {selectedSources.length === 0
                 ? 'All Sources'
-                : `${selectedSources.length} Source${selectedSources.length > 1 ? 's' : ''}`}
+                : `Only showing ${selectedSources.length} Source${selectedSources.length > 1 ? 's' : ''}`}
             </span>
             <svg className="w-5 h-5 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
