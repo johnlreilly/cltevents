@@ -7,7 +7,6 @@ import { useState, useEffect, useRef } from 'react'
 import { formatDate, formatTime } from '../../utils/dateUtils'
 import { toTitleCase, createCalendarEvent, hasUsefulDescription } from '../../utils/eventUtils'
 import { cleanYouTubeTitle } from '../../utils/youtubeUtils'
-import { getCachedSmartCrop, getObjectPosition } from '../../utils/imageUtils'
 import { getImageHeightClass } from '../../utils/imageDetection'
 
 // Global state for current playing video across all event cards
@@ -64,50 +63,26 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide, sportsTeams = 
     return unregister
   }, [event.id])
 
-  // Analyze image with smartcrop when component mounts
+  // Set image height class when component mounts
   useEffect(() => {
     if (event.imageUrl && !imageProcessedRef.current) {
       // Check if it's a placeholder image (fast URL check)
       const heightClass = getImageHeightClass(event.imageUrl)
       setImageHeightClass(heightClass)
 
-      // Check if this event is a sports team that should bypass smartcrop
+      // Check if this event is a sports team with custom positioning
       const matchingSportsTeam = sportsTeams.find((team) =>
         event.name.toLowerCase().includes(team.name.toLowerCase())
       )
 
       if (matchingSportsTeam) {
-        // Use the configured position (center center) instead of smartcrop
+        // Use the configured position for sports teams
         setImagePosition(matchingSportsTeam.position)
-        imageProcessedRef.current = true
-      } else {
-        // Use smartcrop for non-sports events
-        const analyzeImage = async () => {
-          try {
-            // Get the container dimensions (approximate)
-            const containerWidth = 800 // typical card width
-            const containerHeight = window.innerHeight * 0.2 // 20vh
-
-            const cropData = await getCachedSmartCrop(event.imageUrl, containerWidth, containerHeight)
-
-            // We'll use a temporary image to get actual dimensions
-            const img = new Image()
-            img.crossOrigin = 'anonymous'
-            img.onload = () => {
-              const position = getObjectPosition(cropData, img.width, img.height)
-              setImagePosition(position)
-              imageProcessedRef.current = true
-            }
-            img.src = event.imageUrl
-          } catch (error) {
-            console.error('Error analyzing image:', error)
-            // Keep default center center position
-            imageProcessedRef.current = true
-          }
-        }
-
-        analyzeImage()
       }
+      // For all other events, use the default center-center positioning
+      // (smartcrop disabled due to CORS issues with cross-origin images)
+
+      imageProcessedRef.current = true
     }
   }, [event.imageUrl, sportsTeams])
 
