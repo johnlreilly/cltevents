@@ -3,7 +3,7 @@
  * Displays an individual event with full feature set
  */
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { formatDate, formatTime } from '../../utils/dateUtils'
 import { toTitleCase, createCalendarEvent, hasUsefulDescription } from '../../utils/eventUtils'
 import { cleanYouTubeTitle } from '../../utils/youtubeUtils'
@@ -43,7 +43,6 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide, sportsTeams = 
   const [showYouTubePanel, setShowYouTubePanel] = useState(false)
   const [imagePosition, setImagePosition] = useState('center center')
   const [imageHeightClass, setImageHeightClass] = useState('h-[20vh]')
-  const imageProcessedRef = useRef(false)
 
   const eventSlug = event.name
     .toLowerCase()
@@ -63,9 +62,9 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide, sportsTeams = 
     return unregister
   }, [event.id])
 
-  // Set image height class when component mounts
+  // Set image height class and positioning when component mounts
   useEffect(() => {
-    if (event.imageUrl && !imageProcessedRef.current) {
+    if (event.imageUrl) {
       // Check if it's a placeholder image (fast URL check)
       const heightClass = getImageHeightClass(event.imageUrl)
       setImageHeightClass(heightClass)
@@ -81,8 +80,6 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide, sportsTeams = 
       }
       // For all other events, use the default center-center positioning
       // (smartcrop disabled due to CORS issues with cross-origin images)
-
-      imageProcessedRef.current = true
     }
   }, [event.imageUrl, sportsTeams])
 
