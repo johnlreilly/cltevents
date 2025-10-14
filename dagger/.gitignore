@@ -1,0 +1,14 @@
+# Dagger
+node_modules/
+dist/
+*.log
+.env
+
+# Build output
+/sdk/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
