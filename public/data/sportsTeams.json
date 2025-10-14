@@ -2,19 +2,23 @@
   "teams": [
     {
       "name": "Charlotte Hornets",
-      "position": "center center"
+      "position": "center center",
+      "imageHeight": "h-[30vh]"
     },
     {
       "name": "Charlotte Checkers",
-      "position": "center center"
+      "position": "center center",
+      "imageHeight": "h-[30vh]"
     },
     {
       "name": "Charlotte FC",
-      "position": "center center"
+      "position": "center center",
+      "imageHeight": "h-[30vh]"
     },
     {
       "name": "Carolina Panthers",
-      "position": "center center"
+      "position": "center center",
+      "imageHeight": "h-[30vh]"
     }
   ]
 }

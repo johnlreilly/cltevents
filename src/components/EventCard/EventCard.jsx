@@ -66,19 +66,21 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide, sportsTeams = 
   // Analyze image with smartcrop when component mounts
   useEffect(() => {
     if (event.imageUrl) {
-      // Check if it's a placeholder image (fast URL check)
-      const heightClass = getImageHeightClass(event.imageUrl)
-      setImageHeightClass(heightClass)
-
       // Check if this event is a sports team with custom positioning
       const matchingSportsTeam = sportsTeams.find((team) =>
         event.name.toLowerCase().includes(team.name.toLowerCase())
       )
 
       if (matchingSportsTeam) {
-        // Use the configured position for sports teams
+        // Use the configured position and height for sports teams
         setImagePosition(matchingSportsTeam.position)
+        if (matchingSportsTeam.imageHeight) {
+          setImageHeightClass(matchingSportsTeam.imageHeight)
+        }
       } else {
+        // Check if it's a placeholder image (fast URL check)
+        const heightClass = getImageHeightClass(event.imageUrl)
+        setImageHeightClass(heightClass)
         // Use smartcrop for non-sports events
         const analyzeImage = async () => {
           try {
