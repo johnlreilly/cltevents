@@ -68,54 +68,127 @@ function EventList({
     return { year, monthDay, dayOfWeek }
   }
 
+  // Get all dates that have events
+  const eventDates = new Set(events.map(event => event.dates[0]?.date).filter(Boolean))
+
+  // Find special dates that don't have events and should be shown
+  const specialDatesWithoutEvents = Object.keys(specialDates).filter(date => !eventDates.has(date))
+
+  // Create an array of items to render (events + special dates without events)
+  const renderItems = []
+  let previousDate = null
+
+  events.forEach((event, index) => {
+    const currentDate = event.dates[0]?.date
+
+    // Check if we need to insert any special dates before this event
+    if (currentDate) {
+      specialDatesWithoutEvents.forEach(specialDateStr => {
+        // Only add if it's between previousDate and currentDate
+        if ((!previousDate || specialDateStr > previousDate) && specialDateStr < currentDate) {
+          renderItems.push({
+            type: 'special-date-only',
+            date: specialDateStr,
+            specialDate: specialDates[specialDateStr]
+          })
+        }
+      })
+    }
+
+    // Add the event with its date separator
+    const showDateSeparator = currentDate !== previousDate
+    renderItems.push({
+      type: 'event',
+      event,
+      date: currentDate,
+      showDateSeparator,
+      specialDate: currentDate ? specialDates[currentDate] : null
+    })
+
+    previousDate = currentDate
+  })
+
+  // Add any special dates after the last event
+  specialDatesWithoutEvents.forEach(specialDateStr => {
+    if (!previousDate || specialDateStr > previousDate) {
+      renderItems.push({
+        type: 'special-date-only',
+        date: specialDateStr,
+        specialDate: specialDates[specialDateStr]
+      })
+    }
+  })
+
   return (
     <div className="grid md:grid-cols-2 gap-6">
-      {events.map((event, index) => {
-        // Check if date changed from previous event
-        const currentDate = event.dates[0]?.date
-        const previousDate = index > 0 ? events[index - 1].dates[0]?.date : null
-        const showDateSeparator = currentDate !== previousDate
+      {renderItems.map((item, index) => {
+        if (item.type === 'special-date-only') {
+          // Render just the special date card
+          const dateId = `date-${item.date}`
+          const backgroundColor = item.specialDate?.backgroundColor || '#1E3A5F'
+          const textColor = item.specialDate?.textColor || '#FFFFFF'
+          const icon = item.specialDate?.icon ? getIcon(item.specialDate.icon) : getIcon('crown')
 
-        const dateId = `date-${currentDate}`
-        const specialDate = specialDates[currentDate]
-
-        // Use special date styling or default styling
-        const backgroundColor = specialDate?.backgroundColor || '#1E3A5F'
-        const textColor = specialDate?.textColor || '#FFFFFF'
-        const icon = specialDate?.icon ? getIcon(specialDate.icon) : getIcon('crown')
-
-        return (
-          <Fragment key={event.id}>
-            {showDateSeparator && currentDate && (
-              <div
-                id={dateId}
-                className="md:col-span-2 rounded-3xl flex flex-col items-start sticky top-[48px] z-20 overflow-hidden relative h-20"
-                style={{ backgroundColor, color: textColor }}
-              >
-                {/* Date separator content */}
-                <div className="w-full h-full flex flex-col justify-end items-start px-4 pb-3 relative">
-                  {/* Icon watermark */}
-                  <div className="absolute right-4 bottom-3 opacity-20">
-                    {icon}
-                  </div>
-                  <div className="text-xl font-semibold">
-                    {formatDateSeparator(currentDate).monthDay}, {formatDateSeparator(currentDate).dayOfWeek}
-                    {specialDate && (
-                      <span className="ml-2 text-sm opacity-80">• {specialDate.name}</span>
-                    )}
-                  </div>
+          return (
+            <div
+              key={dateId}
+              id={dateId}
+              className="md:col-span-2 rounded-3xl flex flex-col items-start sticky top-[48px] z-20 overflow-hidden relative h-20"
+              style={{ backgroundColor, color: textColor }}
+            >
+              <div className="w-full h-full flex flex-col justify-end items-start px-4 pb-3 relative">
+                <div className="absolute right-4 bottom-3 opacity-20">
+                  {icon}
+                </div>
+                <div className="text-xl font-semibold">
+                  {formatDateSeparator(item.date).monthDay}, {formatDateSeparator(item.date).dayOfWeek}
+                  {item.specialDate && (
+                    <span className="ml-2 text-sm opacity-80">• {item.specialDate.name}</span>
+                  )}
                 </div>
               </div>
-            )}
-            <EventCard
-              event={event}
-              isFavorite={favorites.includes(event.id)}
-              onToggleFavorite={() => toggleFavorite(event.id)}
-              onHide={() => toggleHidden(event)}
-              sportsTeams={sportsTeams}
-            />
-          </Fragment>
-        )
+            </div>
+          )
+        } else {
+          // Render event with its date separator
+          const event = item.event
+          const currentDate = item.date
+          const dateId = `date-${currentDate}`
+          const backgroundColor = item.specialDate?.backgroundColor || '#1E3A5F'
+          const textColor = item.specialDate?.textColor || '#FFFFFF'
+          const icon = item.specialDate?.icon ? getIcon(item.specialDate.icon) : getIcon('crown')
+
+          return (
+            <Fragment key={event.id}>
+              {item.showDateSeparator && currentDate && (
+                <div
+                  id={dateId}
+                  className="md:col-span-2 rounded-3xl flex flex-col items-start sticky top-[48px] z-20 overflow-hidden relative h-20"
+                  style={{ backgroundColor, color: textColor }}
+                >
+                  <div className="w-full h-full flex flex-col justify-end items-start px-4 pb-3 relative">
+                    <div className="absolute right-4 bottom-3 opacity-20">
+                      {icon}
+                    </div>
+                    <div className="text-xl font-semibold">
+                      {formatDateSeparator(currentDate).monthDay}, {formatDateSeparator(currentDate).dayOfWeek}
+                      {item.specialDate && (
+                        <span className="ml-2 text-sm opacity-80">• {item.specialDate.name}</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+              <EventCard
+                event={event}
+                isFavorite={favorites.includes(event.id)}
+                onToggleFavorite={() => toggleFavorite(event.id)}
+                onHide={() => toggleHidden(event)}
+                sportsTeams={sportsTeams}
+              />
+            </Fragment>
+          )
+        }
       })}
     </div>
   )
