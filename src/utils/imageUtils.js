@@ -59,7 +59,8 @@ export const getSmartCrop = async (imageUrl, width, height) => {
 
     return result
   } catch (error) {
-    console.error('Error in smart crop:', error)
+    // Silently fail for CORS errors and other issues
+    // Images will fall back to center-center positioning
     // Return a centered crop as fallback
     return {
       topCrop: {

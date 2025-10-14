@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react'
 import { formatDate, formatTime } from '../../utils/dateUtils'
 import { toTitleCase, createCalendarEvent, hasUsefulDescription } from '../../utils/eventUtils'
 import { cleanYouTubeTitle } from '../../utils/youtubeUtils'
+import { getCachedSmartCrop, getObjectPosition } from '../../utils/imageUtils'
 import { getImageHeightClass } from '../../utils/imageDetection'
 
 // Global state for current playing video across all event cards
@@ -62,7 +63,7 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide, sportsTeams = 
     return unregister
   }, [event.id])
 
-  // Set image height class and positioning when component mounts
+  // Analyze image with smartcrop when component mounts
   useEffect(() => {
     if (event.imageUrl) {
       // Check if it's a placeholder image (fast URL check)
@@ -77,9 +78,36 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide, sportsTeams = 
       if (matchingSportsTeam) {
         // Use the configured position for sports teams
         setImagePosition(matchingSportsTeam.position)
+      } else {
+        // Use smartcrop for non-sports events
+        const analyzeImage = async () => {
+          try {
+            // Get the container dimensions (approximate)
+            const containerWidth = 800 // typical card width
+            const containerHeight = window.innerHeight * 0.2 // 20vh
+
+            const cropData = await getCachedSmartCrop(event.imageUrl, containerWidth, containerHeight)
+
+            // We'll use a temporary image to get actual dimensions
+            const img = new Image()
+            img.crossOrigin = 'anonymous'
+            img.onload = () => {
+              const position = getObjectPosition(cropData, img.width, img.height)
+              setImagePosition(position)
+            }
+            img.onerror = () => {
+              // If image fails to load, keep default center-center
+              console.log('Image load failed, using center-center:', event.imageUrl)
+            }
+            img.src = event.imageUrl
+          } catch (error) {
+            // If smartcrop fails (e.g., CORS), silently fall back to center-center
+            // No console error needed as this is expected for some images
+          }
+        }
+
+        analyzeImage()
       }
-      // For all other events, use the default center-center positioning
-      // (smartcrop disabled due to CORS issues with cross-origin images)
     }
   }, [event.imageUrl, sportsTeams])
 
