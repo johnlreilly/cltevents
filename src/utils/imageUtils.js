@@ -21,6 +21,7 @@ export const getSmartCrop = async (imageUrl, width, height) => {
   try {
     // Create an image element
     const img = new Image()
+    img.crossOrigin = 'anonymous'
 
     // Load the image
     await new Promise((resolve, reject) => {
@@ -55,12 +56,6 @@ export const getSmartCrop = async (imageUrl, width, height) => {
 
     // Analyze the image with smartcrop
     const result = await smartcrop.crop(img, options)
-
-    console.log('Smart crop analysis complete:', {
-      score: result.topCrop.score,
-      position: `${result.topCrop.x}, ${result.topCrop.y}`,
-      size: `${result.topCrop.width}x${result.topCrop.height}`
-    })
 
     return result
   } catch (error) {
@@ -125,7 +120,6 @@ export const getCachedSmartCrop = async (imageUrl, width, height) => {
   const cacheKey = `${cacheVersion}-${imageUrl}-${width}-${height}`
 
   if (cropCache.has(cacheKey)) {
-    console.log('Using cached smart crop for:', imageUrl)
     return cropCache.get(cacheKey)
   }
 
