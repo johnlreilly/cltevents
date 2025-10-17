@@ -11,6 +11,7 @@ import {
   filterBySource,
   groupEventsByName,
   sortEvents,
+  normalizeEventName,
 } from '../utils/eventUtils'
 import { isDateInPast } from '../utils/dateUtils'
 
@@ -86,17 +87,31 @@ export function useFilters(events) {
   }
 
   const toggleHidden = (event) => {
-    // Use the same normalization as groupEventsByName to ensure consistency
-    // Remove text in parentheses
-    let baseName = event.name.replace(/\s*\([^)]*\)/g, '').trim()
-    // Remove text after hyphen (tour names, etc)
-    const hyphenIndex = baseName.indexOf(' - ')
-    const keyName = hyphenIndex > 0 ? baseName.substring(0, hyphenIndex).trim() : baseName
-    const eventKey = keyName.toLowerCase().trim()
+    // Use the exported normalizeEventName function to ensure consistency
+    const eventKey = normalizeEventName(event.name)
 
-    setHidden((prev) =>
-      prev.includes(eventKey) ? prev.filter((key) => key !== eventKey) : [...prev, eventKey]
-    )
+    console.log('🔍 Hide Debug:', {
+      originalName: event.name,
+      normalizedKey: eventKey,
+      currentHidden: hidden,
+      willBeHidden: !hidden.includes(eventKey)
+    })
+
+    setHidden((prev) => {
+      const isCurrentlyHidden = prev.includes(eventKey)
+      const action = isCurrentlyHidden ? 'unhiding' : 'hiding'
+      const newHiddenArray = isCurrentlyHidden
+        ? prev.filter((key) => key !== eventKey)
+        : [...prev, eventKey]
+
+      console.log(`✅ ${action} event: "${event.name}"`)
+      console.log(`   Normalized key: "${eventKey}"`)
+      console.log(`   Previous hidden array:`, prev)
+      console.log(`   New hidden array:`, newHiddenArray)
+      console.log(`   localStorage key: cltevents-hidden`)
+
+      return newHiddenArray
+    })
   }
 
   /**

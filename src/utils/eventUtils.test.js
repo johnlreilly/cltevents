@@ -15,6 +15,7 @@ import {
   extractGenres,
   isPreferredVenue,
   getMatchColor,
+  normalizeEventName,
 } from './eventUtils'
 
 describe('eventUtils', () => {
@@ -312,6 +313,51 @@ describe('eventUtils', () => {
       expect(getMatchColor(0)).toBe('text-gray-600 bg-gray-50')
       expect(getMatchColor(50)).toBe('text-gray-600 bg-gray-50')
       expect(getMatchColor(69)).toBe('text-gray-600 bg-gray-50')
+    })
+  })
+
+  describe('normalizeEventName', () => {
+    it('removes text in parentheses', () => {
+      expect(normalizeEventName('Concert (Night 1)')).toBe('concert')
+      expect(normalizeEventName('Show (Special Edition)')).toBe('show')
+    })
+
+    it('removes text after hyphen', () => {
+      expect(normalizeEventName('Artist - World Tour')).toBe('artist')
+      expect(normalizeEventName('Band - Special Show')).toBe('band')
+    })
+
+    it('handles both parentheses and hyphens', () => {
+      expect(normalizeEventName('Artist (Live) - World Tour')).toBe('artist')
+      expect(normalizeEventName('Band (Acoustic) - Special Show')).toBe('band')
+    })
+
+    it('converts to lowercase and trims', () => {
+      expect(normalizeEventName('  CONCERT  ')).toBe('concert')
+      expect(normalizeEventName('The Beatles')).toBe('the beatles')
+    })
+
+    it('handles names without special characters', () => {
+      expect(normalizeEventName('Regular Concert Name')).toBe('regular concert name')
+    })
+
+    it('handles text substitutions consistently', () => {
+      // After text substitution: "CLTFC" -> "Charlotte FC"
+      expect(normalizeEventName('Charlotte FC vs Orlando')).toBe('charlotte fc vs orlando')
+      expect(normalizeEventName('Charlotte FC - Home Game')).toBe('charlotte fc')
+    })
+
+    it('produces consistent keys for grouping', () => {
+      const name1 = normalizeEventName('Artist (Night 1)')
+      const name2 = normalizeEventName('Artist (Night 2)')
+      const name3 = normalizeEventName('Artist - Tour Name')
+      const name4 = normalizeEventName('Artist')
+
+      // All variations should normalize to the same base name
+      expect(name1).toBe('artist')
+      expect(name2).toBe('artist')
+      expect(name3).toBe('artist')
+      expect(name4).toBe('artist')
     })
   })
 })

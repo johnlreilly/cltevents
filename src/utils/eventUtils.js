@@ -188,7 +188,7 @@ export const extractGenres = (events) => {
  * @param {string} name - Event name to normalize
  * @returns {string} Normalized lowercase name
  */
-const normalizeEventName = (name) => {
+export const normalizeEventName = (name) => {
   // Remove text in parentheses
   let baseName = name.replace(/\s*\([^)]*\)/g, '').trim()
   // Remove text after hyphen (tour names, etc)
@@ -209,25 +209,53 @@ const normalizeEventName = (name) => {
  * filterByCategory(events, 'favorites', [1, 2, 3], [], [])
  */
 export const filterByCategory = (events, category, favorites = [], hidden = [], preferredVenues = []) => {
+  // Debug logging for hidden events
+  if (hidden.length > 0 && (category === 'all' || category === 'music' || category === 'sports')) {
+    console.log('🔍 Filter Debug:', {
+      category,
+      hiddenCount: hidden.length,
+      hiddenKeys: hidden,
+      totalEvents: events.length,
+    })
+  }
+
   switch (category) {
     case 'all':
-      return events.filter((e) => !hidden.includes(normalizeEventName(e.name)))
+      return events.filter((e) => {
+        const normalized = normalizeEventName(e.name)
+        const isHidden = hidden.includes(normalized)
+        if (isHidden) {
+          console.log(`🚫 Filtering out hidden event: "${e.name}" (normalized: "${normalized}")`)
+        }
+        return !isHidden
+      })
     case 'favorites':
       return events.filter((e) => favorites.includes(e.id))
     case 'divebars':
       return events.filter((e) => isPreferredVenue(e.venue, preferredVenues))
     case 'music':
       return events.filter(
-        (e) =>
-          e.genres &&
-          e.genres.length > 0 &&
-          !hidden.includes(normalizeEventName(e.name))
+        (e) => {
+          const normalized = normalizeEventName(e.name)
+          const isHidden = hidden.includes(normalized)
+          const hasGenres = e.genres && e.genres.length > 0
+          if (isHidden && hasGenres) {
+            console.log(`🚫 Filtering out hidden music event: "${e.name}" (normalized: "${normalized}")`)
+          }
+          return hasGenres && !isHidden
+        }
       )
     case 'sports':
       return events.filter(
-        (e) =>
-          (!e.genres || e.genres.length === 0) &&
-          !hidden.includes(normalizeEventName(e.name))
+        (e) => {
+          const normalized = normalizeEventName(e.name)
+          const isHidden = hidden.includes(normalized)
+          const noGenres = !e.genres || e.genres.length === 0
+          if (isHidden && noGenres) {
+            console.log(`🚫 Filtering out hidden sports event: "${e.name}" (normalized: "${normalized}")`)
+          }
+          return noGenres && !isHidden
+        }
       )
     case 'food':
       return events.filter(
@@ -237,7 +265,14 @@ export const filterByCategory = (events, category, favorites = [], hidden = [], 
           e.name.toLowerCase().includes('beer')
       )
     case 'hidden':
-      return events.filter((e) => hidden.includes(normalizeEventName(e.name)))
+      return events.filter((e) => {
+        const normalized = normalizeEventName(e.name)
+        const isHidden = hidden.includes(normalized)
+        if (isHidden) {
+          console.log(`✅ Including hidden event in 'hidden' category: "${e.name}" (normalized: "${normalized}")`)
+        }
+        return isHidden
+      })
     default:
       return events
   }
