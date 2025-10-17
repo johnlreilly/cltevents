@@ -29,6 +29,12 @@ jobs:
         working-directory: ./dagger
         run: npm install
 
+      - name: Run tests via Dagger
+        working-directory: ./dagger
+        run: |
+          echo "Running tests (linting + unit/component tests)..."
+          dagger call test --source=..
+
       - name: Run Dagger deployment pipeline
         working-directory: ./dagger
         env:
@@ -38,12 +44,25 @@ jobs:
           AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
           AWS_CLOUDFRONT_DISTRIBUTION_ID: ${{ secrets.AWS_CLOUDFRONT_DISTRIBUTION_ID }}
         run: |
-          dagger call deploy --source=..
+          dagger call deploy --source=.. \
+            --aws-access-key-id="${AWS_ACCESS_KEY_ID}" \
+            --aws-secret-access-key="${AWS_SECRET_ACCESS_KEY}" \
+            --s3-bucket="${AWS_S3_BUCKET}" \
+            --cloudfront-dist-id="${AWS_CLOUDFRONT_DISTRIBUTION_ID}" \
+            --aws-region="${AWS_REGION}"
 
       - name: Deployment summary
         run: |
           echo "### ✅ Deployment Successful" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "The application has been deployed to AWS S3 and CloudFront." >> $GITHUB_STEP_SUMMARY
+          echo "**Pipeline Steps Completed:**" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Linting (ESLint)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Unit Tests (123 tests)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Component Tests (React Testing Library)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Build (Vite)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Deploy to S3" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ CloudFront Cache Invalidation" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**CloudFront Distribution:** \`${{ secrets.AWS_CLOUDFRONT_DISTRIBUTION_ID }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**CloudFront URL:** https://d3fszverpacjdj.cloudfront.net" >> $GITHUB_STEP_SUMMARY

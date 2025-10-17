@@ -86,7 +86,14 @@ export function useFilters(events) {
   }
 
   const toggleHidden = (event) => {
-    const eventKey = event.name.toLowerCase().trim()
+    // Use the same normalization as groupEventsByName to ensure consistency
+    // Remove text in parentheses
+    let baseName = event.name.replace(/\s*\([^)]*\)/g, '').trim()
+    // Remove text after hyphen (tour names, etc)
+    const hyphenIndex = baseName.indexOf(' - ')
+    const keyName = hyphenIndex > 0 ? baseName.substring(0, hyphenIndex).trim() : baseName
+    const eventKey = keyName.toLowerCase().trim()
+
     setHidden((prev) =>
       prev.includes(eventKey) ? prev.filter((key) => key !== eventKey) : [...prev, eventKey]
     )

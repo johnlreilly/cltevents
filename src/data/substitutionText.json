@@ -1,0 +1,14 @@
+{
+  "substitutions": [
+    {
+      "pattern": "cltfc",
+      "replacement": "Charlotte FC",
+      "description": "Charlotte FC soccer team"
+    },
+    {
+      "pattern": "clt fc",
+      "replacement": "Charlotte FC",
+      "description": "Charlotte FC with space"
+    }
+  ]
+}

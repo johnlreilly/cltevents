@@ -80,15 +80,16 @@ function parseEternallyGratefulEvents(html) {
         if (dateText && name && locationText) {
           const parsedDate = parseBandzoogleDate(dateText)
           const { venue, city } = parseLocation(locationText)
+          const decodedName = decodeHtmlEntities(name)
 
           if (parsedDate) {
             events.push({
-              id: `eg-${name}-${parsedDate.dateStr}`.toLowerCase().replace(/\s+/g, '-'),
-              name: name,
+              id: `eg-${decodedName}-${parsedDate.dateStr}`.toLowerCase().replace(/\s+/g, '-'),
+              name: decodedName,
               date: parsedDate.dateStr,
               startTime: startTime,
               endTime: endTime,
-              description: `${name} at ${venue}`,
+              description: `${decodedName} at ${venue}`,
               venue: venue,
               city: city,
               location: {
@@ -163,13 +164,41 @@ function parseBandzoogleDate(dateText) {
       eventDate = new Date(currentYear + 1, monthIndex, day)
     }
 
+    // Format date as YYYY-MM-DD without timezone conversion
+    // This ensures the date stays consistent regardless of timezone
+    const year = eventDate.getFullYear()
+    const month = String(eventDate.getMonth() + 1).padStart(2, '0')
+    const dayStr = String(eventDate.getDate()).padStart(2, '0')
+
     return {
-      dateStr: eventDate.toISOString().split('T')[0],
+      dateStr: `${year}-${month}-${dayStr}`,
     }
   } catch (error) {
     console.error('Error parsing Bandzoogle date:', error)
     return null
   }
+}
+
+/**
+ * Decodes HTML entities in text
+ * @param {string} text - Text with HTML entities
+ * @returns {string} Decoded text
+ */
+function decodeHtmlEntities(text) {
+  if (!text) return text
+
+  const entities = {
+    '&#39;': "'",
+    '&quot;': '"',
+    '&amp;': '&',
+    '&lt;': '<',
+    '&gt;': '>',
+    '&nbsp;': ' ',
+    '&#x27;': "'",
+    '&#x2F;': '/',
+  }
+
+  return text.replace(/&#?\w+;/g, (match) => entities[match] || match)
 }
 
 /**
@@ -181,7 +210,7 @@ function parseLocation(locationText) {
   const parts = locationText.split(',').map((p) => p.trim())
 
   return {
-    venue: parts[0] || locationText,
+    venue: decodeHtmlEntities(parts[0] || locationText),
     city: parts[1] || 'Charlotte',
   }
 }

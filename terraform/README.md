@@ -1,6 +1,8 @@
-# CLT Events - AWS Infrastructure (Terraform)
+# CLT Events - AWS Infrastructure (OpenTofu)
 
-This directory contains Terraform configuration for deploying CLT Events Discovery to AWS.
+This directory contains OpenTofu configuration for deploying CLT Events Discovery to AWS.
+
+> **Note**: This project uses **OpenTofu**, the open-source Infrastructure-as-Code tool (Apache 2.0 license), not HashiCorp Terraform. OpenTofu is a community-driven fork that uses identical HCL syntax and is fully compatible with Terraform configurations. The folder is named "terraform" following common convention, as OpenTofu maintains compatibility with the Terraform ecosystem.
 
 ## Architecture
 
@@ -30,7 +32,9 @@ This directory contains Terraform configuration for deploying CLT Events Discove
 ## Prerequisites
 
 1. **AWS Account** with appropriate permissions
-2. **Terraform** >= 1.0 installed ([download](https://www.terraform.io/downloads))
+2. **OpenTofu** >= 1.6 installed ([download](https://opentofu.org/docs/intro/install/))
+   - macOS: `brew install opentofu`
+   - Or use the official installer script
 3. **AWS CLI** configured with your credentials
 
 ## Initial Setup
@@ -57,17 +61,17 @@ s3_bucket_name  = "cltevents-production"
 aws_region      = "us-east-1"
 ```
 
-### 3. Initialize Terraform
+### 3. Initialize OpenTofu
 
 ```bash
 cd terraform
-terraform init
+tofu init
 ```
 
 ### 4. Review Infrastructure Plan
 
 ```bash
-terraform plan
+tofu plan
 ```
 
 This shows what resources will be created without making changes.
@@ -75,7 +79,7 @@ This shows what resources will be created without making changes.
 ### 5. Create Infrastructure
 
 ```bash
-terraform apply
+tofu apply
 ```
 
 Type `yes` when prompted. This will:
@@ -86,16 +90,16 @@ Type `yes` when prompted. This will:
 
 ### 6. Get Deployment Credentials
 
-After `terraform apply` completes:
+After `tofu apply` completes:
 
 ```bash
 # View all outputs
-terraform output
+tofu output
 
 # Get specific values for GitHub Secrets
-terraform output -raw deployer_access_key_id
-terraform output -raw deployer_secret_access_key
-terraform output -raw cloudfront_distribution_id
+tofu output -raw deployer_access_key_id
+tofu output -raw deployer_secret_access_key
+tofu output -raw cloudfront_distribution_id
 ```
 
 ### 7. Add GitHub Secrets
@@ -103,11 +107,11 @@ terraform output -raw cloudfront_distribution_id
 Go to your GitHub repository → Settings → Secrets and variables → Actions
 
 Add these secrets:
-- `AWS_ACCESS_KEY_ID` - From terraform output
-- `AWS_SECRET_ACCESS_KEY` - From terraform output
+- `AWS_ACCESS_KEY_ID` - From tofu output
+- `AWS_SECRET_ACCESS_KEY` - From tofu output
 - `AWS_REGION` - Your AWS region (e.g., us-east-1)
 - `AWS_S3_BUCKET` - Your S3 bucket name
-- `AWS_CLOUDFRONT_DISTRIBUTION_ID` - From terraform output
+- `AWS_CLOUDFRONT_DISTRIBUTION_ID` - From tofu output
 
 ## Testing
 
@@ -115,7 +119,7 @@ Add these secrets:
 
 ```bash
 # Get the CloudFront URL
-terraform output cloudfront_url
+tofu output cloudfront_url
 
 # Visit the URL in your browser (after first deployment)
 ```
@@ -125,14 +129,14 @@ terraform output cloudfront_url
 If you need to modify infrastructure:
 
 ```bash
-# Edit terraform files
+# Edit configuration files
 vim cloudfront.tf
 
 # Review changes
-terraform plan
+tofu plan
 
 # Apply changes
-terraform apply
+tofu apply
 ```
 
 ## Custom Domain Setup
@@ -153,7 +157,7 @@ aws acm request-certificate \
 
 Follow AWS console instructions to add DNS records for validation.
 
-### 3. Update Terraform
+### 3. Update Configuration
 
 Uncomment the ACM and domain sections in `cloudfront.tf`:
 
@@ -170,13 +174,13 @@ minimum_protocol_version = "TLSv1.2_2021"
 ### 4. Apply Changes
 
 ```bash
-terraform apply
+tofu apply
 ```
 
 ### 5. Update DNS
 
 Point your domain to CloudFront:
-- If using Route53: Terraform can manage this
+- If using Route53: OpenTofu can manage this
 - If using Vercel DNS: Update A/CNAME records to CloudFront domain
 
 ## Cost Estimates
@@ -212,7 +216,7 @@ After free tier expires: ~$5-10/month
 
 ```bash
 cd terraform
-terraform destroy
+tofu destroy
 ```
 
 ## State Management (Production)
@@ -221,13 +225,13 @@ For team collaboration, use remote state:
 
 1. Create S3 bucket for state:
 ```bash
-aws s3 mb s3://cltevents-terraform-state
+aws s3 mb s3://cltevents-opentofu-state
 ```
 
 2. Uncomment backend configuration in `main.tf`:
 ```hcl
 backend "s3" {
-  bucket = "cltevents-terraform-state"
+  bucket = "cltevents-opentofu-state"
   key    = "production/terraform.tfstate"
   region = "us-east-1"
 }
@@ -235,12 +239,13 @@ backend "s3" {
 
 3. Migrate state:
 ```bash
-terraform init -migrate-state
+tofu init -migrate-state
 ```
 
 ## Support
 
 For issues:
-1. Check [Terraform AWS Provider docs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs)
+1. Check [OpenTofu AWS Provider docs](https://opentofu.org/docs/) (compatible with Terraform AWS Provider)
 2. Check [AWS CloudFront docs](https://docs.aws.amazon.com/cloudfront/)
 3. Review GitHub Actions logs for deployment errors
+4. Visit [OpenTofu Community](https://github.com/opentofu/opentofu/discussions)

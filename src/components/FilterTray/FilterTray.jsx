@@ -301,7 +301,7 @@ function FilterTray({
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="flex items-center justify-center gap-2 px-6 py-3 bg-surfacevariant text-onsurface hover:bg-surface rounded-full transition-all w-full font-medium"
+          className="flex items-center justify-center gap-2 px-6 py-3 bg-surfacevariant text-onsurface hover:bg-primary hover:text-onprimary hover:shadow-md rounded-full transition-all w-full font-medium"
         >
           <span>Close</span>
         </button>

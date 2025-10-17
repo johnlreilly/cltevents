@@ -6,6 +6,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { extractGenres, isPreferredVenue } from '../utils/eventUtils'
 import { fetchYouTubeVideos } from '../utils/youtubeUtils'
+import { applyEventSubstitutions } from '../utils/textSubstitutions'
+import { API_BASE_URL } from '../config'
 
 // Genres to exclude from filter list
 const EXCLUDE_GENRES = ['undefined', 'other', 'miscellaneous']
@@ -141,7 +143,7 @@ export function useEvents() {
           imageUrl = sortedImages[0]?.url
         }
 
-        return {
+        const event = {
           id: `tm-${tmEvent.id}`,
           name: tmEvent.name,
           type: eventType,
@@ -159,6 +161,21 @@ export function useEvents() {
           imageUrl: imageUrl,
           source: 'ticketmaster',
         }
+
+        // Debug logging for YouTube links
+        if (youtubeLinks.length > 0) {
+          console.log(`✅ Event "${tmEvent.name}" has ${youtubeLinks.length} YouTube links:`, youtubeLinks)
+        }
+
+        // Apply text substitutions
+        const finalEvent = applyEventSubstitutions(event)
+
+        // Verify YouTube links weren't removed by substitutions
+        if (youtubeLinks.length > 0 && !finalEvent.youtubeLinks) {
+          console.error(`❌ WARNING: YouTube links were removed for "${tmEvent.name}" after text substitutions!`)
+        }
+
+        return finalEvent
       })
     )
   }
@@ -177,7 +194,7 @@ export function useEvents() {
         const youtubeLinks = await fetchYouTubeVideos(sjEvent.name, youtubeCache.current)
         console.log(`Got ${youtubeLinks.length} YouTube videos for ${sjEvent.name}`)
 
-        return {
+        const event = {
           id: `sj-${sjEvent.name}-${sjEvent.date}`,
           name: sjEvent.name,
           type: 'music',
@@ -193,6 +210,9 @@ export function useEvents() {
           genres: ['Music', 'Live'],
           source: 'smokeyjoes',
         }
+
+        // Apply text substitutions
+        return applyEventSubstitutions(event)
       })
     )
   }
@@ -210,7 +230,7 @@ export function useEvents() {
         // Don't fetch YouTube videos upfront - fetch on-demand to save API quota
         const youtubeLinks = []
 
-        return {
+        const event = {
           id: fillmoreEvent.id,
           name: fillmoreEvent.name,
           type: 'music',
@@ -228,6 +248,9 @@ export function useEvents() {
           imageUrl: fillmoreEvent.imageUrl,
           source: 'fillmore',
         }
+
+        // Apply text substitutions
+        return applyEventSubstitutions(event)
       })
     )
   }
@@ -244,7 +267,7 @@ export function useEvents() {
         // Don't fetch YouTube videos upfront - fetch on-demand to save API quota
         const youtubeLinks = []
 
-        return {
+        const event = {
           id: egEvent.id,
           name: egEvent.name,
           type: 'music',
@@ -264,6 +287,47 @@ export function useEvents() {
           sourceType: egEvent.sourceType, // 'artist'
           artistName: egEvent.artistName, // 'Eternally Grateful'
         }
+
+        // Apply text substitutions
+        return applyEventSubstitutions(event)
+      })
+    )
+  }
+
+  /**
+   * Processes Comet Grill events (free live music venue)
+   */
+  const processCometGrillEvents = async (cometData) => {
+    return await Promise.all(
+      cometData.events.map(async (cometEvent) => {
+        // Comet Grill is a free live music venue
+        const matchScore = 85 // High priority for free live music
+
+        // Don't fetch YouTube videos upfront - fetch on-demand to save API quota
+        const youtubeLinks = []
+
+        const event = {
+          id: cometEvent.id,
+          name: cometEvent.name,
+          type: 'music',
+          date: cometEvent.date,
+          time: cometEvent.startTime || null,
+          venue: cometEvent.venue,
+          venueAddress: cometEvent.location?.address || '2224 Park Road, Charlotte, NC 28203',
+          distance: 'N/A',
+          description: cometEvent.description,
+          price: 0,
+          youtubeLinks: youtubeLinks.length > 0 ? youtubeLinks : undefined,
+          matchScore: matchScore,
+          ticketUrl: null, // Free shows, no tickets
+          genres: cometEvent.genres || ['Live Music'],
+          imageUrl: cometEvent.imageUrl,
+          source: cometEvent.source,
+          sourceType: cometEvent.sourceType, // 'venue'
+        }
+
+        // Apply text substitutions
+        return applyEventSubstitutions(event)
       })
     )
   }
@@ -295,7 +359,7 @@ export function useEvents() {
             ? [cltEvent.category]
             : ['News']
 
-        cltEvents.push({
+        const event = {
           id: `clt-${cltEvent.url}`,
           name: cltEvent.name,
           type: 'article',
@@ -312,7 +376,10 @@ export function useEvents() {
           imageUrl: cltEvent.image,
           source: 'clttoday',
           dates: [{ date: upcomingDate, id: `clt-${cltEvent.url}`, ticketUrl: cltEvent.url }],
-        })
+        }
+
+        // Apply text substitutions
+        cltEvents.push(applyEventSubstitutions(event))
       }
     })
 
@@ -328,49 +395,83 @@ export function useEvents() {
       // Fetch from all sources in parallel
       const [ticketmasterResponse, smokeyJoesResponse, cltTodayResponse, fillmoreResponse, eternallyGratefulResponse] =
         await Promise.all([
-          fetch('/api/events'),
-          fetch('/api/smokeyjoes'),
-          fetch('/api/clttoday'),
-          fetch('/api/fillmore'),
-          fetch('/api/eternally-grateful'),
+          fetch(`${API_BASE_URL}/api/events`),
+          fetch(`${API_BASE_URL}/api/smokeyjoes`),
+          fetch(`${API_BASE_URL}/api/clttoday`),
+          fetch(`${API_BASE_URL}/api/fillmore`),
+          fetch(`${API_BASE_URL}/api/eternally-grateful`),
+          // fetch(`${API_BASE_URL}/api/comet-grill`), // Disabled - site appears stale
         ])
 
       let allEvents = []
 
       // Process Ticketmaster events
       if (ticketmasterResponse.ok) {
-        const tmData = await ticketmasterResponse.json()
-        const tmEvents = await processTicketmasterEvents(tmData)
-        allEvents = [...allEvents, ...tmEvents]
+        try {
+          const tmData = await ticketmasterResponse.json()
+          const tmEvents = await processTicketmasterEvents(tmData)
+          allEvents = [...allEvents, ...tmEvents]
+        } catch (error) {
+          console.error('Error processing Ticketmaster events:', error)
+        }
+      } else {
+        console.warn('Ticketmaster API returned status:', ticketmasterResponse.status)
       }
 
       // Process Smokey Joe's events
       if (smokeyJoesResponse.ok) {
-        const sjData = await smokeyJoesResponse.json()
-        const sjEvents = await processSmokeyjoesEvents(sjData)
-        allEvents = [...allEvents, ...sjEvents]
+        try {
+          const sjData = await smokeyJoesResponse.json()
+          const sjEvents = await processSmokeyjoesEvents(sjData)
+          allEvents = [...allEvents, ...sjEvents]
+        } catch (error) {
+          console.error('Error processing Smokey Joes events:', error)
+        }
       }
 
       // Process CLTtoday events
       if (cltTodayResponse.ok) {
-        const cltData = await cltTodayResponse.json()
-        const cltEvents = processCLTtodayEvents(cltData)
-        allEvents = [...allEvents, ...cltEvents]
+        try {
+          const cltData = await cltTodayResponse.json()
+          const cltEvents = processCLTtodayEvents(cltData)
+          allEvents = [...allEvents, ...cltEvents]
+        } catch (error) {
+          console.error('Error processing CLTtoday events:', error)
+        }
       }
 
       // Process Fillmore events
       if (fillmoreResponse.ok) {
-        const fillmoreData = await fillmoreResponse.json()
-        const fillmoreEvents = await processFillmoreEvents(fillmoreData)
-        allEvents = [...allEvents, ...fillmoreEvents]
+        try {
+          const fillmoreData = await fillmoreResponse.json()
+          const fillmoreEvents = await processFillmoreEvents(fillmoreData)
+          allEvents = [...allEvents, ...fillmoreEvents]
+        } catch (error) {
+          console.error('Error processing Fillmore events:', error)
+        }
       }
 
       // Process Eternally Grateful events
       if (eternallyGratefulResponse.ok) {
-        const egData = await eternallyGratefulResponse.json()
-        const egEvents = await processEternallyGratefulEvents(egData)
-        allEvents = [...allEvents, ...egEvents]
+        try {
+          const egData = await eternallyGratefulResponse.json()
+          const egEvents = await processEternallyGratefulEvents(egData)
+          allEvents = [...allEvents, ...egEvents]
+        } catch (error) {
+          console.error('Error processing Eternally Grateful events:', error)
+        }
       }
+
+      // Process Comet Grill events - DISABLED (site appears stale)
+      // if (cometGrillResponse.ok) {
+      //   try {
+      //     const cometData = await cometGrillResponse.json()
+      //     const cometEvents = await processCometGrillEvents(cometData)
+      //     allEvents = [...allEvents, ...cometEvents]
+      //   } catch (error) {
+      //     console.error('Error processing Comet Grill events:', error)
+      //   }
+      // }
 
       setEvents(allEvents)
 

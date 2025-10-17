@@ -23,26 +23,40 @@ This project demonstrates modern React development best practices using AI-assis
 ```
 cltevents/
 ├── api/                    # Vercel serverless functions
-│   └── youtube.js         # YouTube API integration
+│   ├── events.js          # Ticketmaster API
+│   ├── smokeyjoes.js      # Smokey Joe's scraper
+│   ├── fillmore.js        # Fillmore Charlotte scraper
+│   ├── eternally-grateful.js # Artist tracking
+│   └── clttoday.js        # CLTtoday scraper
 ├── src/
 │   ├── components/        # React components
 │   │   ├── EventCard/    # Event display component
 │   │   ├── FilterTray/   # Filtering UI
 │   │   ├── Header/       # Top navigation
-│   │   └── YouTubePlayer/ # YouTube integration
+│   │   ├── EventList/    # Event list with date separators
+│   │   └── ScrollToTop/  # Scroll to top button
 │   ├── hooks/            # Custom React hooks
-│   │   ├── useEvents.js  # Event data management
+│   │   ├── useEvents.js  # Event data fetching
 │   │   ├── useFilters.js # Filter state logic
 │   │   └── useLocalStorage.js # localStorage wrapper
 │   ├── utils/            # Utility functions
 │   │   ├── dateUtils.js  # Date formatting
 │   │   ├── eventUtils.js # Event processing
-│   │   └── youtubeUtils.js # YouTube helpers
-│   ├── test/             # Test setup and utilities
-│   │   └── setup.js      # Vitest configuration
+│   │   └── imageUtils.js # Image smartcrop
 │   ├── App.jsx           # Main application component
 │   ├── main.jsx          # React entry point
+│   ├── config.js         # Configuration (API URLs)
 │   └── index.css         # Global styles + Tailwind
+├── public/
+│   ├── data/             # Configuration JSON files
+│   └── quotes/           # Quote data
+├── terraform/            # AWS infrastructure (OpenTofu)
+├── dagger/               # CI/CD pipeline
+├── docs/                 # 📚 Documentation
+│   ├── README.md         # Documentation index
+│   ├── AWS-DEPLOYMENT.md # AWS deployment guide
+│   ├── QUICK-START-AWS.md # Quick AWS setup
+│   └── RECREATION-PROMPTS.md # Recreate with Claude
 ├── index.html            # HTML entry point
 ├── package.json          # Dependencies and scripts
 ├── vite.config.js        # Vite configuration
@@ -172,6 +186,16 @@ This project demonstrates:
 - **JSDoc Documentation** - Self-documenting code
 - **Git Workflow** - Feature branches, dev/main strategy
 - **CI/CD** - Automated testing and deployment
+
+## 📚 Documentation
+
+Comprehensive documentation is available in the [`docs/`](docs/) directory:
+
+- **[Documentation Index](docs/README.md)** - Complete documentation overview
+- **[AWS Deployment Guide](docs/AWS-DEPLOYMENT.md)** - Deploy to AWS with Terraform & Dagger
+- **[Quick Start AWS](docs/QUICK-START-AWS.md)** - 30-minute AWS setup
+- **[Recreation Prompts](docs/RECREATION-PROMPTS.md)** - Recreate project with Claude Code
+- **[Migration Plan](docs/MIGRATION-PLAN.md)** - Vercel to AWS migration strategy
 
 ## 🤝 Contributing
 

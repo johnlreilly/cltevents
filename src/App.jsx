@@ -26,6 +26,7 @@ function App() {
   const [quotes, setQuotes] = useState([])
   const [quoteDisplayTime, setQuoteDisplayTime] = useState(null)
   const [hasScrolledPastTop, setHasScrolledPastTop] = useState(false)
+  const [isAtTop, setIsAtTop] = useState(true) // Track if user is at the very top of the page
   const { events, loading, initialLoad, availableGenres, refetch } = useEvents()
   const {
     filteredEvents,
@@ -53,12 +54,14 @@ function App() {
       .catch((err) => console.error('Error loading quotes:', err))
   }, [])
 
-  // Detect sticky header and manage quote display
+  // Detect scroll position and manage quote display
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY
-      const headerHeight = 64 // Header height in pixels
       const firstDateSeparator = document.querySelector('[id^="date-"]')
+
+      // Check if user is at the very top of the page
+      setIsAtTop(currentScrollY === 0)
 
       // Check if the first date separator is actually stuck (sticky)
       let isStickyHeaderActive = false
@@ -68,19 +71,9 @@ function App() {
         isStickyHeaderActive = separatorTop <= 48
       }
 
-      // Trigger quote change when sticky header becomes active
+      // Track if user has scrolled past the top
       if (isStickyHeaderActive && !hasScrolledPastTop) {
         setHasScrolledPastTop(true)
-
-        // Only prepare new quote if cooldown has passed AND we're not at the top (quote not visible)
-        const now = Date.now()
-        const thirtySeconds = 30000
-
-        if (quotes.length > 0 && currentScrollY > 0 && (!quoteDisplayTime || now - quoteDisplayTime > thirtySeconds)) {
-          const randomQuote = quotes[Math.floor(Math.random() * quotes.length)]
-          setCurrentQuote(randomQuote)
-          setQuoteDisplayTime(now)
-        }
       }
 
       // Reset when back at top
@@ -91,16 +84,54 @@ function App() {
 
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
-  }, [quotes, hasScrolledPastTop, quoteDisplayTime])
+  }, [hasScrolledPastTop])
+
+  // Prepare new quote every 30 seconds when user has scrolled past top
+  useEffect(() => {
+    if (!hasScrolledPastTop || quotes.length === 0) {
+      return
+    }
+
+    // Immediately prepare a new quote when user first scrolls past top
+    const now = Date.now()
+    const thirtySeconds = 30000
+
+    if (!quoteDisplayTime || now - quoteDisplayTime > thirtySeconds) {
+      const randomQuote = quotes[Math.floor(Math.random() * quotes.length)]
+      setCurrentQuote(randomQuote)
+      setQuoteDisplayTime(now)
+    }
+
+    // Set up interval to prepare new quotes every 30 seconds
+    const interval = setInterval(() => {
+      const randomQuote = quotes[Math.floor(Math.random() * quotes.length)]
+      setCurrentQuote(randomQuote)
+      setQuoteDisplayTime(Date.now())
+    }, thirtySeconds)
+
+    return () => clearInterval(interval)
+  }, [hasScrolledPastTop, quotes, quoteDisplayTime])
 
   const toggleFilterTray = () => {
     setShowFilterTray(!showFilterTray)
   }
 
+  const handleRefresh = () => {
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+
+    // Reset quote state so it looks like a fresh page load
+    setCurrentQuote(null)
+    setHasScrolledPastTop(false)
+
+    // Call the actual refetch function
+    refetch()
+  }
+
   return (
     <div className="min-h-screen bg-black">
       <Header
-        onRefresh={refetch}
+        onRefresh={handleRefresh}
         loading={loading}
         onToggleFilters={toggleFilterTray}
         showFilterTray={showFilterTray}
@@ -124,7 +155,7 @@ function App() {
         ) : (
           <>
             <div className="my-6 text-lg text-center min-h-[4.5rem] flex items-center justify-center">
-              {currentQuote ? (
+              {currentQuote && isAtTop ? (
                 <div className="text-primary">
                   <p className="italic">
                     "{currentQuote.quote.split('|').map((line, index, array) => (

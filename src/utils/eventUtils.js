@@ -183,11 +183,26 @@ export const extractGenres = (events) => {
 }
 
 /**
+ * Normalizes event name for consistent hiding/filtering
+ * Uses the same logic as groupEventsByName to ensure consistency
+ * @param {string} name - Event name to normalize
+ * @returns {string} Normalized lowercase name
+ */
+const normalizeEventName = (name) => {
+  // Remove text in parentheses
+  let baseName = name.replace(/\s*\([^)]*\)/g, '').trim()
+  // Remove text after hyphen (tour names, etc)
+  const hyphenIndex = baseName.indexOf(' - ')
+  const keyName = hyphenIndex > 0 ? baseName.substring(0, hyphenIndex).trim() : baseName
+  return keyName.toLowerCase().trim()
+}
+
+/**
  * Filters events based on category
  * @param {Array} events - Array of event objects
  * @param {string} category - Category to filter by
  * @param {Array} favorites - List of favorite event IDs
- * @param {Array} hidden - List of hidden event names
+ * @param {Array} hidden - List of hidden event names (normalized)
  * @param {Array} preferredVenues - Dive bar venue keywords
  * @returns {Array} Filtered events
  * @example
@@ -196,7 +211,7 @@ export const extractGenres = (events) => {
 export const filterByCategory = (events, category, favorites = [], hidden = [], preferredVenues = []) => {
   switch (category) {
     case 'all':
-      return events.filter((e) => !hidden.includes(e.name.toLowerCase().trim()))
+      return events.filter((e) => !hidden.includes(normalizeEventName(e.name)))
     case 'favorites':
       return events.filter((e) => favorites.includes(e.id))
     case 'divebars':
@@ -206,13 +221,13 @@ export const filterByCategory = (events, category, favorites = [], hidden = [], 
         (e) =>
           e.genres &&
           e.genres.length > 0 &&
-          !hidden.includes(e.name.toLowerCase().trim())
+          !hidden.includes(normalizeEventName(e.name))
       )
     case 'sports':
       return events.filter(
         (e) =>
           (!e.genres || e.genres.length === 0) &&
-          !hidden.includes(e.name.toLowerCase().trim())
+          !hidden.includes(normalizeEventName(e.name))
       )
     case 'food':
       return events.filter(
@@ -222,7 +237,7 @@ export const filterByCategory = (events, category, favorites = [], hidden = [], 
           e.name.toLowerCase().includes('beer')
       )
     case 'hidden':
-      return events.filter((e) => hidden.includes(e.name.toLowerCase().trim()))
+      return events.filter((e) => hidden.includes(normalizeEventName(e.name)))
     default:
       return events
   }
