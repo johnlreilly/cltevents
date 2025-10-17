@@ -12,7 +12,18 @@ import EventList from './components/EventList/EventList'
 import ScrollToTop from './components/ScrollToTop/ScrollToTop'
 import ImageCropTest from './components/ImageCropTest/ImageCropTest'
 
+// Version tracking
+const APP_VERSION = '1.1.0'
+const BUILD_DATE = new Date().toISOString()
+
 function App() {
+  // Log version on mount
+  useEffect(() => {
+    console.log(`%c🎉 CLT Events Discovery v${APP_VERSION}`, 'color: #6366f1; font-weight: bold; font-size: 14px;')
+    console.log(`%cBuild: ${BUILD_DATE}`, 'color: #94a3b8; font-size: 12px;')
+    console.log(`%cEnvironment: ${import.meta.env.MODE}`, 'color: #94a3b8; font-size: 12px;')
+  }, [])
+
   // Check if we're in test mode
   const urlParams = new URLSearchParams(window.location.search)
   const isTestMode = urlParams.get('test') === 'crop'
@@ -45,6 +56,21 @@ function App() {
     hidden,
     toggleHidden,
   } = useFilters(events)
+
+  // Debug: Log events with YouTube links
+  useEffect(() => {
+    if (events.length > 0) {
+      const eventsWithYouTube = events.filter(e => e.youtubeLinks && e.youtubeLinks.length > 0)
+      console.log(`📊 Total events: ${events.length}, Events with YouTube: ${eventsWithYouTube.length}`)
+      if (eventsWithYouTube.length > 0) {
+        console.log('Events with YouTube links:', eventsWithYouTube.map(e => ({
+          name: e.name,
+          venue: e.venue,
+          youtubeCount: e.youtubeLinks.length
+        })))
+      }
+    }
+  }, [events])
 
   // Load quotes on mount
   useEffect(() => {

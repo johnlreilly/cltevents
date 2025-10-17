@@ -227,8 +227,10 @@ export function useEvents() {
         const isPreferred = isPreferredVenue(fillmoreEvent.venue, PREFERRED_VENUES)
         const matchScore = 70 + (isPreferred ? 15 : 0) + 10 // base + venue boost + music boost
 
-        // Don't fetch YouTube videos upfront - fetch on-demand to save API quota
-        const youtubeLinks = []
+        // Fetch YouTube videos for Fillmore events (artist names)
+        console.log(`Fetching YouTube for Fillmore event: ${fillmoreEvent.name}`)
+        const youtubeLinks = await fetchYouTubeVideos(fillmoreEvent.name, youtubeCache.current, API_BASE_URL)
+        console.log(`Got ${youtubeLinks.length} YouTube videos for ${fillmoreEvent.name}`)
 
         const event = {
           id: fillmoreEvent.id,

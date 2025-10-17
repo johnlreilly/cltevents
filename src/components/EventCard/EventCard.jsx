@@ -45,6 +45,13 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide, sportsTeams = 
   const [imagePosition, setImagePosition] = useState('center center')
   const [imageHeightClass, setImageHeightClass] = useState('h-[20vh]')
 
+  // Debug: Log YouTube links for this event
+  useEffect(() => {
+    if (event.youtubeLinks && event.youtubeLinks.length > 0) {
+      console.log(`🎵 EventCard rendering "${event.name}" with ${event.youtubeLinks.length} YouTube links:`, event.youtubeLinks)
+    }
+  }, [event.name, event.youtubeLinks])
+
   const eventSlug = event.name
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
