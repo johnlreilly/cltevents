@@ -90,12 +90,13 @@ export const createEmbedUrl = (videoId, autoplay = false) => {
  * Uses caching to prevent redundant API calls
  * @param {string} artistName - Name of artist to search for
  * @param {Object} cache - Cache object to store results
+ * @param {string} apiBaseUrl - Base URL for API calls (optional, defaults to empty string for relative URLs)
  * @returns {Promise<Array>} Array of video objects
  * @example
  * const cache = {}
- * const videos = await fetchYouTubeVideos('The Beatles', cache)
+ * const videos = await fetchYouTubeVideos('The Beatles', cache, 'https://clt.show')
  */
-export const fetchYouTubeVideos = async (artistName, cache = {}) => {
+export const fetchYouTubeVideos = async (artistName, cache = {}, apiBaseUrl = '') => {
   const cacheKey = artistName.toLowerCase().trim()
 
   // Return cached results if available
@@ -105,7 +106,10 @@ export const fetchYouTubeVideos = async (artistName, cache = {}) => {
   }
 
   try {
-    const response = await fetch(`/api/youtube?query=${encodeURIComponent(artistName)}`)
+    const url = `${apiBaseUrl}/api/youtube?query=${encodeURIComponent(artistName)}`
+    console.log(`Fetching YouTube videos from: ${url}`)
+
+    const response = await fetch(url)
 
     if (!response.ok) {
       const errorData = await response.json()

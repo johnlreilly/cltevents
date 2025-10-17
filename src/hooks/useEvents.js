@@ -132,7 +132,7 @@ export function useEvents() {
 
         if (shouldFetchYouTube) {
           console.log(`Fetching YouTube for ${tmEvent.name} at ${venue}`)
-          youtubeLinks = await fetchYouTubeVideos(tmEvent.name, youtubeCache.current)
+          youtubeLinks = await fetchYouTubeVideos(tmEvent.name, youtubeCache.current, API_BASE_URL)
           console.log(`Got ${youtubeLinks.length} YouTube videos for ${tmEvent.name}`)
         }
 
@@ -191,7 +191,7 @@ export function useEvents() {
 
         // Fetch YouTube videos for Smokey Joe's events
         console.log(`Fetching YouTube for Smokey Joe's event: ${sjEvent.name}`)
-        const youtubeLinks = await fetchYouTubeVideos(sjEvent.name, youtubeCache.current)
+        const youtubeLinks = await fetchYouTubeVideos(sjEvent.name, youtubeCache.current, API_BASE_URL)
         console.log(`Got ${youtubeLinks.length} YouTube videos for ${sjEvent.name}`)
 
         const event = {
