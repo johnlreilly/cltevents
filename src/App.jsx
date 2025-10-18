@@ -17,20 +17,20 @@ const APP_VERSION = '1.1.0'
 const BUILD_DATE = new Date().toISOString()
 
 function App() {
-  // Log version on mount
-  useEffect(() => {
-    console.log(`%c🎉 CLT Events Discovery v${APP_VERSION}`, 'color: #6366f1; font-weight: bold; font-size: 14px;')
-    console.log(`%cBuild: ${BUILD_DATE}`, 'color: #94a3b8; font-size: 12px;')
-    console.log(`%cEnvironment: ${import.meta.env.MODE}`, 'color: #94a3b8; font-size: 12px;')
-  }, [])
-
-  // Check if we're in test mode
+  // Check if we're in test mode (must be before any hooks)
   const urlParams = new URLSearchParams(window.location.search)
   const isTestMode = urlParams.get('test') === 'crop'
 
   if (isTestMode) {
     return <ImageCropTest />
   }
+
+  // Log version on mount
+  useEffect(() => {
+    console.log(`%c🎉 CLT Events Discovery v${APP_VERSION}`, 'color: #6366f1; font-weight: bold; font-size: 14px;')
+    console.log(`%cBuild: ${BUILD_DATE}`, 'color: #94a3b8; font-size: 12px;')
+    console.log(`%cEnvironment: ${import.meta.env.MODE}`, 'color: #94a3b8; font-size: 12px;')
+  }, [])
 
   const [showFilterTray, setShowFilterTray] = useState(false)
   const [currentQuote, setCurrentQuote] = useState(null)
@@ -184,12 +184,12 @@ function App() {
               {currentQuote && isAtTop ? (
                 <div className="text-primary">
                   <p className="italic">
-                    "{currentQuote.quote.split('|').map((line, index, array) => (
+                    &ldquo;{currentQuote.quote.split('|').map((line, index, array) => (
                       <span key={index}>
                         {line}
                         {index < array.length - 1 && <br />}
                       </span>
-                    ))}"
+                    ))}&rdquo;
                   </p>
                   <p className="text-sm text-onsurfacevariant mt-2">— {currentQuote.author}</p>
                 </div>

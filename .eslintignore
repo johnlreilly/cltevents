@@ -1,0 +1,36 @@
+# Build outputs
+dist/
+dist-local/
+dist-dagger/
+build/
+
+# Dependencies
+node_modules/
+
+# Dagger generated files
+dagger/node_modules/
+dagger/src/sdk/
+
+# Terraform
+terraform/.terraform/
+*.tfstate
+*.tfstate.*
+
+# Test coverage
+coverage/
+
+# Playwright
+playwright-report/
+test-results/
+e2e/
+playwright.config.js
+
+# Test setup files
+src/test/setup.js
+*.test.js
+*.test.jsx
+*.spec.js
+
+# Temporary files
+*.tmp
+*.log
