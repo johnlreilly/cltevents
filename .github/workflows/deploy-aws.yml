@@ -44,12 +44,7 @@ jobs:
           AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
           AWS_CLOUDFRONT_DISTRIBUTION_ID: ${{ secrets.AWS_CLOUDFRONT_DISTRIBUTION_ID }}
         run: |
-          dagger call deploy --source=.. \
-            --aws-access-key-id="${AWS_ACCESS_KEY_ID}" \
-            --aws-secret-access-key="${AWS_SECRET_ACCESS_KEY}" \
-            --s3-bucket="${AWS_S3_BUCKET}" \
-            --cloudfront-dist-id="${AWS_CLOUDFRONT_DISTRIBUTION_ID}" \
-            --aws-region="${AWS_REGION}"
+          dagger call deploy --source=..
 
       - name: Deployment summary
         run: |
