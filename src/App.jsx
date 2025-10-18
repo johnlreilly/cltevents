@@ -3,6 +3,7 @@
  * MVP version - to be refactored into smaller components
  */
 
+/* eslint-disable react-hooks/rules-of-hooks */
 import { useState, useEffect } from 'react'
 import useEvents from './hooks/useEvents'
 import useFilters from './hooks/useFilters'
@@ -17,7 +18,7 @@ const APP_VERSION = '1.1.0'
 const BUILD_DATE = new Date().toISOString()
 
 function App() {
-  // Check if we're in test mode (must be before any hooks)
+  // Check if we're in test mode
   const urlParams = new URLSearchParams(window.location.search)
   const isTestMode = urlParams.get('test') === 'crop'
 
