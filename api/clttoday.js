@@ -72,7 +72,7 @@ export default async function handler(req, res) {
 
       // Extract event links from content with dates
       const eventLinks = [];
-      const eventLinkRegex = /clttoday\.6amcity\.com\/events#\/details\/[^\/]+\/\d+\/(\d{4}-\d{2}-\d{2})/g;
+      const eventLinkRegex = /clttoday\.6amcity\.com\/events#\/details\/[^/]+\/\d+\/(\d{4}-\d{2}-\d{2})/g;
       let eventMatch;
 
       while ((eventMatch = eventLinkRegex.exec(contentToSearch)) !== null) {

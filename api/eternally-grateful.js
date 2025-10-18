@@ -167,11 +167,11 @@ function parseBandzoogleDate(dateText) {
     // Format date as YYYY-MM-DD without timezone conversion
     // This ensures the date stays consistent regardless of timezone
     const year = eventDate.getFullYear()
-    const month = String(eventDate.getMonth() + 1).padStart(2, '0')
+    const monthNum = String(eventDate.getMonth() + 1).padStart(2, '0')
     const dayStr = String(eventDate.getDate()).padStart(2, '0')
 
     return {
-      dateStr: `${year}-${month}-${dayStr}`,
+      dateStr: `${year}-${monthNum}-${dayStr}`,
     }
   } catch (error) {
     console.error('Error parsing Bandzoogle date:', error)

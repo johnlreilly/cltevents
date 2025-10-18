@@ -45,9 +45,9 @@ function parseSnugHarborEvents(html) {
     
     // Check for common calendar/event patterns
     // Many WordPress sites use similar patterns to Smokey Joe's
-    const eventRegex = /<article[^>]*class="[^"]*event[^"]*"[^>]*>[\s\S]*?<\/article>/gi;
+    let eventRegex = /<article[^>]*class="[^"]*event[^"]*"[^>]*>[\s\S]*?<\/article>/gi;
     let eventMatches = html.match(eventRegex);
-    
+
     if (!eventMatches) {
       // Try alternative patterns
       eventRegex = /<div[^>]*class="[^"]*event[^"]*"[^>]*>[\s\S]*?<\/div>/gi;
