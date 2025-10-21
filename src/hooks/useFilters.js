@@ -90,11 +90,12 @@ export function useFilters(events) {
     // Use the exported normalizeEventName function to ensure consistency
     const eventKey = normalizeEventName(event.name)
 
-    console.log('🔍 Hide Debug:', {
+    console.log('🔍 Hide Debug BEFORE:', {
       originalName: event.name,
       normalizedKey: eventKey,
       currentHidden: hidden,
-      willBeHidden: !hidden.includes(eventKey)
+      willBeHidden: !hidden.includes(eventKey),
+      localStorageRaw: window.localStorage.getItem('cltevents-hidden')
     })
 
     setHidden((prev) => {
@@ -108,10 +109,18 @@ export function useFilters(events) {
       console.log(`   Normalized key: "${eventKey}"`)
       console.log(`   Previous hidden array:`, prev)
       console.log(`   New hidden array:`, newHiddenArray)
-      console.log(`   localStorage key: cltevents-hidden`)
 
+      // useLocalStorage hook will save this automatically
       return newHiddenArray
     })
+
+    // Log after state update (happens in next render)
+    setTimeout(() => {
+      console.log('🔍 Hide Debug AFTER:', {
+        hiddenState: hidden,
+        localStorageRaw: window.localStorage.getItem('cltevents-hidden')
+      })
+    }, 100)
   }
 
   /**
