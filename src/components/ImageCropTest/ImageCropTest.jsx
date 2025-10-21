@@ -29,7 +29,7 @@ function ImageCropTest() {
 
           const img = new Image()
 
-          await new Promise((resolve, reject) => {
+          await new Promise((resolve) => {
             img.onload = () => {
               console.log('Image loaded:', imageUrl, 'Size:', img.width, 'x', img.height)
               const position = getObjectPosition(cropData, img.width, img.height)
@@ -85,8 +85,8 @@ function ImageCropTest() {
 
       {results.length > 0 && (
         <div className="mb-4 p-4 bg-blue-100 border border-blue-300 rounded">
-          <p className="text-black font-semibold">Using Smartcrop's Recommendation:</p>
-          <p className="text-sm text-gray-700">Images are positioned based on smartcrop's analysis of faces, edges, and saturation.</p>
+          <p className="text-black font-semibold">Using Smartcrop&apos;s Recommendation:</p>
+          <p className="text-sm text-gray-700">Images are positioned based on smartcrop&apos;s analysis of faces, edges, and saturation.</p>
           <p className="text-sm text-gray-700 mt-2">Analyzed {results.length} images</p>
         </div>
       )}

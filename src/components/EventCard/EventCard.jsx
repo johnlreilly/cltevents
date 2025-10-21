@@ -11,6 +11,7 @@ import { getCachedSmartCrop, getObjectPosition } from '../../utils/imageUtils'
 import { getImageHeightClass } from '../../utils/imageDetection'
 
 // Global state for current playing video across all event cards
+// eslint-disable-next-line no-unused-vars
 let globalCurrentVideo = null
 let globalVideoChangeCallbacks = []
 
@@ -50,7 +51,8 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide, sportsTeams = 
     if (event.youtubeLinks && event.youtubeLinks.length > 0) {
       console.log(`🎵 EventCard rendering "${event.name}" with ${event.youtubeLinks.length} YouTube links:`, event.youtubeLinks)
     }
-  }, [event.name, event.youtubeLinks])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [event.youtubeLinks])
 
   const eventSlug = event.name
     .toLowerCase()
@@ -59,7 +61,7 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide, sportsTeams = 
 
   // Listen for global video changes
   useEffect(() => {
-    const unregister = registerVideoChangeCallback((eventId, videoIndex) => {
+    const unregister = registerVideoChangeCallback((eventId) => {
       if (eventId !== event.id) {
         // Another event started playing - close this panel
         setShowYouTubePanel(false)
@@ -118,6 +120,7 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide, sportsTeams = 
         analyzeImage()
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [event.imageUrl, sportsTeams])
 
   const handleAddToCalendar = () => {

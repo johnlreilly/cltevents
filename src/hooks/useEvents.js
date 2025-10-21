@@ -298,7 +298,9 @@ export function useEvents() {
 
   /**
    * Processes Comet Grill events (free live music venue)
+   * Currently disabled - site appears stale
    */
+  // eslint-disable-next-line no-unused-vars
   const processCometGrillEvents = async (cometData) => {
     return await Promise.all(
       cometData.events.map(async (cometEvent) => {

@@ -81,9 +81,10 @@ function ScrollToTop() {
         window.removeEventListener('mouseup', handleMouseUp)
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isDragging, dragOffset])
 
-  const scrollToTop = (e) => {
+  const scrollToTop = () => {
     // Only scroll if not dragging (to prevent accidental scrolls while dragging)
     if (!isDragging) {
       window.scrollTo({

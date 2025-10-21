@@ -18,7 +18,7 @@ import { getIcon } from '../../utils/specialDateIcons'
  * @returns {JSX.Element} The event list component
  */
 function EventList({
-  events,
+/* eslint-disable no-unused-vars */  events,
   favorites,
   toggleFavorite,
   hidden,
