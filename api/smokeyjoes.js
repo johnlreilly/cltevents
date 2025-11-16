@@ -74,15 +74,31 @@ function parseSmokeyJoesEvents(html) {
         
         if (title && startTimestamp) {
           const startDate = new Date(startTimestamp);
-          // Format date in local timezone (YYYY-MM-DD) instead of UTC
-          const year = startDate.getFullYear();
-          const month = String(startDate.getMonth() + 1).padStart(2, '0');
-          const day = String(startDate.getDate()).padStart(2, '0');
-          const dateStr = `${year}-${month}-${day}`;
+          // Format date in America/New_York timezone (EST/EDT)
+          // Smokey Joe's is in Charlotte, NC which uses EST/EDT
+          const dateStr = startDate.toLocaleDateString('en-US', {
+            timeZone: 'America/New_York',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+          }).split('/').reverse().join('-').replace(/^(\d{4})-(\d{2})-(\d{2})$/, '$1-$2-$3');
+
+          // Alternative: manually format to ensure YYYY-MM-DD
+          const formatter = new Intl.DateTimeFormat('en-US', {
+            timeZone: 'America/New_York',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+          });
+          const parts = formatter.formatToParts(startDate);
+          const year = parts.find(p => p.type === 'year').value;
+          const month = parts.find(p => p.type === 'month').value;
+          const day = parts.find(p => p.type === 'day').value;
+          const localDateStr = `${year}-${month}-${day}`;
 
           events.push({
             name: title,
-            date: dateStr,
+            date: localDateStr,
             startTime: startDate,
             endTime: endTimestamp ? new Date(endTimestamp) : null,
             description: description || title,

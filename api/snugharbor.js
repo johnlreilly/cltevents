@@ -72,10 +72,17 @@ function parseSnugHarborEvents(html) {
           }
           
           if (title && eventDate && !isNaN(eventDate.getTime())) {
-            // Format date in local timezone instead of UTC
-            const year = eventDate.getFullYear();
-            const month = String(eventDate.getMonth() + 1).padStart(2, '0');
-            const day = String(eventDate.getDate()).padStart(2, '0');
+            // Format date in America/New_York timezone
+            const formatter = new Intl.DateTimeFormat('en-US', {
+              timeZone: 'America/New_York',
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit'
+            });
+            const parts = formatter.formatToParts(eventDate);
+            const year = parts.find(p => p.type === 'year').value;
+            const month = parts.find(p => p.type === 'month').value;
+            const day = parts.find(p => p.type === 'day').value;
             const dateStr = `${year}-${month}-${day}`;
 
             events.push({
