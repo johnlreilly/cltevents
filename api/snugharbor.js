@@ -72,9 +72,15 @@ function parseSnugHarborEvents(html) {
           }
           
           if (title && eventDate && !isNaN(eventDate.getTime())) {
+            // Format date in local timezone instead of UTC
+            const year = eventDate.getFullYear();
+            const month = String(eventDate.getMonth() + 1).padStart(2, '0');
+            const day = String(eventDate.getDate()).padStart(2, '0');
+            const dateStr = `${year}-${month}-${day}`;
+
             events.push({
               name: title,
-              date: eventDate.toISOString().split('T')[0],
+              date: dateStr,
               startTime: eventDate,
               endTime: null,
               description: title,

@@ -73,10 +73,17 @@ function parseSmokeyJoesEvents(html) {
         }
         
         if (title && startTimestamp) {
+          const startDate = new Date(startTimestamp);
+          // Format date in local timezone (YYYY-MM-DD) instead of UTC
+          const year = startDate.getFullYear();
+          const month = String(startDate.getMonth() + 1).padStart(2, '0');
+          const day = String(startDate.getDate()).padStart(2, '0');
+          const dateStr = `${year}-${month}-${day}`;
+
           events.push({
             name: title,
-            date: new Date(startTimestamp).toISOString().split('T')[0],
-            startTime: new Date(startTimestamp),
+            date: dateStr,
+            startTime: startDate,
             endTime: endTimestamp ? new Date(endTimestamp) : null,
             description: description || title,
             venue: 'Smokey Joe\'s Cafe',

@@ -82,9 +82,12 @@ function parseFillmoreEvents(html) {
  */
 function parseEventFromJsonLd(jsonLd) {
   try {
-    // Extract date from ISO string
+    // Extract date from ISO string in local timezone
     const startDate = new Date(jsonLd.startDate)
-    const dateStr = startDate.toISOString().split('T')[0]
+    const year = startDate.getFullYear()
+    const month = String(startDate.getMonth() + 1).padStart(2, '0')
+    const day = String(startDate.getDate()).padStart(2, '0')
+    const dateStr = `${year}-${month}-${day}`
 
     // Extract venue name (could be "The Fillmore Charlotte" or "The Underground")
     const venueName = jsonLd.location?.name || 'The Fillmore Charlotte'

@@ -11,7 +11,10 @@
  * formatDate('2024-12-15') // Returns "Fri, Dec 15"
  */
 export const formatDate = (dateStr) => {
-  const date = new Date(dateStr)
+  // Parse date in local timezone to avoid timezone offset issues
+  // "2024-12-15" should be Dec 15 regardless of timezone
+  const [year, month, day] = dateStr.split('-').map(Number)
+  const date = new Date(year, month - 1, day)
   return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
 }
 
@@ -69,14 +72,16 @@ export const getToday = () => {
 }
 
 /**
- * Parses a date string and returns a Date object
- * @param {string} dateStr - Date string in various formats
+ * Parses a date string and returns a Date object in local timezone
+ * @param {string} dateStr - Date string in YYYY-MM-DD format
  * @returns {Date} Date object
  * @example
- * parseDate('2024-12-15') // Returns Date object for Dec 15, 2024
+ * parseDate('2024-12-15') // Returns Date object for Dec 15, 2024 in local timezone
  */
 export const parseDate = (dateStr) => {
-  return new Date(dateStr)
+  // Parse date in local timezone to avoid UTC conversion issues
+  const [year, month, day] = dateStr.split('-').map(Number)
+  return new Date(year, month - 1, day)
 }
 
 /**
@@ -88,7 +93,7 @@ export const parseDate = (dateStr) => {
  * compareDates('2024-12-15', '2024-12-16') // Returns negative number
  */
 export const compareDates = (dateA, dateB) => {
-  return new Date(dateA) - new Date(dateB)
+  return parseDate(dateA) - parseDate(dateB)
 }
 
 /**
@@ -99,7 +104,7 @@ export const compareDates = (dateA, dateB) => {
  * isDateInPast('2020-01-01') // Returns true
  */
 export const isDateInPast = (dateStr) => {
-  const date = new Date(dateStr)
+  const date = parseDate(dateStr)
   const today = new Date()
   today.setHours(0, 0, 0, 0)
   return date < today
@@ -113,7 +118,7 @@ export const isDateInPast = (dateStr) => {
  * isToday('2024-12-15') // Returns true if today is Dec 15, 2024
  */
 export const isToday = (dateStr) => {
-  const date = new Date(dateStr)
+  const date = parseDate(dateStr)
   const today = new Date()
   return (
     date.getDate() === today.getDate() &&

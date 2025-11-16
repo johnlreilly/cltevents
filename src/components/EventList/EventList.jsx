@@ -61,8 +61,9 @@ function EventList({
   }
 
   const formatDateSeparator = (dateStr) => {
-    const date = new Date(dateStr)
-    const year = date.getFullYear()
+    // Parse date in local timezone to avoid timezone offset issues
+    const [year, month, day] = dateStr.split('-').map(Number)
+    const date = new Date(year, month - 1, day)
     const monthDay = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
     const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'long' })
     return { year, monthDay, dayOfWeek }
