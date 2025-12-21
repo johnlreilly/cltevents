@@ -148,10 +148,7 @@ export default async function handler(req, res) {
         });
 
         // Parse pipe-delimited events from paragraphs
-        // Multiple formats possible:
-        // 1. Event Name | Date/Time | Venue | Description
-        // 2. Event Name | Date/Time | Venue | Location | Description
-        // 3. Venue | Price | Description (event name from article title)
+        // Expected format: Event Name | Date | Time | Venue | Price | Description
         let eventsFound = 0;
         for (const paragraph of paragraphs) {
           // Skip intro/outro paragraphs (look for pipe delimiter)
@@ -162,66 +159,20 @@ export default async function handler(req, res) {
           console.log(`\n✂️ SPLITTING: "${paragraph}"`);
           console.log(`   → ${parts.length} parts: ${JSON.stringify(parts)}`);
 
-          // We expect at least 2 parts
-          if (parts.length < 2) continue;
-
-          let eventName = '';
-          let dateTimeText = '';
-          let venue = '';
-          let eventDescription = '';
-          let venueDetails = '';
-
-          // Check if this is a 3-part entry with price in part[1]
-          // Format: Venue | Price | Description
-          if (parts.length === 3 && parts[1].startsWith('$')) {
-            eventName = articleTitle; // Use article title as event name
-            venue = parts[0];
-            venueDetails = venue;
-            eventDescription = parts[2];
-            dateTimeText = ''; // No specific time, will be null
-          } else if (parts.length >= 3) {
-            // Standard format: Event Name | Date/Time | Venue | ...
-            eventName = parts[0];
-            dateTimeText = parts[1];
-
-            // Check if part[2] is a price (starts with $)
-            if (parts[2].startsWith('$')) {
-              // Format: Name | Date | Price | Description
-              // No venue specified, description starts at part[3]
-              venue = 'Charlotte'; // Default location
-              eventDescription = parts.slice(3).join(' | ');
-              venueDetails = venue;
-            } else {
-              // part[2] is the venue
-              venue = parts[2];
-              venueDetails = venue;
-
-              // Parts 3+ may contain location and description
-              if (parts.length > 3) {
-                // Check if part[3] is a price
-                if (parts[3].startsWith('$')) {
-                  // Format: Name | Date | Venue | Price | Description
-                  eventDescription = parts.slice(4).join(' | ');
-                } else {
-                  // Check if part[3] looks like a location (short, no full sentences)
-                  // vs a description (longer, typically contains verbs/articles)
-                  const potentialLocation = parts[3];
-
-                  if (parts.length > 4 && potentialLocation.length < 50 && !potentialLocation.match(/\b(the|a|an|and|or|with|for|to)\b/i)) {
-                    // Likely a location - append to venue
-                    venueDetails = `${venue} - ${potentialLocation}`;
-                    eventDescription = parts.slice(4).join(' | ');
-                  } else {
-                    // It's the description
-                    eventDescription = parts.slice(3).join(' | ');
-                  }
-                }
-              }
-            }
-          } else {
-            // Less than 3 parts, skip
+          // Only process 6-part entries: Event Name | Date | Time | Venue | Price | Description
+          if (parts.length !== 6) {
+            console.log(`   ⏭️  SKIPPING: Not 6 parts`);
             continue;
           }
+
+          const eventName = parts[0];
+          const eventDate = parts[1];
+          const eventTime = parts[2];
+          const venue = parts[3];
+          const price = parts[4];
+          const eventDescription = parts[5];
+
+          console.log(`   ✅ PARSED: name="${eventName}", venue="${venue}", date="${eventDate}", time="${eventTime}"`);
 
           // Skip if event name is too short or looks like a header
           if (eventName.length < 5 || eventName.match(/^(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)/i)) {
@@ -229,16 +180,16 @@ export default async function handler(req, res) {
           }
 
           // Parse date and time
-          const eventDate = parseDateText(dateTimeText);
-          const eventTime = parseTimeText(dateTimeText);
+          const parsedDate = parseDateText(eventDate);
+          const parsedTime = parseTimeText(eventTime);
 
           // Create event object
           const event = {
             name: eventName,
-            venue: venueDetails,
-            date: eventDate,
-            time: eventTime,
-            description: eventDescription || articleTitle,
+            venue: venue,
+            date: parsedDate,
+            time: parsedTime,
+            description: eventDescription,
             url: articleLink,
             source: 'clttoday',
             category: 'Events',
