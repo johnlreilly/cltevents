@@ -156,6 +156,10 @@ export default async function handler(req, res) {
 
           const parts = paragraph.split('|').map(p => p.trim());
 
+          // Debug: Log the paragraph and parts
+          console.log(`\n📝 Processing paragraph: "${paragraph}"`);
+          console.log(`   Split into ${parts.length} parts:`, parts);
+
           // We expect at least 2 parts
           if (parts.length < 2) continue;
 
