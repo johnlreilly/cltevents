@@ -145,7 +145,10 @@ export default async function handler(req, res) {
         console.log(`Found ${paragraphs.length} paragraphs in article`);
 
         // Parse pipe-delimited events from paragraphs
-        // Format: Event Name | Date/Time | Venue | Description
+        // Multiple formats possible:
+        // 1. Event Name | Date/Time | Venue | Description
+        // 2. Event Name | Date/Time | Venue | Location | Description
+        // 3. Venue | Price | Description (event name from article title)
         let eventsFound = 0;
         for (const paragraph of paragraphs) {
           // Skip intro/outro paragraphs (look for pipe delimiter)
@@ -153,32 +156,65 @@ export default async function handler(req, res) {
 
           const parts = paragraph.split('|').map(p => p.trim());
 
-          // We expect at least 3 parts (name, date/time, venue)
-          if (parts.length < 3) continue;
+          // We expect at least 2 parts
+          if (parts.length < 2) continue;
 
-          const eventName = parts[0];
-          const dateTimeText = parts[1];
-          const venue = parts[2];
-
-          // Parts 3+ may contain location and description
-          // If there are 4+ parts, first part after venue is often a more specific location
-          // followed by the actual description
+          let eventName = '';
+          let dateTimeText = '';
+          let venue = '';
           let eventDescription = '';
-          let venueDetails = venue;
+          let venueDetails = '';
 
-          if (parts.length > 3) {
-            // Check if part[3] looks like a location (short, no full sentences)
-            // vs a description (longer, typically contains verbs/articles)
-            const potentialLocation = parts[3];
+          // Check if this is a 3-part entry with price in part[1]
+          // Format: Venue | Price | Description
+          if (parts.length === 3 && parts[1].startsWith('$')) {
+            eventName = articleTitle; // Use article title as event name
+            venue = parts[0];
+            venueDetails = venue;
+            eventDescription = parts[2];
+            dateTimeText = ''; // No specific time, will be null
+          } else if (parts.length >= 3) {
+            // Standard format: Event Name | Date/Time | Venue | ...
+            eventName = parts[0];
+            dateTimeText = parts[1];
 
-            if (parts.length > 4 && potentialLocation.length < 50 && !potentialLocation.match(/\b(the|a|an|and|or|with|for|to)\b/i)) {
-              // Likely a location - append to venue
-              venueDetails = `${venue} - ${potentialLocation}`;
-              eventDescription = parts.slice(4).join(' | ');
-            } else {
-              // It's the description
+            // Check if part[2] is a price (starts with $)
+            if (parts[2].startsWith('$')) {
+              // Format: Name | Date | Price | Description
+              // No venue specified, description starts at part[3]
+              venue = 'Charlotte'; // Default location
               eventDescription = parts.slice(3).join(' | ');
+              venueDetails = venue;
+            } else {
+              // part[2] is the venue
+              venue = parts[2];
+              venueDetails = venue;
+
+              // Parts 3+ may contain location and description
+              if (parts.length > 3) {
+                // Check if part[3] is a price
+                if (parts[3].startsWith('$')) {
+                  // Format: Name | Date | Venue | Price | Description
+                  eventDescription = parts.slice(4).join(' | ');
+                } else {
+                  // Check if part[3] looks like a location (short, no full sentences)
+                  // vs a description (longer, typically contains verbs/articles)
+                  const potentialLocation = parts[3];
+
+                  if (parts.length > 4 && potentialLocation.length < 50 && !potentialLocation.match(/\b(the|a|an|and|or|with|for|to)\b/i)) {
+                    // Likely a location - append to venue
+                    venueDetails = `${venue} - ${potentialLocation}`;
+                    eventDescription = parts.slice(4).join(' | ');
+                  } else {
+                    // It's the description
+                    eventDescription = parts.slice(3).join(' | ');
+                  }
+                }
+              }
             }
+          } else {
+            // Less than 3 parts, skip
+            continue;
           }
 
           // Skip if event name is too short or looks like a header
