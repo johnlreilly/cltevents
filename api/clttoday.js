@@ -159,7 +159,27 @@ export default async function handler(req, res) {
           const eventName = parts[0];
           const dateTimeText = parts[1];
           const venue = parts[2];
-          const eventDescription = parts.length > 3 ? parts.slice(3).join(' | ') : '';
+
+          // Parts 3+ may contain location and description
+          // If there are 4+ parts, first part after venue is often a more specific location
+          // followed by the actual description
+          let eventDescription = '';
+          let venueDetails = venue;
+
+          if (parts.length > 3) {
+            // Check if part[3] looks like a location (short, no full sentences)
+            // vs a description (longer, typically contains verbs/articles)
+            const potentialLocation = parts[3];
+
+            if (parts.length > 4 && potentialLocation.length < 50 && !potentialLocation.match(/\b(the|a|an|and|or|with|for|to)\b/i)) {
+              // Likely a location - append to venue
+              venueDetails = `${venue} - ${potentialLocation}`;
+              eventDescription = parts.slice(4).join(' | ');
+            } else {
+              // It's the description
+              eventDescription = parts.slice(3).join(' | ');
+            }
+          }
 
           // Skip if event name is too short or looks like a header
           if (eventName.length < 5 || eventName.match(/^(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)/i)) {
@@ -173,7 +193,7 @@ export default async function handler(req, res) {
           // Create event object
           const event = {
             name: eventName,
-            venue: venue,
+            venue: venueDetails,
             date: eventDate,
             time: eventTime,
             description: eventDescription || articleTitle,
