@@ -1,4 +1,4 @@
-// Vercel Serverless Function to fetch events from CLTtoday RSS feed
+// Vercel Serverless Function to fetch events from CLTtoday RSS feed and parse individual events
 export default async function handler(req, res) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -17,101 +17,192 @@ export default async function handler(req, res) {
     // Fetch the RSS feed
     const rssResponse = await fetch('https://clttoday.6amcity.com/events.rss');
 
-    console.log('RSS response status:', rssResponse.status);
-
     if (!rssResponse.ok) {
       throw new Error(`RSS fetch failed: ${rssResponse.status}`);
     }
 
     const rssText = await rssResponse.text();
     console.log('RSS text length:', rssText.length);
-    console.log('First 500 chars:', rssText.substring(0, 500));
 
     // Parse RSS XML manually (simple parsing)
-    const items = [];
+    const allEvents = [];
     const itemRegex = /<item>([\s\S]*?)<\/item>/g;
     let match;
-    let itemCount = 0;
+    let articleCount = 0;
 
-    while ((match = itemRegex.exec(rssText)) !== null) {
-      itemCount++;
-      const itemXml = match[1];
-      console.log(`Parsing item ${itemCount}...`);
+    // Helper to extract fields from XML
+    const getField = (itemXml, fieldName) => {
+      const fieldRegex = new RegExp(`<${fieldName}[^>]*><!\\[CDATA\\[([\\s\\S]*?)\\]\\]><\\/${fieldName}>`, 'i');
+      const cdataMatch = itemXml.match(fieldRegex);
+      if (cdataMatch) return cdataMatch[1].trim();
 
-      // Extract fields
-      const getField = (fieldName) => {
-        const fieldRegex = new RegExp(`<${fieldName}[^>]*><!\\[CDATA\\[([\\s\\S]*?)\\]\\]><\\/${fieldName}>`, 'i');
-        const cdataMatch = itemXml.match(fieldRegex);
-        if (cdataMatch) return cdataMatch[1].trim();
+      const simpleRegex = new RegExp(`<${fieldName}[^>]*>([\\s\\S]*?)<\\/${fieldName}>`, 'i');
+      const simpleMatch = itemXml.match(simpleRegex);
+      return simpleMatch ? simpleMatch[1].trim() : null;
+    };
 
-        const simpleRegex = new RegExp(`<${fieldName}[^>]*>([\\s\\S]*?)<\\/${fieldName}>`, 'i');
-        const simpleMatch = itemXml.match(simpleRegex);
-        return simpleMatch ? simpleMatch[1].trim() : null;
-      };
+    // Helper to parse date from text like "Jan. 4", "Through Jan. 4", "Various days + times through Jan. 4"
+    const parseDateText = (dateText) => {
+      if (!dateText) return null;
 
-      const title = getField('title');
-      const link = getField('link');
-      const description = getField('description');
-      const pubDate = getField('pubDate');
-      const category = getField('category');
-      const contentEncoded = getField('content:encoded');
+      // Extract month and day patterns
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const monthPattern = monthNames.join('|');
 
-      // Extract section headers (categories) from content
-      const sectionHeaders = [];
-      const headerRegex = /<h3[^>]*>(.*?)<\/h3>/g;
-      let headerMatch;
+      // Match patterns like "Jan. 4", "January 4", "Jan 4", etc.
+      const dateMatch = dateText.match(new RegExp(`(${monthPattern})[a-z]*\\.?\\s+(\\d{1,2})`, 'i'));
+      if (dateMatch) {
+        const month = dateMatch[1].substring(0, 3);
+        const day = parseInt(dateMatch[2]);
+        const monthIndex = monthNames.findIndex(m => month.toLowerCase().startsWith(m.toLowerCase()));
 
-      const contentToSearch = contentEncoded || description || '';
-      while ((headerMatch = headerRegex.exec(contentToSearch)) !== null) {
-        const headerText = headerMatch[1].replace(/<[^>]*>/g, '').trim();
-        // Filter out location headers (contain state abbreviations or "Park")
-        if (headerText && !headerText.match(/\b[A-Z]{2}\b/) && !headerText.includes('Park')) {
-          sectionHeaders.push(headerText);
+        if (monthIndex !== -1) {
+          const currentYear = new Date().getFullYear();
+          const currentMonth = new Date().getMonth();
+
+          // If the event month is before current month, assume next year
+          const year = monthIndex < currentMonth ? currentYear + 1 : currentYear;
+
+          // Return in MM/DD/YYYY format
+          return `${String(monthIndex + 1).padStart(2, '0')}/${String(day).padStart(2, '0')}/${year}`;
         }
       }
 
-      // Extract event links from content with dates
-      const eventLinks = [];
-      const eventLinkRegex = /clttoday\.6amcity\.com\/events#\/details\/[^/]+\/\d+\/(\d{4}-\d{2}-\d{2})/g;
-      let eventMatch;
+      return null;
+    };
 
-      while ((eventMatch = eventLinkRegex.exec(contentToSearch)) !== null) {
-        eventLinks.push(eventMatch[1]); // The date portion
+    // Helper to extract time from text like "7:00 PM", "7 PM", "7pm"
+    const parseTimeText = (timeText) => {
+      if (!timeText) return null;
+
+      // Match patterns like "7:00 PM", "7 PM", "7pm", "7:00pm"
+      const timeMatch = timeText.match(/(\d{1,2}):?(\d{2})?\s*(am|pm|a\.m\.|p\.m\.)/i);
+      if (timeMatch) {
+        const hour = timeMatch[1];
+        const minute = timeMatch[2] || '00';
+        const period = timeMatch[3].replace(/\./g, '').toUpperCase();
+        return `${hour}:${minute} ${period}`;
       }
 
-      // Extract image from description if available
-      let image = null;
-      const imgMatch = description?.match(/<img[^>]+src="([^"]+)"/);
-      if (imgMatch) {
-        image = imgMatch[1];
-      }
+      return null;
+    };
 
-      // Clean description (remove HTML tags)
-      const cleanDescription = description?.replace(/<[^>]+>/g, '').trim();
+    // Process each RSS item (article)
+    while ((match = itemRegex.exec(rssText)) !== null) {
+      articleCount++;
+      const itemXml = match[1];
 
-      if (title) {
-        console.log(`Found event: ${title} with ${eventLinks.length} event dates and ${sectionHeaders.length} categories`);
-        items.push({
-          name: title,
-          url: link,
-          description: cleanDescription?.substring(0, 300) || '',
-          pubDate: pubDate,
-          category: category,
-          image: image,
-          source: 'clttoday',
-          eventDates: eventLinks, // Array of dates found in the article
-          sectionHeaders: sectionHeaders // Array of section categories found in the article
+      const articleTitle = getField(itemXml, 'title');
+      const articleLink = getField(itemXml, 'link');
+      const contentEncoded = getField(itemXml, 'content:encoded');
+      const description = getField(itemXml, 'description');
+
+      console.log(`Processing article ${articleCount}: ${articleTitle}`);
+
+      if (!articleLink) continue;
+
+      // Try to fetch the full article to parse individual events
+      try {
+        console.log(`Fetching article: ${articleLink}`);
+        const articleResponse = await fetch(articleLink, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (compatible; CLTEvents/1.0)',
+          },
         });
+
+        if (!articleResponse.ok) {
+          console.log(`Failed to fetch article: ${articleResponse.status}`);
+          continue;
+        }
+
+        const articleHtml = await articleResponse.text();
+
+        // Extract article body content (look for common article content selectors)
+        // The content is in <p> tags within the article body
+        const bodyMatch = articleHtml.match(/<article[^>]*>([\s\S]*?)<\/article>/);
+        const bodyContent = bodyMatch ? bodyMatch[1] : articleHtml;
+
+        // Extract all paragraph text
+        const paragraphRegex = /<p[^>]*>([\s\S]*?)<\/p>/g;
+        let pMatch;
+        const paragraphs = [];
+
+        while ((pMatch = paragraphRegex.exec(bodyContent)) !== null) {
+          const pText = pMatch[1]
+            .replace(/<a[^>]*>([\s\S]*?)<\/a>/g, '$1') // Keep link text but remove tags
+            .replace(/<[^>]+>/g, '') // Remove other HTML tags
+            .replace(/&nbsp;/g, ' ')
+            .replace(/&#8217;/g, "'")
+            .replace(/&#8220;/g, '"')
+            .replace(/&#8221;/g, '"')
+            .trim();
+
+          if (pText) {
+            paragraphs.push(pText);
+          }
+        }
+
+        console.log(`Found ${paragraphs.length} paragraphs in article`);
+
+        // Parse pipe-delimited events from paragraphs
+        // Format: Event Name | Date/Time | Venue | Description
+        let eventsFound = 0;
+        for (const paragraph of paragraphs) {
+          // Skip intro/outro paragraphs (look for pipe delimiter)
+          if (!paragraph.includes('|')) continue;
+
+          const parts = paragraph.split('|').map(p => p.trim());
+
+          // We expect at least 3 parts (name, date/time, venue)
+          if (parts.length < 3) continue;
+
+          const eventName = parts[0];
+          const dateTimeText = parts[1];
+          const venue = parts[2];
+          const eventDescription = parts.length > 3 ? parts.slice(3).join(' | ') : '';
+
+          // Skip if event name is too short or looks like a header
+          if (eventName.length < 5 || eventName.match(/^(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)/i)) {
+            continue;
+          }
+
+          // Parse date and time
+          const eventDate = parseDateText(dateTimeText);
+          const eventTime = parseTimeText(dateTimeText);
+
+          // Create event object
+          const event = {
+            name: eventName,
+            venue: venue,
+            date: eventDate,
+            time: eventTime,
+            description: eventDescription || articleTitle,
+            url: articleLink,
+            source: 'clttoday',
+            category: 'Events',
+          };
+
+          console.log(`Found event: ${eventName} at ${venue} on ${eventDate}`);
+          allEvents.push(event);
+          eventsFound++;
+        }
+
+        console.log(`Extracted ${eventsFound} events from article`);
+
+      } catch (articleError) {
+        console.error(`Error fetching article ${articleLink}:`, articleError.message);
+        // Continue to next article
+        continue;
       }
     }
 
-    console.log(`Total items found: ${itemCount}`);
-    console.log(`Total events parsed: ${items.length}`);
+    console.log(`Total articles processed: ${articleCount}`);
+    console.log(`Total events extracted: ${allEvents.length}`);
 
     res.status(200).json({
       success: true,
-      events: items,
-      count: items.length
+      events: allEvents,
+      count: allEvents.length
     });
 
   } catch (error) {
