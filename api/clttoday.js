@@ -128,9 +128,6 @@ export default async function handler(req, res) {
         const paragraphs = [];
 
         while ((pMatch = paragraphRegex.exec(bodyContent)) !== null) {
-          // Log raw paragraph HTML before processing
-          console.log(`\n🔍 RAW PARAGRAPH HTML: ${pMatch[0]}`);
-
           const pText = pMatch[1]
             .replace(/<a[^>]*>([\s\S]*?)<\/a>/g, '$1') // Keep link text but remove tags
             .replace(/<[^>]+>/g, '') // Remove other HTML tags
@@ -140,14 +137,15 @@ export default async function handler(req, res) {
             .replace(/&#8221;/g, '"')
             .trim();
 
-          console.log(`   After processing: ${pText}`);
-
           if (pText) {
             paragraphs.push(pText);
           }
         }
 
-        console.log(`Found ${paragraphs.length} paragraphs in article`);
+        console.log(`\n📋 ALL PARAGRAPHS EXTRACTED (${paragraphs.length} total):`);
+        paragraphs.forEach((p, i) => {
+          console.log(`[${i}] ${p}`);
+        });
 
         // Parse pipe-delimited events from paragraphs
         // Multiple formats possible:
@@ -161,10 +159,8 @@ export default async function handler(req, res) {
 
           const parts = paragraph.split('|').map(p => p.trim());
 
-          // Debug: Log the paragraph and parts
-          console.log(`\n📝 Processing paragraph: "${paragraph}"`);
-          console.log(`   Pipe character codes in paragraph:`, [...paragraph].filter((c, i) => c === '|' || paragraph.charCodeAt(i) === 124).map((c, i) => `char ${i}: "${c}" (code: ${c.charCodeAt(0)})`));
-          console.log(`   Split into ${parts.length} parts:`, parts);
+          console.log(`\n✂️ SPLITTING: "${paragraph}"`);
+          console.log(`   → ${parts.length} parts: ${JSON.stringify(parts)}`);
 
           // We expect at least 2 parts
           if (parts.length < 2) continue;
@@ -178,17 +174,12 @@ export default async function handler(req, res) {
           // Check if this is a 3-part entry with price in part[1]
           // Format: Venue | Price | Description
           if (parts.length === 3 && parts[1].startsWith('$')) {
-            console.log(`✅ Matched 3-part format: "${parts[0]}" | "${parts[1]}" | "${parts[2]}"`);
             eventName = articleTitle; // Use article title as event name
             venue = parts[0];
             venueDetails = venue;
             eventDescription = parts[2];
             dateTimeText = ''; // No specific time, will be null
           } else if (parts.length >= 3) {
-            console.log(`❌ Did NOT match 3-part format. parts.length=${parts.length}, parts[1]="${parts[1]}", startsWith$=${parts[1].startsWith('$')}`);
-            if (parts.length === 3) {
-              console.log(`   Full parts: [${parts.map(p => `"${p}"`).join(', ')}]`);
-            }
             // Standard format: Event Name | Date/Time | Venue | ...
             eventName = parts[0];
             dateTimeText = parts[1];
