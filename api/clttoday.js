@@ -128,6 +128,9 @@ export default async function handler(req, res) {
         const paragraphs = [];
 
         while ((pMatch = paragraphRegex.exec(bodyContent)) !== null) {
+          // Log raw paragraph HTML before processing
+          console.log(`\n🔍 RAW PARAGRAPH HTML: ${pMatch[0]}`);
+
           const pText = pMatch[1]
             .replace(/<a[^>]*>([\s\S]*?)<\/a>/g, '$1') // Keep link text but remove tags
             .replace(/<[^>]+>/g, '') // Remove other HTML tags
@@ -136,6 +139,8 @@ export default async function handler(req, res) {
             .replace(/&#8220;/g, '"')
             .replace(/&#8221;/g, '"')
             .trim();
+
+          console.log(`   After processing: ${pText}`);
 
           if (pText) {
             paragraphs.push(pText);
