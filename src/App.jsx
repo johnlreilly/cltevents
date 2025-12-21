@@ -15,8 +15,16 @@ import ScrollToTop from './components/ScrollToTop/ScrollToTop'
 import ImageCropTest from './components/ImageCropTest/ImageCropTest'
 
 // Version tracking
-const APP_VERSION = '1.1.0'
-const BUILD_DATE = new Date().toISOString()
+const APP_VERSION = '1.1.1'
+const BUILD_DATE = new Date().toLocaleString('en-US', {
+  timeZone: 'America/New_York',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+  hour: '2-digit',
+  minute: '2-digit',
+  second: '2-digit'
+})
 
 function App() {
   // Check if we're in test mode
