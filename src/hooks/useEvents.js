@@ -60,9 +60,7 @@ export function useEvents() {
         const sevenDays = 7 * 24 * 60 * 60 * 1000
         if (cacheAge < sevenDays) {
           youtubeCache.current = parsed.data || {}
-          console.log(`Loaded YouTube cache from localStorage: ${Object.keys(youtubeCache.current).length} entries`)
         } else {
-          console.log('YouTube cache expired, starting fresh')
           localStorage.removeItem('cltevents-youtube-cache')
         }
       }
@@ -131,9 +129,7 @@ export function useEvents() {
           YOUTUBE_VENUES.some((v) => venue.toLowerCase().includes(v))
 
         if (shouldFetchYouTube) {
-          console.log(`Fetching YouTube for ${tmEvent.name} at ${venue}`)
           youtubeLinks = await fetchYouTubeVideos(tmEvent.name, youtubeCache.current, API_BASE_URL)
-          console.log(`Got ${youtubeLinks.length} YouTube videos for ${tmEvent.name}`)
         }
 
         // Extract highest resolution image
@@ -164,7 +160,6 @@ export function useEvents() {
 
         // Debug logging for YouTube links
         if (youtubeLinks.length > 0) {
-          console.log(`✅ Event "${tmEvent.name}" has ${youtubeLinks.length} YouTube links:`, youtubeLinks)
         }
 
         // Apply text substitutions
@@ -190,9 +185,7 @@ export function useEvents() {
         const matchScore = 70 + 15 + 10 // base + venue boost + music boost = 95
 
         // Fetch YouTube videos for Smokey Joe's events
-        console.log(`Fetching YouTube for Smokey Joe's event: ${sjEvent.name}`)
         const youtubeLinks = await fetchYouTubeVideos(sjEvent.name, youtubeCache.current, API_BASE_URL)
-        console.log(`Got ${youtubeLinks.length} YouTube videos for ${sjEvent.name}`)
 
         const event = {
           id: `sj-${sjEvent.name}-${sjEvent.date}`,
@@ -228,9 +221,7 @@ export function useEvents() {
         const matchScore = 70 + (isPreferred ? 15 : 0) + 10 // base + venue boost + music boost
 
         // Fetch YouTube videos for Fillmore events (artist names)
-        console.log(`Fetching YouTube for Fillmore event: ${fillmoreEvent.name}`)
         const youtubeLinks = await fetchYouTubeVideos(fillmoreEvent.name, youtubeCache.current, API_BASE_URL)
-        console.log(`Got ${youtubeLinks.length} YouTube videos for ${fillmoreEvent.name}`)
 
         const event = {
           id: fillmoreEvent.id,
@@ -490,7 +481,6 @@ export function useEvents() {
           data: youtubeCache.current,
         }
         localStorage.setItem('cltevents-youtube-cache', JSON.stringify(cacheData))
-        console.log(`Saved YouTube cache to localStorage: ${Object.keys(youtubeCache.current).length} entries`)
       } catch (error) {
         console.error('Error saving YouTube cache:', error)
       }

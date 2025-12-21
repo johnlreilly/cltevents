@@ -101,13 +101,11 @@ export const fetchYouTubeVideos = async (artistName, cache = {}, apiBaseUrl = ''
 
   // Return cached results if available
   if (cache[cacheKey]) {
-    console.log('Using cached YouTube results for', artistName)
     return cache[cacheKey]
   }
 
   try {
     const url = `${apiBaseUrl}/api/youtube?query=${encodeURIComponent(artistName)}`
-    console.log(`Fetching YouTube videos from: ${url}`)
 
     const response = await fetch(url)
 
