@@ -63,8 +63,8 @@ export default async function handler(req, res) {
           // If the event month is before current month, assume next year
           const year = monthIndex < currentMonth ? currentYear + 1 : currentYear;
 
-          // Return in MM/DD/YYYY format
-          return `${String(monthIndex + 1).padStart(2, '0')}/${String(day).padStart(2, '0')}/${year}`;
+          // Return in YYYY-MM-DD format (ISO 8601, expected by frontend)
+          return `${year}-${String(monthIndex + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         }
       }
 
