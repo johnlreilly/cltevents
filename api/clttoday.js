@@ -168,12 +168,17 @@ export default async function handler(req, res) {
           // Check if this is a 3-part entry with price in part[1]
           // Format: Venue | Price | Description
           if (parts.length === 3 && parts[1].startsWith('$')) {
+            console.log(`✅ Matched 3-part format: "${parts[0]}" | "${parts[1]}" | "${parts[2]}"`);
             eventName = articleTitle; // Use article title as event name
             venue = parts[0];
             venueDetails = venue;
             eventDescription = parts[2];
             dateTimeText = ''; // No specific time, will be null
           } else if (parts.length >= 3) {
+            console.log(`❌ Did NOT match 3-part format. parts.length=${parts.length}, parts[1]="${parts[1]}", startsWith$=${parts[1].startsWith('$')}`);
+            if (parts.length === 3) {
+              console.log(`   Full parts: [${parts.map(p => `"${p}"`).join(', ')}]`);
+            }
             // Standard format: Event Name | Date/Time | Venue | ...
             eventName = parts[0];
             dateTimeText = parts[1];
