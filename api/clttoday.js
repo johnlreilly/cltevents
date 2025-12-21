@@ -158,6 +158,7 @@ export default async function handler(req, res) {
 
           // Debug: Log the paragraph and parts
           console.log(`\n📝 Processing paragraph: "${paragraph}"`);
+          console.log(`   Pipe character codes in paragraph:`, [...paragraph].filter((c, i) => c === '|' || paragraph.charCodeAt(i) === 124).map((c, i) => `char ${i}: "${c}" (code: ${c.charCodeAt(0)})`));
           console.log(`   Split into ${parts.length} parts:`, parts);
 
           // We expect at least 2 parts
