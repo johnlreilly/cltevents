@@ -3,6 +3,8 @@
  * @module utils/eventUtils
  */
 
+import { categorizeEventTime } from './dateUtils'
+
 /**
  * Converts all-caps strings to title case
  * @param {string} str - String to convert
@@ -304,6 +306,43 @@ export const filterByGenre = (events, selectedGenres = []) => {
 export const filterBySource = (events, selectedSources = []) => {
   if (selectedSources.length === 0) return events
   return events.filter((e) => selectedSources.includes(e.source))
+}
+
+/**
+ * Filters events by time of day
+ * @param {Array} events - Array of event objects
+ * @param {string} mode - 'day' or 'night'
+ * @returns {Array} Filtered events
+ * @example
+ * filterByTimeOfDay(events, 'day') // Returns only daytime events (6 AM - 6 PM)
+ * filterByTimeOfDay(events, 'night') // Returns only nighttime events (6 PM - 2 AM)
+ */
+export const filterByTimeOfDay = (events, mode) => {
+  // Dive bar venues that should only show in night mode
+  const DIVE_BAR_VENUES = ['thirsty beaver', 'snug harbor', "smokey joe's cafe"]
+
+  // Sources that are primarily daytime events
+  const DAYTIME_SOURCES = ['clttoday']
+
+  return events.filter((event) => {
+    const venueLower = (event.venue || '').toLowerCase()
+    const isDiveBar = DIVE_BAR_VENUES.some(bar => venueLower.includes(bar))
+    const isDaytimeSource = DAYTIME_SOURCES.includes(event.source)
+
+    // Dive bar events only show in night mode
+    if (isDiveBar && mode === 'day') return false
+
+    // Daytime source events only show in day mode
+    if (isDaytimeSource && mode === 'night') return false
+
+    const timeCategory = categorizeEventTime(event.time)
+
+    // Events without time (null) show in both modes (unless source-specific rules apply)
+    if (timeCategory === null) return true
+
+    // Otherwise, show only if time category matches mode
+    return timeCategory === mode
+  })
 }
 
 /**

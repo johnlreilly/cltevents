@@ -7,6 +7,7 @@
 import { useState, useEffect } from 'react'
 import useEvents from './hooks/useEvents'
 import useFilters from './hooks/useFilters'
+import useTheme from './hooks/useTheme'
 import Header from './components/Header/Header'
 import LoadingSpinner from './components/LoadingSpinner/LoadingSpinner'
 import EventList from './components/EventList/EventList'
@@ -39,6 +40,7 @@ function App() {
   const [quoteDisplayTime, setQuoteDisplayTime] = useState(null)
   const [hasScrolledPastTop, setHasScrolledPastTop] = useState(false)
   const [isAtTop, setIsAtTop] = useState(true) // Track if user is at the very top of the page
+  const { mode, toggleMode } = useTheme()
   const { events, loading, initialLoad, availableGenres, refetch } = useEvents()
   const {
     filteredEvents,
@@ -56,7 +58,7 @@ function App() {
     toggleFavorite,
     hidden,
     toggleHidden,
-  } = useFilters(events)
+  } = useFilters(events, mode)
 
   // Debug: Log events with YouTube links
   useEffect(() => {
@@ -156,8 +158,10 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className={`min-h-screen bg-surface ${mode === 'night' ? 'dark' : ''}`}>
       <Header
+        mode={mode}
+        onToggleMode={toggleMode}
         onRefresh={handleRefresh}
         loading={loading}
         onToggleFilters={toggleFilterTray}

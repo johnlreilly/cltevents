@@ -9,6 +9,7 @@ import {
   filterByCategory,
   filterByGenre,
   filterBySource,
+  filterByTimeOfDay,
   groupEventsByName,
   sortEvents,
   normalizeEventName,
@@ -41,7 +42,7 @@ const PREFERRED_VENUES = ['smokey', 'snug', 'neighborhood']
  *   return <EventList events={filteredEvents} />
  * }
  */
-export function useFilters(events) {
+export function useFilters(events, mode = 'night') {
   // Persisted state
   const [selectedCategory, setSelectedCategory] = useLocalStorage('cltevents-category', 'all')
   const [selectedGenres, setSelectedGenres] = useLocalStorage('cltevents-selectedGenres', [])
@@ -149,6 +150,9 @@ export function useFilters(events) {
       return event.date && !isDateInPast(event.date)
     })
 
+    // Step 1.5: Filter by time of day
+    filtered = filterByTimeOfDay(filtered, mode)
+
     // Step 2: Filter out excluded keywords (with source-specific filtering)
     filtered = filtered.filter((event) => {
       const searchText = `${event.name} ${event.description || ''}`.toLowerCase()
@@ -194,6 +198,7 @@ export function useFilters(events) {
     return sorted
   }, [
     events,
+    mode,
     selectedCategory,
     favorites,
     hidden,

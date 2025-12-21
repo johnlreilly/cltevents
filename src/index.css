@@ -6,10 +6,55 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Theme CSS Variables */
+:root {
+  /* Light theme (Day Mode) - Material Design 3 Light Blue */
+  --color-primary: #005CBC;
+  --color-on-primary: #FFFFFF;
+  --color-primary-container: #D3E4FD;
+  --color-on-primary-container: #001B3D;
+  --color-secondary: #4A4458;
+  --color-on-secondary: #FFFFFF;
+  --color-secondary-container: #E8DEF8;
+  --color-on-secondary-container: #1D192B;
+  --color-tertiary: #8E4958;
+  --color-on-tertiary: #FFFFFF;
+  --color-tertiary-container: #FFD8E4;
+  --color-on-tertiary-container: #3B0719;
+  --color-surface: #F8F9FA;
+  --color-on-surface: #1A1C1E;
+  --color-surface-variant: #DFE2EB;
+  --color-on-surface-variant: #43474E;
+  --color-outline: #73777F;
+  --color-outline-variant: #C3C7CF;
+}
+
+.dark {
+  /* Dark theme (Night Mode) - Material Design 3 Dark Blue */
+  --color-primary: #A8C7FA;
+  --color-on-primary: #003258;
+  --color-primary-container: #004A77;
+  --color-on-primary-container: #D3E4FD;
+  --color-secondary: #CCC2DC;
+  --color-on-secondary: #332D41;
+  --color-secondary-container: #4A4458;
+  --color-on-secondary-container: #E8DEF8;
+  --color-tertiary: #EFB8C8;
+  --color-on-tertiary: #492532;
+  --color-tertiary-container: #633B48;
+  --color-on-tertiary-container: #FFD8E4;
+  --color-surface: #1C1B1F;
+  --color-on-surface: #E6E1E5;
+  --color-surface-variant: #49454F;
+  --color-on-surface-variant: #CAC4D0;
+  --color-outline: #938F99;
+  --color-outline-variant: #49454F;
+}
+
 /* Custom global styles */
 @layer base {
   body {
-    @apply min-h-screen bg-black;
+    @apply min-h-screen bg-surface;
   }
 }
 

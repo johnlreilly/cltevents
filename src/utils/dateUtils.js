@@ -126,3 +126,58 @@ export const isToday = (dateStr) => {
     date.getFullYear() === today.getFullYear()
   )
 }
+
+/**
+ * Categorizes an event time as 'day' or 'night'
+ * Day: 6 AM - 6 PM (06:00 - 18:00)
+ * Night: 6 PM - 2 AM (18:00 - 02:00 next day)
+ * @param {string} timeStr - Time string (e.g., "7:00 PM" or "19:00")
+ * @returns {string|null} 'day', 'night', or null if no time
+ * @example
+ * categorizeEventTime('7:00 PM') // Returns 'night'
+ * categorizeEventTime('2:00 PM') // Returns 'day'
+ * categorizeEventTime(null) // Returns null
+ */
+export const categorizeEventTime = (timeStr) => {
+  if (!timeStr) return null
+
+  // Parse time to 24-hour format
+  let hours
+  if (timeStr.match(/\d{1,2}:\d{2}\s?[AP]M/i)) {
+    // 12-hour format
+    const match = timeStr.match(/(\d{1,2}):(\d{2})\s?([AP]M)/i)
+    if (!match) return null
+    hours = parseInt(match[1])
+    const period = match[3].toUpperCase()
+    if (period === 'PM' && hours !== 12) hours += 12
+    if (period === 'AM' && hours === 12) hours = 0
+  } else {
+    // 24-hour format
+    const match = timeStr.match(/(\d{1,2}):(\d{2})/)
+    if (!match) return null
+    hours = parseInt(match[1])
+  }
+
+  // Day: 6 AM to 6 PM (6-17)
+  // Night: 6 PM to 2 AM (18-23, 0-1)
+  if (hours >= 6 && hours < 18) return 'day'
+  if (hours >= 18 || hours < 2) return 'night'
+
+  // 2 AM - 6 AM: unclear, return null (show in both)
+  return null
+}
+
+/**
+ * Determines current mode based on device time
+ * @returns {string} 'day' or 'night'
+ * @example
+ * getCurrentMode() // Returns 'day' if current time is 10 AM, 'night' if 9 PM
+ */
+export const getCurrentMode = () => {
+  const now = new Date()
+  const hours = now.getHours()
+
+  // Day mode: 6 AM - 6 PM (6-17)
+  // Night mode: 6 PM - 6 AM (18-23, 0-5)
+  return (hours >= 6 && hours < 18) ? 'day' : 'night'
+}
