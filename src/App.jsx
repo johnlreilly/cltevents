@@ -60,16 +60,16 @@ function App() {
     toggleHidden,
   } = useFilters(events, mode)
 
-  // Debug: Log events with YouTube links
+  // Debug: Log CLTtoday events
   useEffect(() => {
     if (events.length > 0) {
-      const eventsWithYouTube = events.filter(e => e.youtubeLinks && e.youtubeLinks.length > 0)
-      console.log(`📊 Total events: ${events.length}, Events with YouTube: ${eventsWithYouTube.length}`)
-      if (eventsWithYouTube.length > 0) {
-        console.log('Events with YouTube links:', eventsWithYouTube.map(e => ({
+      const cltTodayEvents = events.filter(e => e.source === 'clttoday')
+      console.log(`📊 Total events: ${events.length}, CLTtoday events: ${cltTodayEvents.length}`)
+      if (cltTodayEvents.length > 0) {
+        console.log('CLTtoday events:', cltTodayEvents.map(e => ({
           name: e.name,
           venue: e.venue,
-          youtubeCount: e.youtubeLinks.length
+          description: e.description
         })))
       }
     }
