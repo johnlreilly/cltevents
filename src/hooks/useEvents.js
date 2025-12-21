@@ -337,57 +337,46 @@ export function useEvents() {
   }
 
   /**
-   * Processes CLTtoday article events
+   * Processes CLTtoday events
+   * Now handles individual events with date, time, and venue
    */
   const processCLTtodayEvents = (cltData) => {
-    const cltEvents = []
-
-    cltData.events.forEach((cltEvent) => {
-      let matchScore = 60
+    return cltData.events.map((cltEvent) => {
+      let matchScore = 65 // Base score for CLTtoday events
 
       // Boost if it's in the Events category
       if (cltEvent.category?.toLowerCase().includes('event')) {
         matchScore += 10
       }
 
-      // Create event for earliest upcoming date
-      if (cltEvent.eventDates && cltEvent.eventDates.length > 0) {
-        const sortedDates = cltEvent.eventDates.sort()
-        const today = new Date().toISOString().split('T')[0]
-        const upcomingDate = sortedDates.find((date) => date >= today) || sortedDates[0]
-
-        const genres =
-          cltEvent.sectionHeaders && cltEvent.sectionHeaders.length > 0
-            ? cltEvent.sectionHeaders
-            : cltEvent.category
-            ? [cltEvent.category]
-            : ['News']
-
-        const event = {
-          id: `clt-${cltEvent.url}`,
-          name: cltEvent.name,
-          type: 'article',
-          date: upcomingDate,
-          time: null,
-          venue: 'CLTtoday Article',
-          venueAddress: '',
-          distance: 'N/A',
-          description: cltEvent.description || cltEvent.name,
-          price: 0,
-          matchScore: matchScore,
-          ticketUrl: cltEvent.url,
-          genres: genres,
-          imageUrl: cltEvent.image,
-          source: 'clttoday',
-          dates: [{ date: upcomingDate, id: `clt-${cltEvent.url}`, ticketUrl: cltEvent.url }],
-        }
-
-        // Apply text substitutions
-        cltEvents.push(applyEventSubstitutions(event))
+      // Boost if event has a specific time (more detailed events)
+      if (cltEvent.time) {
+        matchScore += 5
       }
-    })
 
-    return cltEvents
+      const genres = cltEvent.category ? [cltEvent.category] : ['Events']
+
+      const event = {
+        id: `clt-${cltEvent.url}-${cltEvent.name}`,
+        name: cltEvent.name,
+        type: 'events',
+        date: cltEvent.date,
+        time: cltEvent.time || null,
+        venue: cltEvent.venue || 'Charlotte',
+        venueAddress: '',
+        distance: 'N/A',
+        description: cltEvent.description || '',
+        price: 0,
+        matchScore: matchScore,
+        ticketUrl: cltEvent.url,
+        genres: genres,
+        imageUrl: cltEvent.image || null,
+        source: 'clttoday',
+      }
+
+      // Apply text substitutions
+      return applyEventSubstitutions(event)
+    })
   }
 
   /**
