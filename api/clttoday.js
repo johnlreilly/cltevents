@@ -191,12 +191,29 @@ export default async function handler(req, res) {
         // Log only 5-part and 6-part events (the ones we're parsing)
         if (categorized.five.length > 0) {
           console.log(`\n5-PART EVENTS (${categorized.five.length}):`);
-          categorized.five.forEach(e => console.log(`\n${e}`));
+          categorized.five.forEach(e => {
+            const parts = e.split('|').map(p => p.trim());
+            console.log(`\nEvent:`);
+            console.log(`  [0] Part 1: ${parts[0]}`);
+            console.log(`  [1] Part 2: ${parts[1]}`);
+            console.log(`  [2] Part 3: ${parts[2]}`);
+            console.log(`  [3] Part 4: ${parts[3]}`);
+            console.log(`  [4] Part 5: ${parts[4]}`);
+          });
         }
 
         if (categorized.six.length > 0) {
           console.log(`\n6-PART EVENTS (${categorized.six.length}):`);
-          categorized.six.forEach(e => console.log(`\n${e}`));
+          categorized.six.forEach(e => {
+            const parts = e.split('|').map(p => p.trim());
+            console.log(`\nEvent:`);
+            console.log(`  [0] Name: ${parts[0]}`);
+            console.log(`  [1] Date: ${parts[1]}`);
+            console.log(`  [2] Time: ${parts[2]}`);
+            console.log(`  [3] Venue: ${parts[3]}`);
+            console.log(`  [4] Price: ${parts[4]}`);
+            console.log(`  [5] Description: ${parts[5]}`);
+          });
         }
 
         // Parse pipe-delimited events from paragraphs
