@@ -194,54 +194,11 @@ export default async function handler(req, res) {
           categorized.five.forEach(e => {
             const parts = e.split('|').map(p => p.trim());
             console.log(`\nEvent:`);
-
-            // Determine which field is missing by checking patterns
-            const startsWithDay = /^(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|Weekends)/i.test(parts[1]);
-            const looksLikeTime = /^(\d{1,2}|Times vary)/i.test(parts[2]);
-            const looksLikePrice = /^(Free|\$)/i.test(parts[3]);
-
-            console.log(`  [0] Name: ${parts[0]}`);
-
-            if (!startsWithDay) {
-              // Date is missing
-              console.log(`  [1] Date: MISSING (using last valid)`);
-              console.log(`  [2] Time: ${parts[1]}`);
-              console.log(`  [3] Venue: ${parts[2]}`);
-              console.log(`  [4] Price: ${parts[3]}`);
-              console.log(`  [5] Description: ${parts[4]}`);
-            } else {
-              console.log(`  [1] Date: ${parts[1]}`);
-
-              if (looksLikeTime) {
-                // Time is present
-                console.log(`  [2] Time: ${parts[2]}`);
-                console.log(`  [3] Venue: ${parts[3]}`);
-
-                if (looksLikePrice) {
-                  // Price is present
-                  console.log(`  [4] Price: ${parts[3]}`);
-                  console.log(`  [5] Description: ${parts[4]}`);
-                } else {
-                  // Price is missing
-                  console.log(`  [4] Price: N/A`);
-                  console.log(`  [5] Description: ${parts[3]} | ${parts[4]}`);
-                }
-              } else {
-                // Time is missing
-                console.log(`  [2] Time: MISSING`);
-                console.log(`  [3] Venue: ${parts[2]}`);
-
-                if (looksLikePrice) {
-                  // Price is present
-                  console.log(`  [4] Price: ${parts[3]}`);
-                  console.log(`  [5] Description: ${parts[4]}`);
-                } else {
-                  // Price is missing
-                  console.log(`  [4] Price: N/A`);
-                  console.log(`  [5] Description: ${parts[3]} | ${parts[4]}`);
-                }
-              }
-            }
+            console.log(`  [0] ${parts[0]}`);
+            console.log(`  [1] ${parts[1]}`);
+            console.log(`  [2] ${parts[2]}`);
+            console.log(`  [3] ${parts[3]}`);
+            console.log(`  [4] ${parts[4]}`);
           });
         }
 
@@ -250,12 +207,12 @@ export default async function handler(req, res) {
           categorized.six.forEach(e => {
             const parts = e.split('|').map(p => p.trim());
             console.log(`\nEvent:`);
-            console.log(`  [0] Name: ${parts[0]}`);
-            console.log(`  [1] Date: ${parts[1]}`);
-            console.log(`  [2] Time: ${parts[2]}`);
-            console.log(`  [3] Venue: ${parts[3]}`);
-            console.log(`  [4] Price: ${parts[4]}`);
-            console.log(`  [5] Description: ${parts[5]}`);
+            console.log(`  [0] ${parts[0]}`);
+            console.log(`  [1] ${parts[1]}`);
+            console.log(`  [2] ${parts[2]}`);
+            console.log(`  [3] ${parts[3]}`);
+            console.log(`  [4] ${parts[4]}`);
+            console.log(`  [5] ${parts[5]}`);
           });
         }
 
