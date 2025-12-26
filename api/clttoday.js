@@ -142,10 +142,54 @@ export default async function handler(req, res) {
           }
         }
 
-        console.log(`\n📋 ALL PARAGRAPHS EXTRACTED (${paragraphs.length} total):`);
-        paragraphs.forEach((p, i) => {
-          console.log(`[${i}] ${p}`);
+        // Categorize paragraphs with pipes by part count
+        const pipeParagraphs = paragraphs.filter(p => p.includes('|'));
+        const categorized = {
+          three: [],
+          four: [],
+          five: [],
+          six: [],
+          other: []
+        };
+
+        pipeParagraphs.forEach(p => {
+          const parts = p.split('|').map(part => part.trim());
+          const partCount = parts.length;
+
+          if (partCount === 3) categorized.three.push(p);
+          else if (partCount === 4) categorized.four.push(p);
+          else if (partCount === 5) categorized.five.push(p);
+          else if (partCount === 6) categorized.six.push(p);
+          else categorized.other.push(p);
         });
+
+        // Log categorized raw events
+        console.log(`\n📊 RAW EVENTS BY PART COUNT (${pipeParagraphs.length} total):`);
+
+        if (categorized.three.length > 0) {
+          console.log(`\n3-PART EVENTS (${categorized.three.length}):`);
+          categorized.three.forEach(e => console.log(e.replace(/[\r\n]+/g, ' ')));
+        }
+
+        if (categorized.four.length > 0) {
+          console.log(`\n4-PART EVENTS (${categorized.four.length}):`);
+          categorized.four.forEach(e => console.log(e.replace(/[\r\n]+/g, ' ')));
+        }
+
+        if (categorized.five.length > 0) {
+          console.log(`\n5-PART EVENTS (${categorized.five.length}):`);
+          categorized.five.forEach(e => console.log(e.replace(/[\r\n]+/g, ' ')));
+        }
+
+        if (categorized.six.length > 0) {
+          console.log(`\n6-PART EVENTS (${categorized.six.length}):`);
+          categorized.six.forEach(e => console.log(e.replace(/[\r\n]+/g, ' ')));
+        }
+
+        if (categorized.other.length > 0) {
+          console.log(`\nOTHER PART COUNTS (${categorized.other.length}):`);
+          categorized.other.forEach(e => console.log(e.replace(/[\r\n]+/g, ' ')));
+        }
 
         // Parse pipe-delimited events from paragraphs
         // Expected format: Event Name | Date | Time | Venue | Price | Description
@@ -156,12 +200,8 @@ export default async function handler(req, res) {
 
           const parts = paragraph.split('|').map(p => p.trim());
 
-          console.log(`\n✂️ SPLITTING: "${paragraph}"`);
-          console.log(`   → ${parts.length} parts: ${JSON.stringify(parts)}`);
-
           // Only process 6-part entries: Event Name | Date | Time | Venue | Price | Description
           if (parts.length !== 6) {
-            console.log(`   ⏭️  SKIPPING: Not 6 parts`);
             continue;
           }
 
@@ -209,7 +249,7 @@ export default async function handler(req, res) {
       }
     }
 
-    console.log(`Total articles processed: ${articleCount}`);
+    console.log(`\nTotal articles processed: ${articleCount}`);
     console.log(`Total events extracted: ${allEvents.length}`);
 
     res.status(200).json({
