@@ -356,13 +356,20 @@ export default async function handler(req, res) {
             lastValidDate = eventDate;
           }
 
+          // Clean description - remove any text before pipe character (usually venue that leaked in)
+          let cleanedDescription = eventDescription;
+          if (cleanedDescription && cleanedDescription.includes('|')) {
+            const pipeIndex = cleanedDescription.indexOf('|');
+            cleanedDescription = cleanedDescription.substring(pipeIndex + 1).trim();
+          }
+
           // Create event object
           const event = {
             name: eventName,
             venue: venue,
             date: parsedDate,
             time: parsedTime,
-            description: eventDescription,
+            description: cleanedDescription,
             url: articleLink,
             source: 'clttoday',
             category: 'Events',
