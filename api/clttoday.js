@@ -296,6 +296,17 @@ export default async function handler(req, res) {
             lastValidDate = eventDate;
           }
 
+          // Skip events in the past (only include today and future events)
+          if (parsedDate) {
+            const eventDateObj = new Date(parsedDate);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            if (eventDateObj < today) {
+              continue; // Skip past events
+            }
+          }
+
           // Clean description - remove any text before pipe character (usually venue that leaked in)
           let cleanedDescription = eventDescription;
           if (cleanedDescription && cleanedDescription.includes('|')) {
