@@ -102,7 +102,7 @@ export default async function handler(req, res) {
       try {
         const articleResponse = await fetch(articleLink, {
           headers: {
-            'User-Agent': 'Mozilla/5.0 (compatible; CLTEvents/1.0)',
+            'User-Agent': 'Mozilla/5.0 (compatible; CLTEvents/1.2)',
           },
         });
 
@@ -360,6 +360,7 @@ export default async function handler(req, res) {
         futureEvents.forEach(e => {
           const parts = e.split('|').map(p => p.trim());
           console.log(`\n
+
 Event:`);
 
           // Determine which field is missing by checking patterns
@@ -421,6 +422,7 @@ Event:`);
         futureEvents.forEach(e => {
           const parts = e.split('|').map(p => p.trim());
           console.log(`\n
+
 Event:`);
           console.log(`  [0] Name: ${parts[0]}`);
           console.log(`  [1] Date: ${parts[1]}`);
