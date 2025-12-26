@@ -196,7 +196,7 @@ export default async function handler(req, res) {
             console.log(`\nEvent:`);
 
             // Determine which field is missing by checking patterns
-            const startsWithDay = /^(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)/i.test(parts[1]);
+            const startsWithDay = /^(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|Weekends)/i.test(parts[1]);
             const looksLikeTime = /^(\d{1,2}|Times vary)/i.test(parts[2]);
             const looksLikePrice = /^(Free|\$)/i.test(parts[3]);
 
@@ -289,8 +289,8 @@ export default async function handler(req, res) {
             // 5-part: determine what's missing
             eventName = parts[0];
 
-            // Check if part 2 (index 1) starts with a day of the week
-            const startsWithDay = /^(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)/i.test(parts[1]);
+            // Check if part 2 (index 1) starts with a day of the week or "Weekends"
+            const startsWithDay = /^(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|Weekends)/i.test(parts[1]);
 
             if (!startsWithDay) {
               // Date is missing, use last valid date
