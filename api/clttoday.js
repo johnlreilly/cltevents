@@ -23,6 +23,8 @@ export default async function handler(req, res) {
 
     // Parse RSS XML manually (simple parsing)
     const allEvents = [];
+    const allFivePartEvents = [];
+    const allSixPartEvents = [];
     const itemRegex = /<item>([\s\S]*?)<\/item>/g;
     let match;
     let articleCount = 0;
@@ -188,65 +190,13 @@ export default async function handler(req, res) {
           else categorized.other.push(cleaned);
         });
 
-        // Helper to check if event date is today or in the future
-        const isTodayOrFuture = (dateStr) => {
-          if (!dateStr) return false;
-          const parsedDate = parseDateText(dateStr);
-          if (!parsedDate) return false;
-
-          const eventDate = new Date(parsedDate);
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
-
-          return eventDate >= today;
-        };
-
-        // Log only 5-part and 6-part events (the ones we're parsing) that are today or in the future
+        // Collect 5-part and 6-part events for logging later
         if (categorized.five.length > 0) {
-          const futureEvents = categorized.five.filter(e => {
-            const parts = e.split('|').map(p => p.trim());
-            // Check if part 1 looks like a date (starts with day of week)
-            const startsWithDay = /^(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|Weekends)/i.test(parts[1]);
-            if (startsWithDay) {
-              return isTodayOrFuture(parts[1]);
-            }
-            // If no date in part 1, we can't filter it
-            return true;
-          });
-
-          if (futureEvents.length > 0) {
-            console.log(`\n5-PART EVENTS (${futureEvents.length}):`);
-            futureEvents.forEach(e => {
-              const parts = e.split('|').map(p => p.trim());
-              console.log(`\nEvent:`);
-              console.log(`  [0] ${parts[0]}`);
-              console.log(`  [1] ${parts[1]}`);
-              console.log(`  [2] ${parts[2]}`);
-              console.log(`  [3] ${parts[3]}`);
-              console.log(`  [4] ${parts[4]}`);
-            });
-          }
+          allFivePartEvents.push(...categorized.five);
         }
 
         if (categorized.six.length > 0) {
-          const futureEvents = categorized.six.filter(e => {
-            const parts = e.split('|').map(p => p.trim());
-            return isTodayOrFuture(parts[1]);
-          });
-
-          if (futureEvents.length > 0) {
-            console.log(`\n6-PART EVENTS (${futureEvents.length}):`);
-            futureEvents.forEach(e => {
-              const parts = e.split('|').map(p => p.trim());
-              console.log(`\nEvent:`);
-              console.log(`  [0] ${parts[0]}`);
-              console.log(`  [1] ${parts[1]}`);
-              console.log(`  [2] ${parts[2]}`);
-              console.log(`  [3] ${parts[3]}`);
-              console.log(`  [4] ${parts[4]}`);
-              console.log(`  [5] ${parts[5]}`);
-            });
-          }
+          allSixPartEvents.push(...categorized.six);
         }
 
         // Parse pipe-delimited events from paragraphs
@@ -376,6 +326,67 @@ export default async function handler(req, res) {
       } catch (articleError) {
         // Continue to next article
         continue;
+      }
+    }
+
+    // Helper to check if event date is today or in the future
+    const isTodayOrFuture = (dateStr) => {
+      if (!dateStr) return false;
+      const parsedDate = parseDateText(dateStr);
+      if (!parsedDate) return false;
+
+      const eventDate = new Date(parsedDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      return eventDate >= today;
+    };
+
+    // Log all 5-part and 6-part events (consolidated from all articles)
+    if (allFivePartEvents.length > 0) {
+      const futureEvents = allFivePartEvents.filter(e => {
+        const parts = e.split('|').map(p => p.trim());
+        // Check if part 1 looks like a date (starts with day of week)
+        const startsWithDay = /^(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|Weekends)/i.test(parts[1]);
+        if (startsWithDay) {
+          return isTodayOrFuture(parts[1]);
+        }
+        // If no date in part 1, we can't filter it
+        return true;
+      });
+
+      if (futureEvents.length > 0) {
+        console.log(`\n5-PART EVENTS (${futureEvents.length}):`);
+        futureEvents.forEach(e => {
+          const parts = e.split('|').map(p => p.trim());
+          console.log(`\nEvent:`);
+          console.log(`  [0] ${parts[0]}`);
+          console.log(`  [1] ${parts[1]}`);
+          console.log(`  [2] ${parts[2]}`);
+          console.log(`  [3] ${parts[3]}`);
+          console.log(`  [4] ${parts[4]}`);
+        });
+      }
+    }
+
+    if (allSixPartEvents.length > 0) {
+      const futureEvents = allSixPartEvents.filter(e => {
+        const parts = e.split('|').map(p => p.trim());
+        return isTodayOrFuture(parts[1]);
+      });
+
+      if (futureEvents.length > 0) {
+        console.log(`\n6-PART EVENTS (${futureEvents.length}):`);
+        futureEvents.forEach(e => {
+          const parts = e.split('|').map(p => p.trim());
+          console.log(`\nEvent:`);
+          console.log(`  [0] ${parts[0]}`);
+          console.log(`  [1] ${parts[1]}`);
+          console.log(`  [2] ${parts[2]}`);
+          console.log(`  [3] ${parts[3]}`);
+          console.log(`  [4] ${parts[4]}`);
+          console.log(`  [5] ${parts[5]}`);
+        });
       }
     }
 
