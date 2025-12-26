@@ -47,6 +47,9 @@ Keep Ticketmaster, Fillmore, etc. for major shows
 **Sample Event Structure:**
 ```
 Date: Wednesday, October 8 @ 8:00PM — 11:00PM
+
+
+
 Event: The Grateful Allstars
 Venue: Thomas Street Tavern, Charlotte
 ```

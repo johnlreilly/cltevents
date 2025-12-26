@@ -107,7 +107,10 @@ function parseSmokeyJoesEvents(html) {
           });
         }
       } catch (error) {
-        console.error('Error parsing individual event:', error);
+        console.error('Error parsing individual 
+
+
+Event:', error);
       }
     });
     

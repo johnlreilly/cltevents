@@ -45,7 +45,10 @@ normalizeEventName('Charlotte FC (Home) - vs Orlando')
   currentHidden: [],
   willBeHidden: true
 }
-✅ hiding event: "Charlotte FC vs Orlando"
+✅ hiding 
+
+
+Event: "Charlotte FC vs Orlando"
    Normalized key: "charlotte fc"
    Previous hidden array: []
    New hidden array: ["charlotte fc"]

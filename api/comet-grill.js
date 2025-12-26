@@ -141,7 +141,10 @@ function parseCometGrillEvents(html) {
           })
         }
       } catch (parseError) {
-        console.error('Error parsing individual event:', parseError)
+        console.error('Error parsing individual 
+
+
+Event:', parseError)
       }
     }
 

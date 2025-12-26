@@ -106,7 +106,10 @@ export function useFilters(events, mode = 'night') {
         ? prev.filter((key) => key !== eventKey)
         : [...prev, eventKey]
 
-      console.log(`✅ ${action} event: "${event.name}"`)
+      console.log(`✅ ${action} 
+
+
+Event: "${event.name}"`)
       console.log(`   Normalized key: "${eventKey}"`)
       console.log(`   Previous hidden array:`, prev)
       console.log(`   New hidden array:`, newHiddenArray)

@@ -440,7 +440,10 @@ Create src/components/EventCard/EventCard.jsx:
 A Material Design 3 styled card component for displaying event information:
 
 Props:
-- event: Event object
+- 
+
+
+Event: Event object
 - isFavorite: Boolean
 - isHidden: Boolean
 - onToggleFavorite: Function
