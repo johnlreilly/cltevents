@@ -227,7 +227,10 @@ export const filterByCategory = (events, category, favorites = [], hidden = [], 
         const normalized = normalizeEventName(e.name)
         const isHidden = hidden.includes(normalized)
         if (isHidden) {
-          console.log(`🚫 Filtering out hidden event: "${e.name}" (normalized: "${normalized}")`)
+          console.log(`🚫 Filtering out hidden 
+
+
+Event: "${e.name}" (normalized: "${normalized}")`)
         }
         return !isHidden
       })
@@ -242,7 +245,10 @@ export const filterByCategory = (events, category, favorites = [], hidden = [], 
           const isHidden = hidden.includes(normalized)
           const hasGenres = e.genres && e.genres.length > 0
           if (isHidden && hasGenres) {
-            console.log(`🚫 Filtering out hidden music event: "${e.name}" (normalized: "${normalized}")`)
+            console.log(`🚫 Filtering out hidden music 
+
+
+Event: "${e.name}" (normalized: "${normalized}")`)
           }
           return hasGenres && !isHidden
         }
@@ -254,7 +260,10 @@ export const filterByCategory = (events, category, favorites = [], hidden = [], 
           const isHidden = hidden.includes(normalized)
           const noGenres = !e.genres || e.genres.length === 0
           if (isHidden && noGenres) {
-            console.log(`🚫 Filtering out hidden sports event: "${e.name}" (normalized: "${normalized}")`)
+            console.log(`🚫 Filtering out hidden sports 
+
+
+Event: "${e.name}" (normalized: "${normalized}")`)
           }
           return noGenres && !isHidden
         }
@@ -321,23 +330,16 @@ export const filterByTimeOfDay = (events, mode) => {
   // Dive bar venues that should only show in night mode
   const DIVE_BAR_VENUES = ['thirsty beaver', 'snug harbor', "smokey joe's cafe"]
 
-  // Sources that are primarily daytime events
-  const DAYTIME_SOURCES = ['clttoday']
-
   return events.filter((event) => {
     const venueLower = (event.venue || '').toLowerCase()
     const isDiveBar = DIVE_BAR_VENUES.some(bar => venueLower.includes(bar))
-    const isDaytimeSource = DAYTIME_SOURCES.includes(event.source)
 
     // Dive bar events only show in night mode
     if (isDiveBar && mode === 'day') return false
 
-    // Daytime source events only show in day mode
-    if (isDaytimeSource && mode === 'night') return false
-
     const timeCategory = categorizeEventTime(event.time)
 
-    // Events without time (null) show in both modes (unless source-specific rules apply)
+    // Events without time (null) show in both modes
     if (timeCategory === null) return true
 
     // Otherwise, show only if time category matches mode
