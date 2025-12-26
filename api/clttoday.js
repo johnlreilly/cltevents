@@ -188,32 +188,65 @@ export default async function handler(req, res) {
           else categorized.other.push(cleaned);
         });
 
-        // Log only 5-part and 6-part events (the ones we're parsing)
+        // Helper to check if event date is today or in the future
+        const isTodayOrFuture = (dateStr) => {
+          if (!dateStr) return false;
+          const parsedDate = parseDateText(dateStr);
+          if (!parsedDate) return false;
+
+          const eventDate = new Date(parsedDate);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+
+          return eventDate >= today;
+        };
+
+        // Log only 5-part and 6-part events (the ones we're parsing) that are today or in the future
         if (categorized.five.length > 0) {
-          console.log(`\n5-PART EVENTS (${categorized.five.length}):`);
-          categorized.five.forEach(e => {
+          const futureEvents = categorized.five.filter(e => {
             const parts = e.split('|').map(p => p.trim());
-            console.log(`\nEvent:`);
-            console.log(`  [0] ${parts[0]}`);
-            console.log(`  [1] ${parts[1]}`);
-            console.log(`  [2] ${parts[2]}`);
-            console.log(`  [3] ${parts[3]}`);
-            console.log(`  [4] ${parts[4]}`);
+            // Check if part 1 looks like a date (starts with day of week)
+            const startsWithDay = /^(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|Weekends)/i.test(parts[1]);
+            if (startsWithDay) {
+              return isTodayOrFuture(parts[1]);
+            }
+            // If no date in part 1, we can't filter it
+            return true;
           });
+
+          if (futureEvents.length > 0) {
+            console.log(`\n5-PART EVENTS (${futureEvents.length}):`);
+            futureEvents.forEach(e => {
+              const parts = e.split('|').map(p => p.trim());
+              console.log(`\nEvent:`);
+              console.log(`  [0] ${parts[0]}`);
+              console.log(`  [1] ${parts[1]}`);
+              console.log(`  [2] ${parts[2]}`);
+              console.log(`  [3] ${parts[3]}`);
+              console.log(`  [4] ${parts[4]}`);
+            });
+          }
         }
 
         if (categorized.six.length > 0) {
-          console.log(`\n6-PART EVENTS (${categorized.six.length}):`);
-          categorized.six.forEach(e => {
+          const futureEvents = categorized.six.filter(e => {
             const parts = e.split('|').map(p => p.trim());
-            console.log(`\nEvent:`);
-            console.log(`  [0] ${parts[0]}`);
-            console.log(`  [1] ${parts[1]}`);
-            console.log(`  [2] ${parts[2]}`);
-            console.log(`  [3] ${parts[3]}`);
-            console.log(`  [4] ${parts[4]}`);
-            console.log(`  [5] ${parts[5]}`);
+            return isTodayOrFuture(parts[1]);
           });
+
+          if (futureEvents.length > 0) {
+            console.log(`\n6-PART EVENTS (${futureEvents.length}):`);
+            futureEvents.forEach(e => {
+              const parts = e.split('|').map(p => p.trim());
+              console.log(`\nEvent:`);
+              console.log(`  [0] ${parts[0]}`);
+              console.log(`  [1] ${parts[1]}`);
+              console.log(`  [2] ${parts[2]}`);
+              console.log(`  [3] ${parts[3]}`);
+              console.log(`  [4] ${parts[4]}`);
+              console.log(`  [5] ${parts[5]}`);
+            });
+          }
         }
 
         // Parse pipe-delimited events from paragraphs
@@ -277,7 +310,7 @@ export default async function handler(req, res) {
                 } else {
                   // Part 4 is the description, price is missing
                   price = 'N/A';
-                  eventDescription = parts[3] + ' | ' + parts[4];
+                  eventDescription = parts[4];
                 }
               } else {
                 // Time is missing
@@ -293,7 +326,7 @@ export default async function handler(req, res) {
                 } else {
                   // Part 4 is the description, price is missing
                   price = 'N/A';
-                  eventDescription = parts[3] + ' | ' + parts[4];
+                  eventDescription = parts[4];
                 }
               }
             }
