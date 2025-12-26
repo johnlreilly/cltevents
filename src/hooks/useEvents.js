@@ -371,19 +371,57 @@ export function useEvents() {
   }
 
   /**
+   * Processes Amos' Southend events
+   * Live music venue in South End Charlotte
+   */
+  const processAmosEvents = async (amosData) => {
+    return await Promise.all(
+      amosData.events.map(async (amosEvent) => {
+        // Amos' Southend is a quality music venue
+        const matchScore = 85 // High priority for local music venue
+
+        // Fetch YouTube videos for Amos events
+        const youtubeLinks = await fetchYouTubeVideos(amosEvent.name, youtubeCache.current, API_BASE_URL)
+
+        const event = {
+          id: `amos-${amosEvent.name}-${amosEvent.date}`,
+          name: amosEvent.name,
+          type: 'music',
+          date: amosEvent.date,
+          time: amosEvent.time || null,
+          venue: amosEvent.venue,
+          venueAddress: '1423 S Tryon St, Charlotte, NC 28203',
+          distance: 'N/A',
+          description: amosEvent.description || amosEvent.name,
+          price: amosEvent.price || 0,
+          youtubeLinks: youtubeLinks.length > 0 ? youtubeLinks : undefined,
+          matchScore: matchScore,
+          ticketUrl: amosEvent.url,
+          genres: ['Music', 'Live'],
+          source: 'amos',
+        }
+
+        // Apply text substitutions
+        return applyEventSubstitutions(event)
+      })
+    )
+  }
+
+  /**
    * Fetches events from all sources in parallel
    */
   const fetchEvents = async () => {
     setLoading(true)
     try {
       // Fetch from all sources in parallel
-      const [ticketmasterResponse, smokeyJoesResponse, cltTodayResponse, fillmoreResponse, eternallyGratefulResponse] =
+      const [ticketmasterResponse, smokeyJoesResponse, cltTodayResponse, fillmoreResponse, eternallyGratefulResponse, amosResponse] =
         await Promise.all([
           fetch(`${API_BASE_URL}/api/events`),
           fetch(`${API_BASE_URL}/api/smokeyjoes`),
           fetch(`${API_BASE_URL}/api/clttoday`),
           fetch(`${API_BASE_URL}/api/fillmore`),
           fetch(`${API_BASE_URL}/api/eternally-grateful`),
+          fetch(`${API_BASE_URL}/api/amos`),
           // fetch(`${API_BASE_URL}/api/comet-grill`), // Disabled - site appears stale
         ])
 
@@ -443,6 +481,17 @@ export function useEvents() {
           allEvents = [...allEvents, ...egEvents]
         } catch (error) {
           console.error('Error processing Eternally Grateful events:', error)
+        }
+      }
+
+      // Process Amos' Southend events
+      if (amosResponse.ok) {
+        try {
+          const amosData = await amosResponse.json()
+          const amosEvents = await processAmosEvents(amosData)
+          allEvents = [...allEvents, ...amosEvents]
+        } catch (error) {
+          console.error("Error processing Amos' Southend events:", error)
         }
       }
 
