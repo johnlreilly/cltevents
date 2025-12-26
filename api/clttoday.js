@@ -370,10 +370,7 @@ export default async function handler(req, res) {
         console.log(`\n5-PART EVENTS (${futureEvents.length}):`);
         futureEvents.forEach(e => {
           const parts = e.split('|').map(p => p.trim());
-          console.log(`\n
-
-
-Event:`);
+          console.log(`\nEvent:`);
 
           // Determine which field is missing by checking patterns
           const startsWithDay = /^(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|Weekends)/i.test(parts[1]);
@@ -433,10 +430,7 @@ Event:`);
         console.log(`\n6-PART EVENTS (${futureEvents.length}):`);
         futureEvents.forEach(e => {
           const parts = e.split('|').map(p => p.trim());
-          console.log(`\n
-
-
-Event:`);
+          console.log(`\nEvent:`);
           console.log(`  [0] Name: ${parts[0]}`);
           console.log(`  [1] Date: ${parts[1]}`);
           console.log(`  [2] Time: ${parts[2]}`);
