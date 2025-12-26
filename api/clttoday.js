@@ -142,8 +142,39 @@ export default async function handler(req, res) {
           }
         }
 
+        // Helper to clean event text for logging
+        const cleanEventText = (text) => {
+          return text
+            .replace(/[\r\n\t]+/g, ' ')  // Replace all line breaks and tabs with single space
+            .replace(/\s{2,}/g, ' ')      // Replace multiple spaces with single space
+            .trim();
+        };
+
+        // Helper to filter out non-event content
+        const isLikelyEvent = (text) => {
+          // Must have pipe character
+          if (!text.includes('|')) return false;
+
+          // Filter out JavaScript, CSS, and other code
+          if (text.includes('function') || text.includes('var ') || text.includes('const ') ||
+              text.includes('let ') || text.includes('{') || text.includes('}') ||
+              text.includes('document.') || text.includes('window.') || text.includes('return ')) {
+            return false;
+          }
+
+          // Filter out HTML-looking content
+          if (text.includes('</') || text.includes('/>') || text.includes('<!')) {
+            return false;
+          }
+
+          // Filter out very short entries (likely not events)
+          if (text.length < 20) return false;
+
+          return true;
+        };
+
         // Categorize paragraphs with pipes by part count
-        const pipeParagraphs = paragraphs.filter(p => p.includes('|'));
+        const pipeParagraphs = paragraphs.filter(p => isLikelyEvent(p));
         const categorized = {
           three: [],
           four: [],
@@ -153,42 +184,43 @@ export default async function handler(req, res) {
         };
 
         pipeParagraphs.forEach(p => {
-          const parts = p.split('|').map(part => part.trim());
+          const cleaned = cleanEventText(p);
+          const parts = cleaned.split('|').map(part => part.trim());
           const partCount = parts.length;
 
-          if (partCount === 3) categorized.three.push(p);
-          else if (partCount === 4) categorized.four.push(p);
-          else if (partCount === 5) categorized.five.push(p);
-          else if (partCount === 6) categorized.six.push(p);
-          else categorized.other.push(p);
+          if (partCount === 3) categorized.three.push(cleaned);
+          else if (partCount === 4) categorized.four.push(cleaned);
+          else if (partCount === 5) categorized.five.push(cleaned);
+          else if (partCount === 6) categorized.six.push(cleaned);
+          else categorized.other.push(cleaned);
         });
 
         // Log categorized raw events
-        console.log(`\n📊 RAW EVENTS BY PART COUNT (${pipeParagraphs.length} total):`);
+        console.log(`📊 RAW EVENTS BY PART COUNT (${pipeParagraphs.length} total):`);
 
         if (categorized.three.length > 0) {
-          console.log(`\n3-PART EVENTS (${categorized.three.length}):`);
-          categorized.three.forEach(e => console.log(e.replace(/[\r\n]+/g, ' ')));
+          console.log(`3-PART EVENTS (${categorized.three.length}):`);
+          categorized.three.forEach(e => console.log(e));
         }
 
         if (categorized.four.length > 0) {
-          console.log(`\n4-PART EVENTS (${categorized.four.length}):`);
-          categorized.four.forEach(e => console.log(e.replace(/[\r\n]+/g, ' ')));
+          console.log(`4-PART EVENTS (${categorized.four.length}):`);
+          categorized.four.forEach(e => console.log(e));
         }
 
         if (categorized.five.length > 0) {
-          console.log(`\n5-PART EVENTS (${categorized.five.length}):`);
-          categorized.five.forEach(e => console.log(e.replace(/[\r\n]+/g, ' ')));
+          console.log(`5-PART EVENTS (${categorized.five.length}):`);
+          categorized.five.forEach(e => console.log(e));
         }
 
         if (categorized.six.length > 0) {
-          console.log(`\n6-PART EVENTS (${categorized.six.length}):`);
-          categorized.six.forEach(e => console.log(e.replace(/[\r\n]+/g, ' ')));
+          console.log(`6-PART EVENTS (${categorized.six.length}):`);
+          categorized.six.forEach(e => console.log(e));
         }
 
         if (categorized.other.length > 0) {
-          console.log(`\nOTHER PART COUNTS (${categorized.other.length}):`);
-          categorized.other.forEach(e => console.log(e.replace(/[\r\n]+/g, ' ')));
+          console.log(`OTHER PART COUNTS (${categorized.other.length}):`);
+          categorized.other.forEach(e => console.log(e));
         }
 
         // Parse pipe-delimited events from paragraphs
