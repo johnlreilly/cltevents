@@ -54,7 +54,7 @@ function FilterTray({
     { id: 'match', name: 'Sort by Match' },
   ]
 
-  const sources = ['ticketmaster', 'smokeyjoes', 'clttoday', 'fillmore', 'eternally-grateful']
+  const sources = ['ticketmaster', 'smokeyjoes', 'clttoday', 'fillmore', 'eternally-grateful', 'amos']
 
   const getSourceDisplayName = (source) => {
     const names = {
@@ -63,6 +63,7 @@ function FilterTray({
       'eternally-grateful': 'Eternally Grateful',
       clttoday: 'CLTtoday',
       ticketmaster: 'Ticketmaster',
+      amos: "Amos' Southend",
     }
     return names[source] || source.charAt(0).toUpperCase() + source.slice(1)
   }

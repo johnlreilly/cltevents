@@ -101,7 +101,22 @@ export default async function handler(req, res) {
       }
     }
 
-    console.log(`✅ Total Amos' Southend events extracted: ${allEvents.length}`);
+    console.log(`\n✅ Total Amos' Southend events extracted: ${allEvents.length}`);
+
+    // Log all events
+    if (allEvents.length > 0) {
+      console.log(`\nAMOS' SOUTHEND EVENTS (${allEvents.length}):`);
+      allEvents.forEach((event, index) => {
+        console.log(`\nEvent ${index + 1}:`);
+        console.log(`  Name: ${event.name}`);
+        console.log(`  Date: ${event.date}`);
+        console.log(`  Time: ${event.time || 'N/A'}`);
+        console.log(`  Venue: ${event.venue}`);
+        console.log(`  Price: ${event.price || 'N/A'}`);
+        console.log(`  Description: ${event.description || 'N/A'}`);
+        console.log(`  URL: ${event.url}`);
+      });
+    }
 
     res.status(200).json({
       success: true,
