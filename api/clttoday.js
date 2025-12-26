@@ -12,8 +12,6 @@ export default async function handler(req, res) {
   }
 
   try {
-    console.log('Fetching CLTtoday RSS feed...');
-
     // Fetch the RSS feed
     const rssResponse = await fetch('https://clttoday.6amcity.com/events.rss');
 
@@ -22,7 +20,6 @@ export default async function handler(req, res) {
     }
 
     const rssText = await rssResponse.text();
-    console.log('RSS text length:', rssText.length);
 
     // Parse RSS XML manually (simple parsing)
     const allEvents = [];
@@ -97,13 +94,10 @@ export default async function handler(req, res) {
       const contentEncoded = getField(itemXml, 'content:encoded');
       const description = getField(itemXml, 'description');
 
-      console.log(`Processing article ${articleCount}: ${articleTitle}`);
-
       if (!articleLink) continue;
 
       // Try to fetch the full article to parse individual events
       try {
-        console.log(`Fetching article: ${articleLink}`);
         const articleResponse = await fetch(articleLink, {
           headers: {
             'User-Agent': 'Mozilla/5.0 (compatible; CLTEvents/1.0)',
@@ -111,7 +105,6 @@ export default async function handler(req, res) {
         });
 
         if (!articleResponse.ok) {
-          console.log(`Failed to fetch article: ${articleResponse.status}`);
           continue;
         }
 
@@ -195,32 +188,15 @@ export default async function handler(req, res) {
           else categorized.other.push(cleaned);
         });
 
-        // Log categorized raw events
-        console.log(`📊 RAW EVENTS BY PART COUNT (${pipeParagraphs.length} total):`);
-
-        if (categorized.three.length > 0) {
-          console.log(`3-PART EVENTS (${categorized.three.length}):`);
-          categorized.three.forEach(e => console.log(e));
-        }
-
-        if (categorized.four.length > 0) {
-          console.log(`4-PART EVENTS (${categorized.four.length}):`);
-          categorized.four.forEach(e => console.log(e));
-        }
-
+        // Log only 5-part and 6-part events (the ones we're parsing)
         if (categorized.five.length > 0) {
-          console.log(`5-PART EVENTS (${categorized.five.length}):`);
-          categorized.five.forEach(e => console.log(e));
+          console.log(`\n5-PART EVENTS (${categorized.five.length}):`);
+          categorized.five.forEach(e => console.log(`\n${e}`));
         }
 
         if (categorized.six.length > 0) {
-          console.log(`6-PART EVENTS (${categorized.six.length}):`);
-          categorized.six.forEach(e => console.log(e));
-        }
-
-        if (categorized.other.length > 0) {
-          console.log(`OTHER PART COUNTS (${categorized.other.length}):`);
-          categorized.other.forEach(e => console.log(e));
+          console.log(`\n6-PART EVENTS (${categorized.six.length}):`);
+          categorized.six.forEach(e => console.log(`\n${e}`));
         }
 
         // Parse pipe-delimited events from paragraphs
@@ -332,22 +308,21 @@ export default async function handler(req, res) {
             category: 'Events',
           };
 
-          console.log(`✅ PARSED (${parts.length}-part): name="${eventName}", venue="${venue}", date="${eventDate}", time="${eventTime}"`);
           allEvents.push(event);
           eventsFound++;
         }
 
-        console.log(`Extracted ${eventsFound} events from article`);
+        if (eventsFound > 0) {
+          console.log(`✅ Extracted ${eventsFound} events from article`);
+        }
 
       } catch (articleError) {
-        console.error(`Error fetching article ${articleLink}:`, articleError.message);
         // Continue to next article
         continue;
       }
     }
 
-    console.log(`\nTotal articles processed: ${articleCount}`);
-    console.log(`Total events extracted: ${allEvents.length}`);
+    console.log(`\n✅ Total events extracted: ${allEvents.length}`);
 
     res.status(200).json({
       success: true,
