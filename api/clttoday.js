@@ -226,25 +226,85 @@ export default async function handler(req, res) {
         // Parse pipe-delimited events from paragraphs
         // Expected format: Event Name | Date | Time | Venue | Price | Description
         let eventsFound = 0;
+        let lastValidDate = null; // Track most recent valid date for events missing dates
+
         for (const paragraph of paragraphs) {
           // Skip intro/outro paragraphs (look for pipe delimiter)
           if (!paragraph.includes('|')) continue;
 
           const parts = paragraph.split('|').map(p => p.trim());
 
-          // Only process 6-part entries: Event Name | Date | Time | Venue | Price | Description
-          if (parts.length !== 6) {
+          // Only process 5-part and 6-part entries
+          if (parts.length < 5 || parts.length > 6) {
             continue;
           }
 
-          const eventName = parts[0];
-          const eventDate = parts[1];
-          const eventTime = parts[2];
-          const venue = parts[3];
-          const price = parts[4];
-          const eventDescription = parts[5];
+          let eventName, eventDate, eventTime, venue, price, eventDescription;
 
-          console.log(`   ✅ PARSED: name="${eventName}", venue="${venue}", date="${eventDate}", time="${eventTime}"`);
+          if (parts.length === 6) {
+            // 6-part: Event Name | Date | Time | Venue | Price | Description
+            eventName = parts[0];
+            eventDate = parts[1];
+            eventTime = parts[2];
+            venue = parts[3];
+            price = parts[4];
+            eventDescription = parts[5];
+          } else {
+            // 5-part: determine what's missing
+            eventName = parts[0];
+
+            // Check if part 2 (index 1) starts with a day of the week
+            const startsWithDay = /^(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)/i.test(parts[1]);
+
+            if (!startsWithDay) {
+              // Date is missing, use last valid date
+              eventDate = lastValidDate;
+              eventTime = parts[1];
+              venue = parts[2];
+              price = parts[3];
+              eventDescription = parts[4];
+            } else {
+              // Date is present, check if time or price is missing
+              eventDate = parts[1];
+
+              // Check if part 3 (index 2) looks like a time
+              const looksLikeTime = /^(\d{1,2}|Times vary)/i.test(parts[2]);
+
+              if (looksLikeTime) {
+                // Time is present, check if price is missing
+                eventTime = parts[2];
+                venue = parts[3];
+
+                // Check if part 4 (index 3) looks like a price
+                const looksLikePrice = /^(Free|\$)/i.test(parts[3]);
+
+                if (looksLikePrice) {
+                  price = parts[3];
+                  eventDescription = parts[4];
+                } else {
+                  // Part 4 is the description, price is missing
+                  price = 'N/A';
+                  eventDescription = parts[3] + ' | ' + parts[4];
+                }
+              } else {
+                // Time is missing
+                eventTime = null;
+                venue = parts[2];
+
+                // Check if part 4 (index 3) looks like a price
+                const looksLikePrice = /^(Free|\$)/i.test(parts[3]);
+
+                if (looksLikePrice) {
+                  price = parts[3];
+                  eventDescription = parts[4];
+                } else {
+                  // Part 4 is the description, price is missing
+                  price = 'N/A';
+                  eventDescription = parts[3] + ' | ' + parts[4];
+                }
+              }
+            }
+          }
 
           // Skip if event name is too short or looks like a header
           if (eventName.length < 5 || eventName.match(/^(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)/i)) {
@@ -254,6 +314,11 @@ export default async function handler(req, res) {
           // Parse date and time
           const parsedDate = parseDateText(eventDate);
           const parsedTime = parseTimeText(eventTime);
+
+          // Update last valid date if we have one
+          if (parsedDate) {
+            lastValidDate = eventDate;
+          }
 
           // Create event object
           const event = {
@@ -267,7 +332,7 @@ export default async function handler(req, res) {
             category: 'Events',
           };
 
-          console.log(`Found event: ${eventName} at ${venue} on ${eventDate}`);
+          console.log(`✅ PARSED (${parts.length}-part): name="${eventName}", venue="${venue}", date="${eventDate}", time="${eventTime}"`);
           allEvents.push(event);
           eventsFound++;
         }
