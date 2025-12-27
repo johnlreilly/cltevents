@@ -304,7 +304,7 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide, sportsTeams = 
               {expandedDescription ? '▲ Hide Description' : '▼ Show Description'}
             </button>
             <span className="text-sm text-onsurfacevariant">
-              {event.city}{event.venueAddress && event.venueAddress.includes(',') && `, ${event.venueAddress.split(',').pop().trim().split(' ')[0]}`}
+              {event.city === 'Charlotte' ? 'Charlotte, NC' : event.city}
             </span>
           </div>
         )}
