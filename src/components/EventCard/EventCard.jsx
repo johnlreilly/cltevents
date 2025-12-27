@@ -209,7 +209,12 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide, sportsTeams = 
         {/* Event Title & Venue */}
         <div className="mt-1 mb-1">
           <h3 className="text-xl font-semibold text-onsurface mb-1">{toTitleCase(event.name)}</h3>
-          <p className="text-sm text-onsurfacevariant">{event.venue}</p>
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-onsurfacevariant">{event.venue}</p>
+            <p className="text-sm text-onsurfacevariant">
+              {event.city === 'Charlotte' ? 'Charlotte, NC' : event.city}
+            </p>
+          </div>
         </div>
 
         {/* Date & Time */}
