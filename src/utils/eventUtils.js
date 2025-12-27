@@ -49,8 +49,10 @@ export const groupEventsByName = (events) => {
     const hyphenIndex = baseName.indexOf(' - ')
     const keyName = hyphenIndex > 0 ? baseName.substring(0, hyphenIndex).trim() : baseName
 
-    // Create grouping key with date to ensure same event on same date is deduplicated
-    const key = `${keyName.toLowerCase()}|${event.date}`
+    // Create grouping key with date and time to ensure same event on same date/time is deduplicated
+    // Include time if available to allow multiple shows per day (e.g., matinee vs evening)
+    const timeKey = event.time ? `|${event.time}` : ''
+    const key = `${keyName.toLowerCase()}|${event.date}${timeKey}`
 
     if (!grouped[key]) {
       grouped[key] = {
