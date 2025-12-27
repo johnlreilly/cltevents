@@ -1,6 +1,6 @@
 {
   "name": "cltevents",
-  "version": "1.2.2",
+  "version": "1.3.0",
   "description": "Charlotte Events Discovery - All Charlotte shows in one place",
   "type": "module",
   "scripts": {
