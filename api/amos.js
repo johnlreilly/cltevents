@@ -29,24 +29,26 @@ export default async function handler(req, res) {
     const allEvents = [];
 
     // Extract event blocks - look for event wrapper divs
-    const eventRegex = /<article[^>]*class="[^"]*eventWrapper[^"]*"[^>]*>([\s\S]*?)<\/article>/g;
+    const eventRegex = /<div[^>]*class="[^"]*eventWrapper[^"]*"[^>]*>([\s\S]*?)<\/div>\s*<\/div>/g;
     let match;
 
     while ((match = eventRegex.exec(eventsHtml)) !== null) {
-      const eventHtml = match[1];
+      const eventHtml = match[0];
 
       try {
-        // Extract event name from h2 or title link
-        const nameMatch = eventHtml.match(/<h2[^>]*>[\s\S]*?<a[^>]*>([^<]+)<\/a>[\s\S]*?<\/h2>/i) ||
-                         eventHtml.match(/<a[^>]*class="[^"]*eventTitle[^"]*"[^>]*>([^<]+)<\/a>/i);
+        // Extract event name from h2 with id="eventTitle"
+        const nameMatch = eventHtml.match(/<h2[^>]*id="eventTitle"[^>]*>([^<]+)<\/h2>/i);
         const eventName = nameMatch ? nameMatch[1].trim() : null;
 
         if (!eventName) continue;
 
-        // Extract date - look for eventMonth span or date info
-        const dateMatch = eventHtml.match(/<span[^>]*class="[^"]*eventMonth[^"]*"[^>]*>([^<]+)<\/span>/i) ||
-                         eventHtml.match(/<time[^>]*>([^<]+)<\/time>/i);
-        let eventDate = dateMatch ? dateMatch[1].trim() : null;
+        // Extract date - look for eventMonth and eventDay spans
+        const monthMatch = eventHtml.match(/<span[^>]*class="[^"]*eventMonth[^"]*"[^>]*>([^<]+)<\/span>/i);
+        const dayMatch = eventHtml.match(/<span[^>]*class="[^"]*eventDay[^"]*"[^>]*>([^<]+)<\/span>/i);
+        let eventDate = null;
+        if (monthMatch && dayMatch) {
+          eventDate = `${monthMatch[1].trim()} ${dayMatch[1].trim()}`;
+        }
 
         // Extract time - look for "Doors:" or "Show:" patterns
         const timeMatch = eventHtml.match(/(?:Doors:|Show:)\s*(\d{1,2}(?::\d{2})?\s*(?:am|pm))/i);
@@ -63,8 +65,8 @@ export default async function handler(req, res) {
         const descMatch = eventHtml.match(/<p[^>]*>([^<]+)<\/p>/i);
         const description = descMatch ? descMatch[1].trim() : null;
 
-        // Extract event URL - look for "More Info" or ticket links
-        const urlMatch = eventHtml.match(/<a[^>]*href="([^"]+)"[^>]*>(?:More Info|Buy Tickets)/i);
+        // Extract event URL - look for "More Info" link in eventMoreInfo div
+        const urlMatch = eventHtml.match(/<div[^>]*class="[^"]*eventMoreInfo[^"]*"[^>]*>[\s\S]*?<a[^>]*href="([^"]+)"[^>]*>/i);
         const eventUrl = urlMatch ? urlMatch[1] : 'https://amossouthend.com/events/';
 
         // Parse date to ISO format
