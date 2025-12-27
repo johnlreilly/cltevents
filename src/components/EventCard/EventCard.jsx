@@ -251,11 +251,6 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide, sportsTeams = 
                 {genre}
               </span>
             ))}
-            {event.source === 'clttoday' && (
-              <svg className="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5m14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z" />
-              </svg>
-            )}
             {/* City, State pill - light blue outline, black fill, white text */}
             <span
               className="text-xs px-3 py-1 rounded-full font-medium"
@@ -267,6 +262,11 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide, sportsTeams = 
             >
               {event.city === 'Charlotte' ? 'Charlotte, NC' : event.city}
             </span>
+            {event.source === 'clttoday' && (
+              <svg className="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5m14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z" />
+              </svg>
+            )}
           </div>
         )}
 
