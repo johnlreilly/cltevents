@@ -408,13 +408,50 @@ export function useEvents() {
   }
 
   /**
+   * Processes Jazz Room events
+   * Jazz venue in Charlotte
+   */
+  const processJazzRoomEvents = async (jazzRoomData) => {
+    return await Promise.all(
+      jazzRoomData.events.map(async (jazzEvent) => {
+        // Jazz Room is a quality jazz venue
+        const matchScore = 85 // High priority for local jazz venue
+
+        // Fetch YouTube videos for Jazz Room events
+        const youtubeLinks = await fetchYouTubeVideos(jazzEvent.name, youtubeCache.current, API_BASE_URL)
+
+        const event = {
+          id: `jazz-room-${jazzEvent.name}-${jazzEvent.date}`,
+          name: jazzEvent.name,
+          type: 'music',
+          date: jazzEvent.date,
+          time: jazzEvent.time || null,
+          venue: jazzEvent.venue,
+          venueAddress: '110 E 7th St, Charlotte, NC 28202',
+          distance: 'N/A',
+          description: jazzEvent.description || jazzEvent.name,
+          price: jazzEvent.price || 0,
+          youtubeLinks: youtubeLinks.length > 0 ? youtubeLinks : undefined,
+          matchScore: matchScore,
+          ticketUrl: jazzEvent.url,
+          genres: ['Jazz', 'Live'],
+          source: 'jazz-room',
+        }
+
+        // Apply text substitutions
+        return applyEventSubstitutions(event)
+      })
+    )
+  }
+
+  /**
    * Fetches events from all sources in parallel
    */
   const fetchEvents = async () => {
     setLoading(true)
     try {
       // Fetch from all sources in parallel
-      const [ticketmasterResponse, smokeyJoesResponse, cltTodayResponse, fillmoreResponse, eternallyGratefulResponse, amosResponse] =
+      const [ticketmasterResponse, smokeyJoesResponse, cltTodayResponse, fillmoreResponse, eternallyGratefulResponse, amosResponse, jazzRoomResponse] =
         await Promise.all([
           fetch(`${API_BASE_URL}/api/events`),
           fetch(`${API_BASE_URL}/api/smokeyjoes`),
@@ -422,6 +459,7 @@ export function useEvents() {
           fetch(`${API_BASE_URL}/api/fillmore`),
           fetch(`${API_BASE_URL}/api/eternally-grateful`),
           fetch(`${API_BASE_URL}/api/amos`),
+          fetch(`${API_BASE_URL}/api/jazz-room`),
           // fetch(`${API_BASE_URL}/api/comet-grill`), // Disabled - site appears stale
         ])
 
@@ -492,6 +530,17 @@ export function useEvents() {
           allEvents = [...allEvents, ...amosEvents]
         } catch (error) {
           console.error("Error processing Amos' Southend events:", error)
+        }
+      }
+
+      // Process Jazz Room events
+      if (jazzRoomResponse.ok) {
+        try {
+          const jazzRoomData = await jazzRoomResponse.json()
+          const jazzRoomEvents = await processJazzRoomEvents(jazzRoomData)
+          allEvents = [...allEvents, ...jazzRoomEvents]
+        } catch (error) {
+          console.error('Error processing Jazz Room events:', error)
         }
       }
 
