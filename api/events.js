@@ -18,20 +18,27 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Priority venue IDs to ensure we get their events
+    // Ticketmaster venue IDs for preferred Charlotte venues
+    // These ensure we get events from venues we care about, bypassing the 100-event API limit
     const priorityVenues = [
       'KovZpZAEdA7A',  // Neighborhood Theatre
-      // Add more priority venue IDs here as needed
+      'KovZpZAEde6A',  // Visulite Theatre
+      'KovZpZAEdFtA',  // The Fillmore Charlotte
+      'KovZpZAEAeaA',  // PNC Music Pavilion
+      'rZ7HnEZ1kddGd',  // Spectrum Center (large arena)
+      'KovZpZAE6klA',  // Charlotte Metro Credit Union Amphitheatre
+      // Note: Smokey Joe's, Amos', Fillmore have dedicated scrapers
+      // Note: Smaller venues may not be on Ticketmaster
     ];
 
-    // Fetch general Charlotte area events
+    // Fetch general Charlotte area events (reduced size since we're querying specific venues)
     const charlotteParams = new URLSearchParams({
       apikey: TICKETMASTER_API_KEY,
       city: 'Charlotte',
       stateCode: 'NC',
       radius: '25',
       unit: 'miles',
-      size: '100',
+      size: '50',  // Reduced from 100 - mainly to catch venues not in priority list
       sort: 'date,asc'
     });
 
