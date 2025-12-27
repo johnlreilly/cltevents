@@ -1,6 +1,8 @@
 // Vercel Serverless Function to scrape The Fillmore Charlotte events
 // Extracts JSON-LD structured data from their website
 
+import { getCached, setCache } from './_cache.js';
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS')
@@ -9,6 +11,13 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') {
     res.status(200).end()
     return
+  }
+
+  // Check cache first
+  const cacheKey = 'fillmore-events';
+  const cached = getCached(cacheKey);
+  if (cached) {
+    return res.status(200).json(cached);
   }
 
   try {
@@ -23,11 +32,16 @@ export default async function handler(req, res) {
     // Extract JSON-LD events from the page
     const events = parseFillmoreEvents(html)
 
-    res.status(200).json({
+    const result = {
       events: events,
       source: 'The Fillmore Charlotte',
       scrapedAt: new Date().toISOString(),
-    })
+    };
+
+    // Cache the result
+    setCache(cacheKey, result);
+
+    res.status(200).json(result)
   } catch (error) {
     console.error('Fillmore scraping error:', error)
     res.status(500).json({

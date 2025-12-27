@@ -143,19 +143,19 @@ export const categorizeEventTime = (timeStr) => {
 
   // Parse time to 24-hour format
   let hours
-  if (timeStr.match(/\d{1,2}:\d{2}\s?[AP]M/i)) {
-    // 12-hour format
-    const match = timeStr.match(/(\d{1,2}):(\d{2})\s?([AP]M)/i)
-    if (!match) return null
-    hours = parseInt(match[1])
-    const period = match[3].toUpperCase()
+
+  // Try 12-hour format with or without minutes (e.g., "7:30 PM", "7 pm")
+  const twelveHourMatch = timeStr.match(/(\d{1,2})(?::(\d{2}))?\s?([AP]M)/i)
+  if (twelveHourMatch) {
+    hours = parseInt(twelveHourMatch[1])
+    const period = twelveHourMatch[3].toUpperCase()
     if (period === 'PM' && hours !== 12) hours += 12
     if (period === 'AM' && hours === 12) hours = 0
   } else {
-    // 24-hour format
-    const match = timeStr.match(/(\d{1,2}):(\d{2})/)
-    if (!match) return null
-    hours = parseInt(match[1])
+    // Try 24-hour format
+    const twentyFourHourMatch = timeStr.match(/(\d{1,2}):(\d{2})/)
+    if (!twentyFourHourMatch) return null
+    hours = parseInt(twentyFourHourMatch[1])
   }
 
   // Day: 6 AM to 6 PM (6-17)

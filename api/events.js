@@ -1,3 +1,5 @@
+import { getCached, setCache } from './_cache.js';
+
 // Vercel Serverless Function to fetch Ticketmaster events
 export default async function handler(req, res) {
   // Enable CORS
@@ -9,6 +11,13 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') {
     res.status(200).end();
     return;
+  }
+
+  // Check cache first
+  const cacheKey = 'ticketmaster-events';
+  const cached = getCached(cacheKey);
+  if (cached) {
+    return res.status(200).json(cached);
   }
 
   const TICKETMASTER_API_KEY = process.env.TICKETMASTER_API_KEY;
@@ -124,6 +133,9 @@ export default async function handler(req, res) {
         page_size: uniqueEvents.length
       }
     };
+
+    // Cache the result
+    setCache(cacheKey, transformedData);
 
     res.status(200).json(transformedData);
 

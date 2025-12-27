@@ -1,3 +1,5 @@
+import { getCached, setCache } from './_cache.js';
+
 /**
  * Decode HTML entities in text
  * @param {string} text - Text with HTML entities
@@ -40,6 +42,13 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') {
     res.status(200).end();
     return;
+  }
+
+  // Check cache first
+  const cacheKey = 'jazz-room-events';
+  const cached = getCached(cacheKey);
+  if (cached) {
+    return res.status(200).json(cached);
   }
 
   try {
@@ -134,11 +143,16 @@ export default async function handler(req, res) {
       });
     }
 
-    res.status(200).json({
+    const result = {
       success: true,
       events: allEvents,
       count: allEvents.length
-    });
+    };
+
+    // Cache the result
+    setCache(cacheKey, result);
+
+    res.status(200).json(result);
 
   } catch (error) {
     console.error('Jazz Room events fetch error:', error);

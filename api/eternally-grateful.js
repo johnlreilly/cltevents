@@ -1,6 +1,8 @@
 // Vercel Serverless Function to scrape Eternally Grateful events
 // Scrapes Bandzoogle calendar from eternallygratefulmusic.com
 
+import { getCached, setCache } from './_cache.js';
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS')
@@ -9,6 +11,13 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') {
     res.status(200).end()
     return
+  }
+
+  // Check cache first
+  const cacheKey = 'eternally-grateful-events';
+  const cached = getCached(cacheKey);
+  if (cached) {
+    return res.status(200).json(cached);
   }
 
   try {
@@ -23,12 +32,17 @@ export default async function handler(req, res) {
     // Extract events from Bandzoogle calendar
     const events = parseEternallyGratefulEvents(html)
 
-    res.status(200).json({
+    const result = {
       events: events,
       source: 'Eternally Grateful',
       sourceType: 'artist',
       scrapedAt: new Date().toISOString(),
-    })
+    };
+
+    // Cache the result
+    setCache(cacheKey, result);
+
+    res.status(200).json(result)
   } catch (error) {
     console.error('Eternally Grateful scraping error:', error)
     res.status(500).json({

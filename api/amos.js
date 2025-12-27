@@ -1,3 +1,5 @@
+import { getCached, setCache } from './_cache.js';
+
 // Vercel Serverless Function to fetch events from Amos' Southend
 export default async function handler(req, res) {
   // Enable CORS
@@ -9,6 +11,13 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') {
     res.status(200).end();
     return;
+  }
+
+  // Check cache first
+  const cacheKey = 'amos-events';
+  const cached = getCached(cacheKey);
+  if (cached) {
+    return res.status(200).json(cached);
   }
 
   try {
@@ -119,11 +128,16 @@ export default async function handler(req, res) {
       });
     }
 
-    res.status(200).json({
+    const result = {
       success: true,
       events: allEvents,
       count: allEvents.length
-    });
+    };
+
+    // Cache the result
+    setCache(cacheKey, result);
+
+    res.status(200).json(result);
 
   } catch (error) {
     console.error("Amos' Southend events fetch error:", error);

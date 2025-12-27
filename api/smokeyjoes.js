@@ -1,3 +1,5 @@
+import { getCached, setCache } from './_cache.js';
+
 // Vercel Serverless Function to scrape Smokey Joe's Cafe events
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -7,6 +9,13 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') {
     res.status(200).end();
     return;
+  }
+
+  // Check cache first
+  const cacheKey = 'smokeyjoes-events';
+  const cached = getCached(cacheKey);
+  if (cached) {
+    return res.status(200).json(cached);
   }
 
   try {
@@ -20,12 +29,17 @@ export default async function handler(req, res) {
     
     // Extract events from the simcal calendar HTML
     const events = parseSmokeyJoesEvents(html);
-    
-    res.status(200).json({
+
+    const result = {
       events: events,
       source: 'Smokey Joe\'s Cafe',
       scrapedAt: new Date().toISOString()
-    });
+    };
+
+    // Cache the result
+    setCache(cacheKey, result);
+
+    res.status(200).json(result);
 
   } catch (error) {
     console.error('Smokey Joe\'s scraping error:', error);
