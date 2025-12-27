@@ -1,3 +1,5 @@
+import { getCached, setCache } from './_cache.js';
+
 // Vercel Serverless Function to fetch YouTube videos
 // Simple rate limiting: track requests per IP
 const requestCounts = new Map();
@@ -54,6 +56,13 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Query parameter is required' });
   }
 
+  // Check cache first (using query as cache key)
+  const cacheKey = `youtube-${query.toLowerCase().replace(/\s+/g, '-').substring(0, 50)}`;
+  const cached = getCached(cacheKey, 7 * 24 * 60 * 60 * 1000); // 7 days TTL for YouTube
+  if (cached) {
+    return res.status(200).json(cached);
+  }
+
   try {
     // Clean up artist name for better search results
     const searchQuery = query
@@ -82,13 +91,18 @@ export default async function handler(req, res) {
     }
 
     const data = await response.json();
-    
+
     const videos = data.items.map(item => ({
       title: item.snippet.title,
       url: `https://youtube.com/watch?v=${item.id.videoId}`
     }));
 
-    res.status(200).json({ videos });
+    const result = { videos };
+
+    // Cache the result for 7 days
+    setCache(cacheKey, result);
+
+    res.status(200).json(result);
   } catch (error) {
     console.error('YouTube API Error:', error);
     res.status(500).json({ error: 'Internal server error', details: error.message });
