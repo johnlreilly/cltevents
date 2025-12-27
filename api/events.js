@@ -44,6 +44,12 @@ export default async function handler(req, res) {
       // Note: Smaller venues may not be on Ticketmaster
     ];
 
+    // Ticketmaster artist IDs for bands worth traveling to see
+    // These ensure we catch touring artists even if they're not in Charlotte
+    const priorityArtists = [
+      'K8vZ9171C57',  // Dark Star Orchestra
+    ];
+
     // Define cities to fetch events from
     const cities = [
       { name: 'Charlotte', stateCode: 'NC', radius: '25' },
@@ -76,11 +82,28 @@ export default async function handler(req, res) {
       return fetch(`https://app.ticketmaster.com/discovery/v2/events.json?${venueParams.toString()}`);
     });
 
+    // Fetch events from priority artists (touring bands worth traveling for)
+    const artistPromises = priorityArtists.map(artistId => {
+      const artistParams = new URLSearchParams({
+        apikey: TICKETMASTER_API_KEY,
+        attractionId: artistId,
+        stateCode: 'NC,SC,VA,TN,GA',  // Southeast region
+        size: '50',
+        sort: 'date,asc'
+      });
+      return fetch(`https://app.ticketmaster.com/discovery/v2/events.json?${artistParams.toString()}`);
+    });
+
     // Fetch all data in parallel
-    const [charlotteResponse, ashevilleResponse, raleighResponse, ...venueResponses] = await Promise.all([
+    const responses = await Promise.all([
       ...cityPromises,
-      ...venuePromises
+      ...venuePromises,
+      ...artistPromises
     ]);
+
+    const [charlotteResponse, ashevilleResponse, raleighResponse, ...otherResponses] = responses;
+    const venueResponses = otherResponses.slice(0, priorityVenues.length);
+    const artistResponses = otherResponses.slice(priorityVenues.length);
 
     // Process all city responses
     let allEvents = [];
@@ -103,6 +126,15 @@ export default async function handler(req, res) {
         const venueData = await venueResponse.json();
         const venueEvents = venueData._embedded?.events || [];
         allEvents = [...allEvents, ...venueEvents];
+      }
+    }
+
+    // Add events from priority artists (touring bands)
+    for (const artistResponse of artistResponses) {
+      if (artistResponse.ok) {
+        const artistData = await artistResponse.json();
+        const artistEvents = artistData._embedded?.events || [];
+        allEvents = [...allEvents, ...artistEvents];
       }
     }
 
