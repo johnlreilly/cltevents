@@ -230,6 +230,7 @@ export const filterByCategory = (events, category, favorites = [], hidden = [], 
           console.log(`🚫 Filtering out hidden 
 
 
+
 Event: "${e.name}" (normalized: "${normalized}")`)
         }
         return !isHidden
@@ -248,6 +249,7 @@ Event: "${e.name}" (normalized: "${normalized}")`)
             console.log(`🚫 Filtering out hidden music 
 
 
+
 Event: "${e.name}" (normalized: "${normalized}")`)
           }
           return hasGenres && !isHidden
@@ -261,6 +263,7 @@ Event: "${e.name}" (normalized: "${normalized}")`)
           const noGenres = !e.genres || e.genres.length === 0
           if (isHidden && noGenres) {
             console.log(`🚫 Filtering out hidden sports 
+
 
 
 Event: "${e.name}" (normalized: "${normalized}")`)
