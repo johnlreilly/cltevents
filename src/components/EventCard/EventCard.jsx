@@ -315,7 +315,7 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide, sportsTeams = 
         )}
 
         {hasUsefulDescription(event) && expandedDescription && (
-          <p className="text-onsurface mb-3">{event.description}</p>
+          <p className="text-sm text-onsurface mb-3">{event.description}</p>
         )}
 
         {/* YouTube Player */}
