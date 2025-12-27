@@ -28,8 +28,8 @@ export default async function handler(req, res) {
     // Parse events from HTML
     const allEvents = [];
 
-    // Extract event blocks - look for type-tribe_events divs with jazz-room category
-    const eventRegex = /<div\s+class="type-tribe_events[^"]*tribe-events-category-jazz-room[^"]*"[^>]*>([\s\S]*?)(?=<div\s+class="type-tribe_events|<!-- Event  -->|$)/g;
+    // Extract event blocks - look for type-tribe_events divs with jazz-room or jazz-education-events categories
+    const eventRegex = /<div\s+class="type-tribe_events[^"]*tribe-events-category-(?:jazz-room|jazz-education-events)[^"]*"[^>]*>([\s\S]*?)(?=<div\s+class="type-tribe_events|<!-- Event  -->|$)/g;
     let match;
 
     while ((match = eventRegex.exec(eventsHtml)) !== null) {
