@@ -10,6 +10,7 @@ import {
   filterByGenre,
   filterBySource,
   filterByTimeOfDay,
+  filterByCity,
   groupEventsByName,
   sortEvents,
   normalizeEventName,
@@ -47,6 +48,7 @@ export function useFilters(events, mode = 'night') {
   const [selectedCategory, setSelectedCategory] = useLocalStorage('cltevents-category', 'all')
   const [selectedGenres, setSelectedGenres] = useLocalStorage('cltevents-selectedGenres', [])
   const [selectedSources, setSelectedSources] = useLocalStorage('cltevents-selectedSources', [])
+  const [selectedCities, setSelectedCities] = useLocalStorage('cltevents-selectedCities', [])
   const [sortBy, setSortBy] = useLocalStorage('cltevents-sortBy', 'date')
   const [favorites, setFavorites] = useLocalStorage('cltevents-favorites', [])
   const [hidden, setHidden] = useLocalStorage('cltevents-hidden', [])
@@ -78,6 +80,12 @@ export function useFilters(events, mode = 'night') {
   const toggleSource = (source) => {
     setSelectedSources((prev) =>
       prev.includes(source) ? prev.filter((s) => s !== source) : [...prev, source]
+    )
+  }
+
+  const toggleCity = (city) => {
+    setSelectedCities((prev) =>
+      prev.includes(city) ? prev.filter((c) => c !== city) : [...prev, city]
     )
   }
 
@@ -135,14 +143,15 @@ Event: "${event.name}"`)
     setSelectedCategory('all')
     setSelectedGenres([])
     setSelectedSources([])
+    setSelectedCities([])
   }
 
   /**
    * Check if any filters are active
    */
   const hasActiveFilters = useMemo(() => {
-    return selectedGenres.length > 0 || selectedSources.length > 0
-  }, [selectedGenres, selectedSources])
+    return selectedGenres.length > 0 || selectedSources.length > 0 || selectedCities.length > 0
+  }, [selectedGenres, selectedSources, selectedCities])
 
   /**
    * Compute filtered and sorted events
@@ -193,10 +202,13 @@ Event: "${event.name}"`)
     // Step 6: Filter by source
     filtered = filterBySource(filtered, selectedSources)
 
-    // Step 7: Group by name (combine multi-date events)
+    // Step 7: Filter by city
+    filtered = filterByCity(filtered, selectedCities)
+
+    // Step 8: Group by name (combine multi-date events)
     const grouped = groupEventsByName(filtered)
 
-    // Step 8: Sort
+    // Step 9: Sort
     const sorted = sortEvents(grouped, sortBy, PREFERRED_VENUES)
 
     return sorted
@@ -208,6 +220,7 @@ Event: "${event.name}"`)
     hidden,
     selectedGenres,
     selectedSources,
+    selectedCities,
     sortBy,
     excludeKeywords,
     excludeGenres,
@@ -223,6 +236,9 @@ Event: "${event.name}"`)
     selectedSources,
     setSelectedSources,
     toggleSource,
+    selectedCities,
+    setSelectedCities,
+    toggleCity,
     sortBy,
     setSortBy,
 

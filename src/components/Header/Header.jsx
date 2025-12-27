@@ -42,6 +42,9 @@ function Header({
   availableGenres,
   selectedSources,
   onSourceToggle,
+  selectedCities,
+  onCityToggle,
+  availableCities,
   sortBy,
   onSortChange,
   onClearFilters
@@ -122,6 +125,9 @@ function Header({
             availableGenres={availableGenres}
             selectedSources={selectedSources}
             onSourceToggle={onSourceToggle}
+            selectedCities={selectedCities}
+            onCityToggle={onCityToggle}
+            availableCities={availableCities}
             sortBy={sortBy}
             onSortChange={onSortChange}
             hasActiveFilters={hasActiveFilters}

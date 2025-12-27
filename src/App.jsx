@@ -49,7 +49,7 @@ function App() {
   const [hasScrolledPastTop, setHasScrolledPastTop] = useState(false)
   const [isAtTop, setIsAtTop] = useState(true) // Track if user is at the very top of the page
   const { mode, toggleMode } = useTheme()
-  const { events, loading, initialLoad, availableGenres, refetch } = useEvents()
+  const { events, loading, initialLoad, availableGenres, availableCities, refetch } = useEvents()
   const {
     filteredEvents,
     selectedCategory,
@@ -58,6 +58,8 @@ function App() {
     toggleGenre,
     selectedSources,
     toggleSource,
+    selectedCities,
+    toggleCity,
     sortBy,
     setSortBy,
     hasActiveFilters,
@@ -182,6 +184,9 @@ function App() {
         availableGenres={availableGenres}
         selectedSources={selectedSources}
         onSourceToggle={toggleSource}
+        selectedCities={selectedCities}
+        onCityToggle={toggleCity}
+        availableCities={availableCities}
         sortBy={sortBy}
         onSortChange={setSortBy}
         onClearFilters={clearFilters}

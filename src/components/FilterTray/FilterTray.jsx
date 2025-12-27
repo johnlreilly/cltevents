@@ -30,6 +30,9 @@ function FilterTray({
   availableGenres,
   selectedSources,
   onSourceToggle,
+  selectedCities,
+  onCityToggle,
+  availableCities,
   sortBy,
   onSortChange,
   hasActiveFilters,
@@ -39,6 +42,7 @@ function FilterTray({
   const [showCategoryMenu, setShowCategoryMenu] = useState(false)
   const [showGenreMenu, setShowGenreMenu] = useState(false)
   const [showSourceMenu, setShowSourceMenu] = useState(false)
+  const [showCityMenu, setShowCityMenu] = useState(false)
   const [showSortMenu, setShowSortMenu] = useState(false)
 
   const categories = [
@@ -75,6 +79,10 @@ function FilterTray({
 
   const clearSources = () => {
     selectedSources.forEach((source) => onSourceToggle(source))
+  }
+
+  const clearCities = () => {
+    selectedCities.forEach((city) => onCityToggle(city))
   }
 
   return (
@@ -237,6 +245,62 @@ function FilterTray({
                         )}
                       </div>
                       <span className="font-medium">{getSourceDisplayName(source)}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* City Menu */}
+        <div className="relative">
+          <button
+            onClick={() => setShowCityMenu(!showCityMenu)}
+            className="flex items-center gap-2 px-6 py-3 bg-primarycontainer text-onprimarycontainer rounded-full hover:shadow-md transition-all w-full font-medium"
+          >
+            <span>
+              {selectedCities.length === 0
+                ? 'All Cities'
+                : `Only showing ${selectedCities.length} Cit${selectedCities.length > 1 ? 'ies' : 'y'}`}
+            </span>
+            <svg className="w-5 h-5 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          {showCityMenu && (
+            <>
+              <div className="fixed inset-0 bg-black bg-opacity-30 z-40" onClick={() => setShowCityMenu(false)} />
+              <div className="absolute top-full left-0 mt-2 w-full bg-surface rounded-2xl shadow-2xl z-50 max-h-96 overflow-y-auto border border-outlinevariant">
+                {selectedCities.length > 0 && (
+                  <button
+                    onClick={clearCities}
+                    className="flex items-center gap-3 px-6 py-3 w-full text-left border-b border-outlinevariant text-primary hover:bg-primarycontainer font-medium"
+                  >
+                    Clear All
+                  </button>
+                )}
+                {availableCities.map((city) => {
+                  const isChecked = selectedCities.length === 0 || selectedCities.includes(city)
+                  return (
+                    <button
+                      key={city}
+                      onClick={() => onCityToggle(city)}
+                      className="flex items-center gap-3 px-6 py-3 w-full text-left transition-all text-onsurface hover:bg-surfacevariant"
+                    >
+                      <div
+                        className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+                          isChecked ? 'bg-primary border-primary' : 'border-outline'
+                        }`}
+                      >
+                        {isChecked && (
+                          <svg className="w-3 h-3 text-onprimary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                          </svg>
+                        )}
+                      </div>
+                      <span className="font-medium">{city}</span>
                     </button>
                   )
                 })}

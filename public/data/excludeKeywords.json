@@ -10,6 +10,7 @@
     { "keyword": "disney", "source": "all" },
     { "keyword": "drag", "source": "all" },
     { "keyword": "karaoke", "source": "all" },
+    { "keyword": "kwanzaa", "source": "all" },
     { "keyword": "psl's", "source": "all" },
     { "keyword": "member deposits", "source": "all" },
     { "keyword": "ecfga", "source": "all" },
@@ -44,7 +45,6 @@
     { "keyword": "vip tailgate", "source": "all" },
     { "keyword": "yoga", "source": "all" },
     { "keyword": " luxury", "source": "all" },
-    { "keyword": "parking pass", "source": "ticketmaster" },
     { "keyword": "parking", "source": "ticketmaster" },
     { "keyword": " pass", "source": "ticketmaster" }
   ],

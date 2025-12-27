@@ -353,6 +353,23 @@ export const filterByTimeOfDay = (events, mode) => {
 }
 
 /**
+ * Filters events by city
+ * @param {Array} events - Array of event objects
+ * @param {Array} selectedCities - Array of selected city names
+ * @returns {Array} Filtered events
+ * @example
+ * filterByCity(events, ['Charlotte']) // Returns only Charlotte events
+ * filterByCity(events, ['Charlotte', 'Asheville']) // Returns Charlotte and Asheville events
+ * filterByCity(events, []) // Returns all events (no filter)
+ */
+export const filterByCity = (events, selectedCities) => {
+  if (!selectedCities || selectedCities.length === 0) {
+    return events
+  }
+  return events.filter((event) => selectedCities.includes(event.city))
+}
+
+/**
  * Creates an ICS calendar file content for an event
  * @param {Object} event - Event object
  * @returns {string} ICS file content

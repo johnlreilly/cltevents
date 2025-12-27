@@ -27,6 +27,7 @@ export default async function handler(req, res) {
       'KovZpZAEAeaA',  // PNC Music Pavilion
       'rZ7HnEZ1kddGd',  // Spectrum Center (large arena)
       'KovZpZAE6klA',  // Charlotte Metro Credit Union Amphitheatre
+      'Za5ju3rKuqZDdeGJU4AJgAGtnknkBhMcgs',  // Skyla Credit Union Amp
       'KovZ917AYaj',   // The Carolina
       'KovZ917AiEp',   // Headliners Uptown Charlotte
       'Z7r9jZa7qm',    // Blackbox Theater - Charlotte
@@ -34,18 +35,28 @@ export default async function handler(req, res) {
       // Note: Smaller venues may not be on Ticketmaster
     ];
 
-    // Fetch general Charlotte area events (reduced size since we're querying specific venues)
-    const charlotteParams = new URLSearchParams({
-      apikey: TICKETMASTER_API_KEY,
-      city: 'Charlotte',
-      stateCode: 'NC',
-      radius: '50',  // TEMPORARILY INCREASED TO TEST WIDER RADIUS
-      unit: 'miles',
-      size: '100',  // TEMPORARILY INCREASED TO SEE MORE VENUES
-      sort: 'date,asc'
+    // Define cities to fetch events from
+    const cities = [
+      { name: 'Charlotte', stateCode: 'NC', radius: '25' },
+      { name: 'Asheville', stateCode: 'NC', radius: '25' },
+      { name: 'Raleigh', stateCode: 'NC', radius: '25' },
+    ];
+
+    // Create city queries
+    const cityPromises = cities.map(city => {
+      const params = new URLSearchParams({
+        apikey: TICKETMASTER_API_KEY,
+        city: city.name,
+        stateCode: city.stateCode,
+        radius: city.radius,
+        unit: 'miles',
+        size: '50',
+        sort: 'date,asc'
+      });
+      return fetch(`https://app.ticketmaster.com/discovery/v2/events.json?${params.toString()}`);
     });
 
-    // Fetch events from priority venues
+    // Fetch events from priority Charlotte venues
     const venuePromises = priorityVenues.map(venueId => {
       const venueParams = new URLSearchParams({
         apikey: TICKETMASTER_API_KEY,
@@ -57,34 +68,27 @@ export default async function handler(req, res) {
     });
 
     // Fetch all data in parallel
-    const [charlotteResponse, ...venueResponses] = await Promise.all([
-      fetch(`https://app.ticketmaster.com/discovery/v2/events.json?${charlotteParams.toString()}`),
+    const [charlotteResponse, ashevilleResponse, raleighResponse, ...venueResponses] = await Promise.all([
+      ...cityPromises,
       ...venuePromises
     ]);
 
-    // Check Charlotte response
-    if (!charlotteResponse.ok) {
-      const errorText = await charlotteResponse.text();
-      console.error('Ticketmaster API Error:', charlotteResponse.status, errorText);
+    // Process all city responses
+    let allEvents = [];
+    const cityResponses = [charlotteResponse, ashevilleResponse, raleighResponse];
 
-      let errorData;
-      try {
-        errorData = JSON.parse(errorText);
-      } catch {
-        errorData = { error: errorText };
+    for (let i = 0; i < cityResponses.length; i++) {
+      const response = cityResponses[i];
+      if (response.ok) {
+        const data = await response.json();
+        const events = data._embedded?.events || [];
+        allEvents = [...allEvents, ...events];
+      } else {
+        console.error(`Ticketmaster API Error for ${cities[i].name}:`, response.status);
       }
-
-      return res.status(charlotteResponse.status).json({
-        error: errorData.fault?.faultstring || errorData.error || 'Failed to fetch events from Ticketmaster',
-        details: errorText,
-        status: charlotteResponse.status
-      });
     }
 
-    const charlotteData = await charlotteResponse.json();
-    let allEvents = charlotteData._embedded?.events || [];
-
-    // Add events from priority venues
+    // Add events from priority Charlotte venues
     for (const venueResponse of venueResponses) {
       if (venueResponse.ok) {
         const venueData = await venueResponse.json();

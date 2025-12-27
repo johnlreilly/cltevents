@@ -44,6 +44,7 @@ export function useEvents() {
   const [loading, setLoading] = useState(false)
   const [initialLoad, setInitialLoad] = useState(true)
   const [availableGenres, setAvailableGenres] = useState([])
+  const [availableCities, setAvailableCities] = useState([])
   const [lastSync, setLastSync] = useState(null)
 
   // YouTube cache persisted to localStorage
@@ -147,6 +148,7 @@ export function useEvents() {
           time: tmEvent.dates?.start?.localTime || null,
           venue: venue,
           venueAddress: venueAddress,
+          city: venueData?.city?.name || 'Unknown',
           distance: 'N/A',
           description: tmEvent.info || tmEvent.pleaseNote || tmEvent.name,
           price: price,
@@ -194,6 +196,7 @@ export function useEvents() {
           date: sjEvent.date,
           time: sjEvent.time || null,
           venue: sjEvent.venue,
+          city: 'Charlotte',
           distance: 'N/A',
           description: sjEvent.description,
           price: 0,
@@ -231,6 +234,7 @@ export function useEvents() {
           time: fillmoreEvent.startTime ? new Date(fillmoreEvent.startTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : null,
           venue: fillmoreEvent.venue,
           venueAddress: fillmoreEvent.location?.address || '',
+          city: 'Charlotte',
           distance: 'N/A',
           description: fillmoreEvent.description,
           price: 0,
@@ -268,6 +272,7 @@ export function useEvents() {
           time: egEvent.startTime || null,
           venue: egEvent.venue,
           venueAddress: egEvent.city || '',
+          city: egEvent.city || 'Unknown',
           distance: 'N/A',
           description: egEvent.description,
           price: 0,
@@ -355,6 +360,7 @@ export function useEvents() {
         time: cltEvent.time || null,
         venue: cltEvent.venue || 'Charlotte',
         venueAddress: '',
+        city: 'Charlotte',
         distance: 'N/A',
         description: cltEvent.description || '',
         price: 0,
@@ -391,6 +397,7 @@ export function useEvents() {
           time: amosEvent.time || null,
           venue: amosEvent.venue,
           venueAddress: '1423 S Tryon St, Charlotte, NC 28203',
+          city: 'Charlotte',
           distance: 'N/A',
           description: amosEvent.description || amosEvent.name,
           price: amosEvent.price || 0,
@@ -428,6 +435,7 @@ export function useEvents() {
           time: jazzEvent.time || null,
           venue: jazzEvent.venue,
           venueAddress: '110 E 7th St, Charlotte, NC 28202',
+          city: 'Charlotte',
           distance: 'N/A',
           description: jazzEvent.description || jazzEvent.name,
           price: jazzEvent.price || 0,
@@ -572,6 +580,10 @@ export function useEvents() {
       )
       setAvailableGenres(genres)
 
+      // Extract unique cities for filtering
+      const cities = [...new Set(allEvents.map(event => event.city).filter(Boolean))].sort()
+      setAvailableCities(cities)
+
       // Save YouTube cache to localStorage
       try {
         const cacheData = {
@@ -607,6 +619,7 @@ export function useEvents() {
     loading,
     initialLoad,
     availableGenres,
+    availableCities,
     lastSync,
     refetch: fetchEvents,
     youtubeCache: youtubeCache.current,
