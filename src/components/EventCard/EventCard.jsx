@@ -256,13 +256,13 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide, sportsTeams = 
                 <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5m14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z" />
               </svg>
             )}
-            {/* City, State pill - light blue outline, black fill, light blue text */}
+            {/* City, State pill - light blue outline, black fill, white text */}
             <span
               className="text-xs px-3 py-1 rounded-full font-medium"
               style={{
                 border: '1px solid #60A5FA',
                 backgroundColor: '#000000',
-                color: '#60A5FA'
+                color: '#FFFFFF'
               }}
             >
               {event.city === 'Charlotte' ? 'Charlotte, NC' : event.city}
