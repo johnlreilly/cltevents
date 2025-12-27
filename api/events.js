@@ -27,6 +27,9 @@ export default async function handler(req, res) {
       'KovZpZAEAeaA',  // PNC Music Pavilion
       'rZ7HnEZ1kddGd',  // Spectrum Center (large arena)
       'KovZpZAE6klA',  // Charlotte Metro Credit Union Amphitheatre
+      'KovZ917AYaj',   // The Carolina
+      'KovZ917AiEp',   // Headliners Uptown Charlotte
+      'Z7r9jZa7qm',    // Blackbox Theater - Charlotte
       // Note: Smokey Joe's, Amos', Fillmore have dedicated scrapers
       // Note: Smaller venues may not be on Ticketmaster
     ];
@@ -36,9 +39,9 @@ export default async function handler(req, res) {
       apikey: TICKETMASTER_API_KEY,
       city: 'Charlotte',
       stateCode: 'NC',
-      radius: '25',
+      radius: '50',  // TEMPORARILY INCREASED TO TEST WIDER RADIUS
       unit: 'miles',
-      size: '50',  // Reduced from 100 - mainly to catch venues not in priority list
+      size: '100',  // TEMPORARILY INCREASED TO SEE MORE VENUES
       sort: 'date,asc'
     });
 
