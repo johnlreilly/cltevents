@@ -251,13 +251,12 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide, sportsTeams = 
                 {genre}
               </span>
             ))}
-            {/* City, State pill - light blue outline, black fill, white text */}
+            {/* City, State pill - light blue outline, black fill, onsurfacevariant text */}
             <span
-              className="text-xs px-3 py-1 rounded-full font-medium"
+              className="text-xs px-3 py-1 rounded-full font-medium text-onsurfacevariant"
               style={{
                 border: '1px solid #60A5FA',
-                backgroundColor: '#000000',
-                color: '#FFFFFF'
+                backgroundColor: '#000000'
               }}
             >
               {event.city === 'Charlotte' ? 'Charlotte, NC' : event.city}
