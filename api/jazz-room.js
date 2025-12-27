@@ -1,3 +1,34 @@
+/**
+ * Decode HTML entities in text
+ * @param {string} text - Text with HTML entities
+ * @returns {string} Decoded text
+ */
+function decodeHTMLEntities(text) {
+  if (!text) return text;
+
+  const entities = {
+    '&#8211;': '–',  // en dash
+    '&#8212;': '—',  // em dash
+    '&#8217;': "'",  // right single quotation mark
+    '&#8216;': "'",  // left single quotation mark
+    '&#8220;': '"',  // left double quotation mark
+    '&#8221;': '"',  // right double quotation mark
+    '&#038;': '&',   // ampersand
+    '&amp;': '&',
+    '&lt;': '<',
+    '&gt;': '>',
+    '&quot;': '"',
+    '&#39;': "'",
+  };
+
+  let decoded = text;
+  for (const [entity, char] of Object.entries(entities)) {
+    decoded = decoded.replace(new RegExp(entity, 'g'), char);
+  }
+
+  return decoded;
+}
+
 // Vercel Serverless Function to fetch events from The Jazz Room
 export default async function handler(req, res) {
   // Enable CORS
@@ -32,7 +63,7 @@ export default async function handler(req, res) {
     if (eventsData.events && Array.isArray(eventsData.events)) {
       for (const event of eventsData.events) {
         try {
-          const eventName = event.title;
+          const eventName = decodeHTMLEntities(event.title);
           if (!eventName) continue;
 
           // Parse start date from API (format: "2026-01-16 18:00:00")
@@ -72,7 +103,7 @@ export default async function handler(req, res) {
             venue: event.venue?.venue || 'The Jazz Room',
             date: eventDate,
             time: eventTime,
-            description: event.excerpt ? event.excerpt.replace(/<[^>]*>/g, '').trim() : null,
+            description: event.excerpt ? decodeHTMLEntities(event.excerpt.replace(/<[^>]*>/g, '').trim()) : null,
             price: event.cost || null,
             url: event.url || 'https://www.thejazzarts.org/events/category/jazz-room/',
             source: 'jazz-room',
