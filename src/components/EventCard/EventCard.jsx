@@ -259,6 +259,13 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide, sportsTeams = 
           </div>
         )}
 
+        {/* City, State - Always visible */}
+        <div className="flex items-center justify-end mb-3">
+          <span className="text-sm text-onsurfacevariant">
+            {event.city === 'Charlotte' ? 'Charlotte, NC' : event.city}
+          </span>
+        </div>
+
         {/* Multiple Dates - Collapsed by default */}
         {event.dates.length > 1 && (
           <>
@@ -296,17 +303,12 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide, sportsTeams = 
 
         {/* Description - Only show if useful, hidden by default */}
         {hasUsefulDescription(event) && (
-          <div className="flex items-center justify-between mb-3">
-            <button
-              onClick={() => setExpandedDescription(!expandedDescription)}
-              className="text-sm text-primary hover:text-onprimarycontainer font-medium"
-            >
-              {expandedDescription ? '▲ Hide Description' : '▼ Show Description'}
-            </button>
-            <span className="text-sm text-onsurfacevariant">
-              {event.city === 'Charlotte' ? 'Charlotte, NC' : event.city}
-            </span>
-          </div>
+          <button
+            onClick={() => setExpandedDescription(!expandedDescription)}
+            className="text-sm text-primary hover:text-onprimarycontainer font-medium mb-3 block"
+          >
+            {expandedDescription ? '▲ Hide Description' : '▼ Show Description'}
+          </button>
         )}
 
         {hasUsefulDescription(event) && expandedDescription && (
