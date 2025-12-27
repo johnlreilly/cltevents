@@ -256,15 +256,19 @@ function EventCard({ event, isFavorite, onToggleFavorite, onHide, sportsTeams = 
                 <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5m14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z" />
               </svg>
             )}
+            {/* City, State pill - light blue outline, black fill, light blue text */}
+            <span
+              className="text-xs px-3 py-1 rounded-full font-medium"
+              style={{
+                border: '1px solid #60A5FA',
+                backgroundColor: '#000000',
+                color: '#60A5FA'
+              }}
+            >
+              {event.city === 'Charlotte' ? 'Charlotte, NC' : event.city}
+            </span>
           </div>
         )}
-
-        {/* City, State - Always visible */}
-        <div className="flex items-center justify-end mb-3">
-          <span className="text-sm text-onsurfacevariant">
-            {event.city === 'Charlotte' ? 'Charlotte, NC' : event.city}
-          </span>
-        </div>
 
         {/* Multiple Dates - Collapsed by default */}
         {event.dates.length > 1 && (
