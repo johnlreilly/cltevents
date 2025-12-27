@@ -108,7 +108,7 @@ export default async function handler(req, res) {
     if (allEvents.length > 0) {
       console.log(`\nAMOS' SOUTHEND EVENTS (${allEvents.length}):`);
       allEvents.forEach((event, index) => {
-        console.log(`\nEvent ${index + 1}:`);
+        console.log(`\n\nEvent ${index + 1}:`);
         console.log(`  Name: ${event.name}`);
         console.log(`  Date: ${event.date}`);
         console.log(`  Time: ${event.time || 'N/A'}`);
