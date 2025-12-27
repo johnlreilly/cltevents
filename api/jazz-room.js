@@ -12,8 +12,9 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Fetch the events page
-    const eventsResponse = await fetch('https://www.thejazzarts.org/events/category/jazz-room/', {
+    // Fetch events from the WordPress Events Calendar JSON API
+    // This includes both jazz-room and jazz-education-events categories
+    const eventsResponse = await fetch('https://www.thejazzarts.org/wp-json/tribe/events/v1/events/?categories=jazz-room&per_page=50', {
       headers: {
         'User-Agent': 'Mozilla/5.0 (compatible; CLTEvents/1.2.1)',
       },
@@ -23,81 +24,66 @@ export default async function handler(req, res) {
       throw new Error(`Jazz Room events fetch failed: ${eventsResponse.status}`);
     }
 
-    const eventsHtml = await eventsResponse.text();
+    const eventsData = await eventsResponse.json();
 
-    // Parse events from HTML
+    // Parse events from JSON API
     const allEvents = [];
 
-    // Extract event blocks - look for type-tribe_events divs with jazz-room or jazz-education-events categories
-    const eventRegex = /<div\s+class="type-tribe_events[^"]*tribe-events-category-(?:jazz-room|jazz-education-events)[^"]*"[^>]*>([\s\S]*?)(?=<div\s+class="type-tribe_events|<!-- Event  -->|$)/g;
-    let match;
+    if (eventsData.events && Array.isArray(eventsData.events)) {
+      for (const event of eventsData.events) {
+        try {
+          const eventName = event.title;
+          if (!eventName) continue;
 
-    while ((match = eventRegex.exec(eventsHtml)) !== null) {
-      const eventHtml = match[0];
+          // Parse start date from API (format: "2026-01-16 18:00:00")
+          const startDateStr = event.start_date;
+          let eventDate = null;
+          let eventTime = null;
 
-      try {
-        // Extract event name from h2 with class tribe-events-title
-        const nameMatch = eventHtml.match(/<h2[^>]*class="tribe-events-title"[^>]*>[\s\S]*?<a[^>]*>([^<]+)<\/a>/i);
-        const eventName = nameMatch ? nameMatch[1].trim() : null;
+          if (startDateStr) {
+            // Parse date and time
+            const dateObj = new Date(startDateStr);
 
-        if (!eventName) continue;
+            // Convert to YYYY-MM-DD format
+            eventDate = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
 
-        // Extract date and time from tribe-events-duration
-        const durationMatch = eventHtml.match(/<div[^>]*class="tribe-events-duration"[^>]*>([\s\S]*?)<\/div>/i);
-        let eventDate = null;
-        let eventTime = null;
+            // Extract time in 12-hour format
+            const hours = dateObj.getHours();
+            const minutes = dateObj.getMinutes();
+            const ampm = hours >= 12 ? 'pm' : 'am';
+            const hour12 = hours % 12 || 12;
+            eventTime = `${hour12}:${String(minutes).padStart(2, '0')} ${ampm}`;
+          }
 
-        if (durationMatch) {
-          const durationText = durationMatch[1];
+          // Skip events in the past
+          if (eventDate) {
+            const eventDateObj = new Date(eventDate);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
 
-          // Extract start date/time: "January 16, 2026 @ 6:00 pm"
-          const startMatch = durationText.match(/<span[^>]*class="tribe-event-date-start"[^>]*>([^<]+)<\/span>/i);
-          if (startMatch) {
-            const startText = startMatch[1].trim(); // "January 16, 2026 @ 6:00 pm"
-            const dateTimeMatch = startText.match(/([A-Za-z]+\s+\d{1,2},\s+\d{4})\s*@\s*(\d{1,2}:\d{2}\s*(?:am|pm))/i);
-
-            if (dateTimeMatch) {
-              eventDate = dateTimeMatch[1]; // "January 16, 2026"
-              eventTime = dateTimeMatch[2]; // "6:00 pm"
+            if (eventDateObj < today) {
+              continue;
             }
           }
+
+          // Create event object
+          const eventObj = {
+            name: eventName,
+            venue: event.venue?.venue || 'The Jazz Room',
+            date: eventDate,
+            time: eventTime,
+            description: event.excerpt ? event.excerpt.replace(/<[^>]*>/g, '').trim() : null,
+            price: event.cost || null,
+            url: event.url || 'https://www.thejazzarts.org/events/category/jazz-room/',
+            source: 'jazz-room',
+            category: 'Music',
+          };
+
+          allEvents.push(eventObj);
+        } catch (parseError) {
+          console.error('Error parsing individual event:', parseError);
+          continue;
         }
-
-        // Extract event URL
-        const urlMatch = eventHtml.match(/<a[^>]*href="([^"]+)"[^>]*rel="bookmark"/i);
-        const eventUrl = urlMatch ? urlMatch[1] : 'https://www.thejazzarts.org/events/category/jazz-room/';
-
-        // Parse date to ISO format
-        const parsedDate = parseJazzRoomDate(eventDate);
-
-        // Skip events in the past
-        if (parsedDate) {
-          const eventDateObj = new Date(parsedDate);
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
-
-          if (eventDateObj < today) {
-            continue;
-          }
-        }
-
-        // Create event object
-        const event = {
-          name: eventName,
-          venue: 'The Jazz Room',
-          date: parsedDate,
-          time: eventTime,
-          description: null,
-          price: null,
-          url: eventUrl.startsWith('http') ? eventUrl : `https://www.thejazzarts.org${eventUrl}`,
-          source: 'jazz-room',
-          category: 'Music',
-        };
-
-        allEvents.push(event);
-      } catch (parseError) {
-        console.error('Error parsing individual event:', parseError);
-        continue;
       }
     }
 
@@ -131,33 +117,4 @@ export default async function handler(req, res) {
       details: error.message
     });
   }
-}
-
-/**
- * Parse Jazz Room date format to ISO 8601
- * Examples: "January 16, 2026", "December 27, 2025"
- * @param {string} dateText - Date string from Jazz Room website
- * @returns {string|null} ISO 8601 date (YYYY-MM-DD) or null
- */
-function parseJazzRoomDate(dateText) {
-  if (!dateText) return null;
-
-  // Match patterns like "January 16, 2026" or "Dec 27, 2025"
-  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-  const monthPattern = monthNames.join('|');
-
-  const dateMatch = dateText.match(new RegExp(`(${monthPattern})\\s+(\\d{1,2}),\\s+(\\d{4})`, 'i'));
-  if (dateMatch) {
-    const month = dateMatch[1];
-    const day = parseInt(dateMatch[2]);
-    const year = parseInt(dateMatch[3]);
-    const monthIndex = monthNames.findIndex(m => month.toLowerCase() === m.toLowerCase());
-
-    if (monthIndex !== -1) {
-      // Return in YYYY-MM-DD format
-      return `${year}-${String(monthIndex + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    }
-  }
-
-  return null;
 }
