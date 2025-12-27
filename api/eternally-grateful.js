@@ -106,10 +106,7 @@ function parseEternallyGratefulEvents(html) {
           }
         }
       } catch (parseError) {
-        console.error('Error parsing individual 
-
-
-Event:', parseError)
+        console.error('Error parsing individual event:', parseError)
       }
     }
 

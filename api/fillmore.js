@@ -130,10 +130,7 @@ function parseEventFromJsonLd(jsonLd) {
       genres: [], // Fillmore doesn't provide genre in JSON-LD, will be extracted from name
     }
   } catch (error) {
-    console.error('Error converting JSON-LD 
-
-
-Event:', error)
+    console.error('Error converting JSON-LD event:', error)
     return null
   }
 }
